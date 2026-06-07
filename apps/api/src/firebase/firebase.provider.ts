@@ -1,15 +1,23 @@
 import * as admin from 'firebase-admin';
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
-export const firebaseApp = admin.initializeApp({
-  credential: admin.credential.cert({
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  }),
-});
+@Injectable()
+export class FirebaseProvider {
+  readonly app: admin.app.App;
+  readonly firestore: admin.firestore.Firestore;
 
-export const firestore = admin.firestore(firebaseApp);
+  constructor(private configService: ConfigService) {
+    this.app = admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: this.configService.getOrThrow('FIREBASE_PROJECT_ID'),
+        clientEmail: this.configService.getOrThrow('FIREBASE_CLIENT_EMAIL'),
+        privateKey: this.configService
+          .getOrThrow<string>('FIREBASE_PRIVATE_KEY')
+          ?.replace(/\\n/g, '\n'),
+      }),
+    });
 
-export const auth: admin.auth.Auth = admin.auth(firebaseApp);
-
-export const storage: admin.storage.Storage = admin.storage(firebaseApp);
+    this.firestore = admin.firestore(this.app);
+  }
+}
