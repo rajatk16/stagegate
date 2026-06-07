@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { validateEnv } from './config/validateEnv';
-import { FirebaseModule } from './firebase/firebase.module';
+
+import { HealthModule } from '@/health/health.module';
+import { FirebaseModule } from '@/firebase/firebase.module';
 
 @Module({
   imports: [
@@ -12,6 +14,7 @@ import { FirebaseModule } from './firebase/firebase.module';
       envFilePath: ['.env.local', '.env'],
     }),
     FirebaseModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
