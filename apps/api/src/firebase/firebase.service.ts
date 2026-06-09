@@ -3,21 +3,24 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class FirebaseProvider {
-  readonly app: admin.app.App;
-  readonly firestore: admin.firestore.Firestore;
+export class FirebaseService {
+  private readonly app: admin.app.App;
 
-  constructor(private configService: ConfigService) {
+  constructor(private readonly configService: ConfigService) {
     this.app = admin.initializeApp({
       credential: admin.credential.cert({
         projectId: this.configService.getOrThrow('FIREBASE_PROJECT_ID'),
         clientEmail: this.configService.getOrThrow('FIREBASE_CLIENT_EMAIL'),
-        privateKey: this.configService
-          .getOrThrow<string>('FIREBASE_PRIVATE_KEY')
-          ?.replace(/\\n/g, '\n'),
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       }),
     });
+  }
 
-    this.firestore = admin.firestore(this.app);
+  get auth(): admin.auth.Auth {
+    return this.app.auth();
+  }
+
+  get firestore(): admin.firestore.Firestore {
+    return this.app.firestore();
   }
 }
