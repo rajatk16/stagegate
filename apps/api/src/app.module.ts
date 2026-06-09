@@ -5,6 +5,8 @@ import { validateEnv } from './config/validateEnv';
 
 import { HealthModule } from '@/health/health.module';
 import { FirebaseModule } from '@/firebase/firebase.module';
+import { FirebaseModule } from './firebase/firebase.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -15,6 +17,7 @@ import { FirebaseModule } from '@/firebase/firebase.module';
     }),
     FirebaseModule,
     HealthModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
