@@ -3,9 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 
 import { validateEnv } from './config/validateEnv';
 
+import { AuthModule } from '@/auth/auth.module';
+import { LoggerModule } from '@/logger/logger.module';
 import { HealthModule } from '@/health/health.module';
+import { CommonModule } from '@/common/common.module';
 import { FirebaseModule } from '@/firebase/firebase.module';
-import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { AuthModule } from './auth/auth.module';
     FirebaseModule,
     HealthModule,
     AuthModule,
+    LoggerModule,
+    CommonModule,
   ],
 })
 export class AppModule {}

@@ -8,6 +8,9 @@ export const envSchema = z.object({
   FIREBASE_CLIENT_EMAIL: z.string(),
   FIREBASE_PRIVATE_KEY: z.string(),
   JWT_SECRET: z.string().min(32),
+  LOG_LEVEL: z
+    .enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal'])
+    .default('info'),
 });
 
 export type EnvSchema = z.infer<typeof envSchema>;
