@@ -1,14 +1,8 @@
 export const Footer = () => (
-  <footer className="border-t border-white/10 py-10">
-    <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-6 px-6 md:flex-row">
-      <div>
-        <h3 className="font-semibold text-center">
-          StageGate
-        </h3>
-
-        <p className="text-sm text-slate-500 text-center">
-          Modern CFP Review Platform
-        </p>
+  <footer className="border-t">
+    <div className="container mx-auto px-6 py-10">
+      <div className="flex items-center justify-center">
+        <div>© 2026 StageGate</div>
       </div>
     </div>
   </footer>
