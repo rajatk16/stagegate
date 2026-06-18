@@ -1,26 +1,23 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { validateEnv } from './config/validateEnv';
-
-import { AuthModule } from '@/auth/auth.module';
 import { LoggerModule } from '@/logger/logger.module';
-import { HealthModule } from '@/health/health.module';
 import { CommonModule } from '@/common/common.module';
+import { HealthModule } from '@/health/health.module';
+import firebaseConfig from '@/config/firebase.config';
 import { FirebaseModule } from '@/firebase/firebase.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validate: validateEnv,
       envFilePath: ['.env.local', '.env'],
+      load: [firebaseConfig],
     }),
-    FirebaseModule,
-    HealthModule,
-    AuthModule,
     LoggerModule,
     CommonModule,
+    FirebaseModule,
+    HealthModule,
   ],
 })
 export class AppModule {}
