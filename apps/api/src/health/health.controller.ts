@@ -1,12 +1,20 @@
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Controller, Get } from '@nestjs/common';
 
 import { FirebaseService } from '@/firebase/firebase.service';
 
+@ApiTags('Health')
 @Controller('health')
 export class HealthController {
   constructor(private readonly firebaseService: FirebaseService) {}
 
   @Get()
+  @ApiOperation({
+    summary: 'Get health status of the application',
+  })
+  @ApiOkResponse({
+    description: 'The health status of the application',
+  })
   async getHealth() {
     try {
       await this.firebaseService.firestore.collection('_health').limit(1).get();

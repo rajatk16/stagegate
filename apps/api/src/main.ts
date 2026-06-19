@@ -2,14 +2,19 @@ import { Logger } from 'nestjs-pino';
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from '@/app.module';
-import { GlobalExceptionFilter } from '@/common/filters/http-exception.filter';
+import { setupSwagger } from '@/swagger/swagger.config';
+import { GlobalExceptionFilter } from '@/common/filters/globalException.filter';
+import { ResponseInterceptor } from '@/common/interceptors/response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.useLogger(app.get(Logger));
 
+  setupSwagger(app);
+
   app.useGlobalFilters(app.get(GlobalExceptionFilter));
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   await app.listen(process.env.PORT ?? 3000);
 }
