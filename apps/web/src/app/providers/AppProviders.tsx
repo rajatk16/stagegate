@@ -1,6 +1,16 @@
 import type { PropsWithChildren } from 'react';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { QueryClientProvider } from '@tanstack/react-query';
+
+import { queryClient } from '@/api/queryClient';
+
 import { ThemeProvider } from './ThemeProvider';
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
-  <ThemeProvider>{children}</ThemeProvider>
+  <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+      {import.meta.env.DEV && <ReactQueryDevtools />}
+    </QueryClientProvider>
+  </ThemeProvider>
 );
