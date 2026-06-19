@@ -1,0 +1,19 @@
+services:
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/api.Dockerfile
+
+    ports:
+      - '3000:3000'
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/web.Dockerfile
+
+    ports:
+      - '80:80'
+
+    depends_on:
+      - api
