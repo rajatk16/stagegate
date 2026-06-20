@@ -6,6 +6,7 @@ import { HealthModule } from '@/health/health.module';
 import firebaseConfig from '@/config/firebase.config';
 import { FirebaseModule } from '@/firebase/firebase.module';
 import { CommonModule } from './common/common.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { CommonModule } from './common/common.module';
     CommonModule,
     FirebaseModule,
     HealthModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
