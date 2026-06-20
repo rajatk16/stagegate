@@ -1,8 +1,10 @@
 import type { AxiosError, AxiosInstance } from 'axios';
 
+import { useAuthStore } from '@/auth/authStore';
+
 export const setupInterceptors = (apiClient: AxiosInstance) => {
   apiClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem('accessToken');
+    const token = useAuthStore.getState().accessToken;
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
