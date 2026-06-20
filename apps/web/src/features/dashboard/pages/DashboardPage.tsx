@@ -1,4 +1,4 @@
-export const DashboardPage = () => (
+const DashboardPage = () => (
   <div>
     <div className="mt-6 grid gap-6 md:grid-cols-3">
       <div className="rounded-xl border bg-card p-6">Total Proposals</div>
@@ -9,3 +9,5 @@ export const DashboardPage = () => (
     </div>
   </div>
 );
+
+export default DashboardPage;

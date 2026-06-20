@@ -5,7 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '../ui';
+} from '@/components/ui';
 
 export const UserMenu = () => (
   <DropdownMenu>
