@@ -6,7 +6,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
     "prepare": "husky",
     "docker:prod:build": "docker compose -f infra/docker/docker-compose.prod.yml --build",
     "docker:prod": "docker compose -f infra/docker/docker-compose.prod.yml up"
