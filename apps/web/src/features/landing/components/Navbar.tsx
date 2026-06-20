@@ -1,5 +1,5 @@
-import { Button } from '../ui';
-import { ThemeToggle } from '../theme/ThemeToggle';
+import { Button } from '@/components/ui';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
 
 export const Navbar = () => (
   <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
