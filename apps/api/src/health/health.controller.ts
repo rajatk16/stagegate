@@ -2,6 +2,7 @@ import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Controller, Get } from '@nestjs/common';
 
 import { FirebaseService } from '@/firebase/firebase.service';
+import { Public } from '@/auth/decorators/public.decorator';
 
 @ApiTags('Health')
 @Controller('health')
@@ -9,6 +10,7 @@ export class HealthController {
   constructor(private readonly firebaseService: FirebaseService) {}
 
   @Get()
+  @Public()
   @ApiOperation({
     summary: 'Get health status of the application',
   })

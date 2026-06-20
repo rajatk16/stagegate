@@ -6,7 +6,14 @@ export const setupSwagger = (app: INestApplication) => {
     .setTitle('StageGate API')
     .setDescription('CFP Review Platform API')
     .setVersion('1.0')
-    .addBearerAuth()
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'firebase-auth',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
