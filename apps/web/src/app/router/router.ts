@@ -4,9 +4,10 @@ import { createBrowserRouter } from 'react-router-dom';
 import LandingPage from '@/features/landing/pages/LandingPage';
 
 import {
-  DashboardLayoutRoute,
-  DashboardPageRoute,
   LoginPageRoute,
+  AuthLayoutRoute,
+  DashboardPageRoute,
+  DashboardLayoutRoute,
 } from './routeElements';
 import { NotFoundPage } from '@/features/extra/pages/NotFoundPage';
 
@@ -20,10 +21,16 @@ export const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: createElement(LoginPageRoute),
-    handle: {
-      title: 'Login',
-    },
+    element: createElement(AuthLayoutRoute),
+    children: [
+      {
+        index: true,
+        element: createElement(LoginPageRoute),
+        handle: {
+          title: 'Login',
+        },
+      },
+    ],
   },
   {
     path: '/dashboard',

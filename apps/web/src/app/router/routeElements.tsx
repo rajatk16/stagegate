@@ -1,7 +1,8 @@
 import { Suspense, lazy } from 'react';
 
-import { AppLayout } from '../layouts/AppLayout';
+import { AppLayout, AuthLayout } from '../layouts';
 import { ProtectedRoute } from './ProtectedRoute';
+import { PublicOnlyRoute } from './PublicOnlyRoute';
 
 const LoginPage = lazy(() => import('@/features/auth/pages/LoginPage'));
 const DashboardPage = lazy(
@@ -29,5 +30,13 @@ export function DashboardLayoutRoute() {
     <ProtectedRoute>
       <AppLayout />
     </ProtectedRoute>
+  );
+}
+
+export function AuthLayoutRoute() {
+  return (
+    <PublicOnlyRoute>
+      <AuthLayout />
+    </PublicOnlyRoute>
   );
 }

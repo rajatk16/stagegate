@@ -1,10 +1,10 @@
-import { Navigate } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
-
-import { RouteLoader } from './RouteLoader';
 import { useAuthenticatedUser, useAuthInitialized } from '@/auth/authSelectors';
 
-export const ProtectedRoute = (props: PropsWithChildren) => {
+import { RouteLoader } from './RouteLoader';
+import { Navigate } from 'react-router-dom';
+
+export const PublicOnlyRoute = (props: PropsWithChildren) => {
   const initialized = useAuthInitialized();
 
   const authenticatedUser = useAuthenticatedUser();
@@ -13,8 +13,8 @@ export const ProtectedRoute = (props: PropsWithChildren) => {
     return <RouteLoader />;
   }
 
-  if (!authenticatedUser) {
-    return <Navigate replace to="/login" />;
+  if (authenticatedUser) {
+    return <Navigate replace to="/dashboard" />;
   }
 
   return <>{props.children}</>;
