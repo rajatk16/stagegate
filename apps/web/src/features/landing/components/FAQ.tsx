@@ -14,7 +14,7 @@ export const FAQ = () => (
     <div className="mx-auto mt-12 max-w-3xl">
       <Accordion type="single" collapsible>
         <AccordionItem value="1">
-          <AccordionTrigger>
+          <AccordionTrigger className="cursor-pointer">
             Can I manage multiple conferences?
           </AccordionTrigger>
 
@@ -25,7 +25,9 @@ export const FAQ = () => (
         </AccordionItem>
 
         <AccordionItem value="2">
-          <AccordionTrigger>Can reviewers score anonymously?</AccordionTrigger>
+          <AccordionTrigger className="cursor-pointer">
+            Can reviewers score anonymously?
+          </AccordionTrigger>
 
           <AccordionContent>Yes.</AccordionContent>
         </AccordionItem>
