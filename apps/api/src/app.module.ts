@@ -10,6 +10,8 @@ import { CommonModule } from '@/common/common.module';
 import firebaseConfig from '@/config/firebase.config';
 import { FirebaseModule } from '@/firebase/firebase.module';
 import { FirebaseAuthGuard } from '@/auth/guards/firebaseAuth.guard';
+import { AuthorizationModule } from '@/authorization/authorization.module';
+import { AuthorizationGuard } from '@/authorization/guards/authorization.guard';
 
 @Module({
   imports: [
@@ -24,11 +26,16 @@ import { FirebaseAuthGuard } from '@/auth/guards/firebaseAuth.guard';
     HealthModule,
     UsersModule,
     AuthModule,
+    AuthorizationModule,
   ],
   providers: [
     {
       provide: APP_GUARD,
       useClass: FirebaseAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AuthorizationGuard,
     },
   ],
 })
