@@ -2,18 +2,20 @@ import { Navigate } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
 import { RouteLoader } from './RouteLoader';
+import { useBootstrapInitialized } from '@/bootstrap/hooks';
 import { useAuthenticatedUser, useAuthInitialized } from '@/auth/authSelectors';
 
 export const ProtectedRoute = (props: PropsWithChildren) => {
-  const initialized = useAuthInitialized();
+  const authInitialized = useAuthInitialized();
+  const bootstrapInitialized = useBootstrapInitialized();
 
-  const authenticatedUser = useAuthenticatedUser();
+  const user = useAuthenticatedUser();
 
-  if (!initialized) {
+  if (!authInitialized || (user && !bootstrapInitialized)) {
     return <RouteLoader />;
   }
 
-  if (!authenticatedUser) {
+  if (!user) {
     return <Navigate replace to="/login" />;
   }
 

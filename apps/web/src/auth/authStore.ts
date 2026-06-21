@@ -12,6 +12,7 @@ export interface AuthState {
   setAccessToken: (token: string | null) => void;
   setInitialized: (value: boolean) => void;
   logout: () => void;
+  reset: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -30,4 +31,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       accessToken: null,
     });
   },
+  reset: () =>
+    set({
+      firebaseUser: null,
+      authenticatedUser: null,
+      accessToken: null,
+      initialized: false,
+    }),
 }));

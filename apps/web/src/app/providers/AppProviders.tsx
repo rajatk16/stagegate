@@ -6,14 +6,15 @@ import { queryClient } from '@/api/queryClient';
 
 import { AuthProvider } from './AuthProvider';
 import { ThemeProvider } from './ThemeProvider';
+import { BootstrapProvider } from './BootstrapProvider';
 
 export const AppProviders = ({ children }: PropsWithChildren) => (
   <ThemeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {children}
-        {import.meta.env.DEV && <ReactQueryDevtools />}
+        <BootstrapProvider>{children}</BootstrapProvider>
       </AuthProvider>
+      {import.meta.env.DEV && <ReactQueryDevtools />}
     </QueryClientProvider>
   </ThemeProvider>
 );
