@@ -2,21 +2,21 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { FirebaseService } from '@/firebase/firebase.service';
-import { UserRepository } from '@/users/repositories/user.repository';
 import { createUserFactory } from '@/users/util/createUser.factory';
+import { UserRepository } from '@/users/repositories/user.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly firebaseService: FirebaseService,
     private readonly userRepository: UserRepository,
+    private readonly firebaseService: FirebaseService,
   ) {}
 
   async verifyToken(token: string): Promise<DecodedIdToken> {
     try {
       return await this.firebaseService.auth.verifyIdToken(token);
     } catch {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Invalid Firebase token');
     }
   }
 

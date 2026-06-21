@@ -4,6 +4,7 @@ import { USERS_COLLECTION } from '../users.constant';
 import { userConverter } from '../util/user.converter';
 import { User } from '../entities/user.entity';
 import { Timestamp } from 'firebase-admin/firestore';
+import { UserStatus } from '../enums';
 
 @Injectable()
 export class UserRepository {
@@ -68,7 +69,7 @@ export class UserRepository {
 
   async deactivate(id: string): Promise<void> {
     await this.update(id, {
-      isActive: false,
+      status: UserStatus.INACTIVE,
     });
   }
 }
