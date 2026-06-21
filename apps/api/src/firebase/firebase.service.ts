@@ -16,30 +16,6 @@ export class FirebaseService {
       return;
     }
 
-    const useEmulator =
-      this.configService.get<boolean>('firebase.useEmulator') === true;
-
-    if (useEmulator) {
-      const firestoreEmulatorHost = this.configService.get<string>(
-        'firebase.firestoreEmulatorHost',
-      );
-      const authEmulatorHost = this.configService.get<string>(
-        'firebase.authEmulatorHost',
-      );
-
-      if (firestoreEmulatorHost) {
-        process.env.FIRESTORE_EMULATOR_HOST = firestoreEmulatorHost;
-      }
-      if (authEmulatorHost) {
-        process.env.FIREBASE_AUTH_EMULATOR_HOST = authEmulatorHost;
-      }
-
-      this.app = admin.initializeApp({
-        projectId: this.configService.get<string>('firebase.projectId'),
-      });
-      return;
-    }
-
     this.app = admin.initializeApp({
       credential: admin.credential.cert({
         projectId: this.configService.getOrThrow<string>('firebase.projectId'),

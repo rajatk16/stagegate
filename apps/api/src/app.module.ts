@@ -8,6 +8,7 @@ import { LoggerModule } from '@/logger/logger.module';
 import { HealthModule } from '@/health/health.module';
 import { CommonModule } from '@/common/common.module';
 import firebaseConfig from '@/config/firebase.config';
+import appConfig from '@/config/app.config';
 import { FirebaseModule } from '@/firebase/firebase.module';
 import { FirebaseAuthGuard } from '@/auth/guards/firebaseAuth.guard';
 import { AuthorizationModule } from '@/authorization/authorization.module';
@@ -18,7 +19,7 @@ import { AuthorizationGuard } from '@/authorization/guards/authorization.guard';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [firebaseConfig],
+      load: [firebaseConfig, appConfig],
     }),
     LoggerModule,
     CommonModule,

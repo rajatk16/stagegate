@@ -1,26 +1,19 @@
-import { useIsAuthenticated } from '@/auth/authSelectors';
-import { loginWIthGoogle } from '@/auth/authService';
 import { Button } from '@/components/ui';
-import { Navigate } from 'react-router-dom';
+import { loginWIthGoogle } from '@/auth/authService';
 
 const LoginPage = () => {
-  const isAuthenticated = useIsAuthenticated();
-
-  if (isAuthenticated) {
-    return <Navigate replace to="/dashboard" />;
-  }
   const handleLogin = async () => {
     await loginWIthGoogle();
   };
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md rounded-xl border p-8">
-        <h1 className="mb-6 text-2xl font-bold">Login</h1>
+    <div className="w-full max-w-md rounded-xl border bg-card p-8">
+      <h1 className="mb-2 text-2xl font-bold">Welcome to StageGate</h1>
 
-        <Button className="w-full" onClick={handleLogin}>
-          Login With Google
-        </Button>
-      </div>
+      <p className="mb-6 text-muted-foreground">Sign in to continue.</p>
+
+      <Button className="w-full" onClick={handleLogin}>
+        Continue with Google
+      </Button>
     </div>
   );
 };
