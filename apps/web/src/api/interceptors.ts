@@ -17,7 +17,7 @@ export const setupInterceptors = (apiClient: AxiosInstance) => {
     (response) => response,
     (error: AxiosError) => {
       if (error.response?.status === 401) {
-        console.error('Unauthorized');
+        useAuthStore.getState().logout();
       }
 
       throw Promise.reject(error);
