@@ -1,3 +1,4 @@
+import { logOut } from '@/auth/authService';
 import { useAuthenticatedUser } from '@/auth/authSelectors';
 import {
   Avatar,
@@ -12,7 +13,7 @@ export const UserMenu = () => {
   const user = useAuthenticatedUser();
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
+      <DropdownMenuTrigger className="cursor-pointer">
         <Avatar>
           <AvatarFallback className="text-random-color">
             {user?.displayName?.charAt(0).toUpperCase()}
@@ -20,10 +21,12 @@ export const UserMenu = () => {
         </Avatar>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="cursor-pointer">
         <DropdownMenuItem>Profile</DropdownMenuItem>
         <DropdownMenuItem>Account Settings</DropdownMenuItem>
-        <DropdownMenuItem>Logout</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => logOut()} className="cursor-pointer">
+          Logout
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
