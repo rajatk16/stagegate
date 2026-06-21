@@ -1,11 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 
+import { Authorized } from '@/swagger/decorators/authorized.decorators';
+
 import { CurrentUser } from './decorators/currentUser.decorator';
 import type { AuthenticatedUser } from './interfaces/authenticatedUser.interface';
-import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth')
-@ApiBearerAuth('firebase-auth')
+@Authorized()
 export class AuthController {
   @Get('/me')
   me(@CurrentUser() user: AuthenticatedUser) {

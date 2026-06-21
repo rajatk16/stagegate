@@ -45,11 +45,15 @@ export class FirebaseAuthGuard implements CanActivate {
 
     const appUser = await this.authService.getOrCreateUser(decoded);
 
-    request.user = {
-      userId: appUser.id,
-      firebaseUid: appUser.firebaseUid,
-      email: appUser.email,
-      displayName: appUser.displayName,
+    request.context = {
+      user: {
+        userId: appUser.id,
+        firebaseUid: appUser.firebaseUid,
+        email: appUser.email,
+        displayName: appUser.displayName,
+      },
+      organizationId: undefined,
+      roles: [],
     };
 
     request.log = request.log.child({
