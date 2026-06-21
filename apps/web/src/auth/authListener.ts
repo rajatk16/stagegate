@@ -1,34 +1,40 @@
 import { onAuthStateChanged } from 'firebase/auth';
 
 import { auth } from '@/firebase/firebase';
+import { getCurrentUser } from '@/features/auth/api';
 
 import { useAuthStore } from './authStore';
-import { saveAccessToken } from './authStorage';
+import { clearAccessToken, saveAccessToken } from './authStorage';
 
 export const initializeAuth = () => {
-  const store = useAuthStore.getState();
-
   return onAuthStateChanged(auth, async (firebaseUser) => {
-    if (!firebaseUser) {
-      store.setUser(null);
-      store.setAccessToken(null);
-      store.setInitialized(false);
+    const store = useAuthStore.getState();
+    try {
+      if (!firebaseUser) {
+        clearAccessToken();
+        store.logout();
+        store.setInitialized(true);
+        return;
+      }
 
-      return;
+      const token = await firebaseUser.getIdToken();
+
+      saveAccessToken(token);
+      store.setAccessToken(token);
+
+      store.setFirebaseUser({
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: firebaseUser.displayName,
+      });
+
+      const authenticatedUser = await getCurrentUser();
+
+      store.setAuthenticatedUser(authenticatedUser);
+    } catch {
+      store.logout();
+    } finally {
+      store.setInitialized(true);
     }
-
-    const token = await firebaseUser.getIdToken();
-
-    saveAccessToken(token);
-
-    store.setUser({
-      uid: firebaseUser.uid,
-      email: firebaseUser.email,
-      displayName: firebaseUser.displayName,
-    });
-
-    store.setAccessToken(token);
-
-    store.setInitialized(true);
   });
 };

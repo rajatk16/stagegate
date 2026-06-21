@@ -1,20 +1,32 @@
 import { create } from 'zustand';
+import type { AuthenticatedUser, FirebaseUserInfo } from './authTypes';
 
-import type { AuthState } from './authTypes';
-import { clearAccessToken } from './authStorage';
+export interface AuthState {
+  firebaseUser: FirebaseUserInfo | null;
+  authenticatedUser: AuthenticatedUser | null;
+  accessToken: string | null;
+  initialized: boolean;
+
+  setFirebaseUser: (user: FirebaseUserInfo | null) => void;
+  setAuthenticatedUser: (user: AuthenticatedUser | null) => void;
+  setAccessToken: (token: string | null) => void;
+  setInitialized: (value: boolean) => void;
+  logout: () => void;
+}
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
+  firebaseUser: null,
+  authenticatedUser: null,
   accessToken: null,
   initialized: false,
-  setUser: (user) => set({ user }),
+  setFirebaseUser: (firebaseUser) => set({ firebaseUser }),
+  setAuthenticatedUser: (authenticatedUser) => set({ authenticatedUser }),
   setAccessToken: (accessToken) => set({ accessToken }),
   setInitialized: (initialized) => set({ initialized }),
   logout: () => {
-    clearAccessToken();
-
     set({
-      user: null,
+      firebaseUser: null,
+      authenticatedUser: null,
       accessToken: null,
     });
   },
