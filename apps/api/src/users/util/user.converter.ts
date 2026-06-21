@@ -1,5 +1,6 @@
 import { FirestoreDataConverter, Timestamp } from 'firebase-admin/firestore';
 
+import { UserStatus } from '../enums';
 import { User } from '../entities/user.entity';
 
 const toDate = (value: unknown): Timestamp => {
@@ -26,7 +27,7 @@ export const userConverter: FirestoreDataConverter<User> = {
       email: data.email as string,
       displayName: data.displayName as string,
       photoUrl: data.photoUrl as string,
-      isActive: data.isActive as boolean,
+      status: data.status as UserStatus,
       createdAt: toDate(data.createdAt),
       updatedAt: toDate(data.updatedAt),
     };

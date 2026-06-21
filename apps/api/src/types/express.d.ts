@@ -1,14 +1,9 @@
-import { Role } from '@/authorization/enums';
-import { AuthenticatedUser } from '@/auth/interfaces/authenticatedUser.interface';
+import { RequestContext } from '@/auth/interfaces';
 
 declare global {
   namespace Express {
     interface Request {
-      context: {
-        user?: AuthenticatedUser;
-        organizationId?: string;
-        roles: Role[];
-      };
+      context?: RequestContext;
     }
   }
 }

@@ -37,7 +37,7 @@ export class FirebaseAuthGuard implements CanActivate {
 
     const [type, token] = authHeader.split(' ');
 
-    if (type !== 'Bearer') {
+    if (type !== 'Bearer' || !token) {
       throw new UnauthorizedException();
     }
 

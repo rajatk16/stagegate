@@ -1,5 +1,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
+import { UserStatus } from '../enums';
+
 export class User {
   id: string;
 
@@ -11,7 +13,7 @@ export class User {
 
   photoUrl?: string | null;
 
-  isActive: boolean;
+  status: UserStatus;
 
   createdAt: Timestamp;
 
