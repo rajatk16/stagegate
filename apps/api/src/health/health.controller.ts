@@ -1,8 +1,8 @@
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Controller, Get } from '@nestjs/common';
 
+import { Public } from '@/auth/decorators';
 import { FirebaseService } from '@/firebase/firebase.service';
-import { Public } from '@/auth/decorators/public.decorator';
 
 @ApiTags('Health')
 @Controller('health')

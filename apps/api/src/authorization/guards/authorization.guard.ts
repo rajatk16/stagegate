@@ -8,8 +8,8 @@ import {
 } from '@nestjs/common';
 
 import { Permission, Role } from '../enums';
-import { PERMISSIONS_KEY, ROLES_KEY } from '../decorators';
 import { ROLE_PERMISSIONS } from '../constants';
+import { PERMISSIONS_KEY, ROLES_KEY } from '../decorators';
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {

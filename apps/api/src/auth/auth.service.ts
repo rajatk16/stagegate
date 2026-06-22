@@ -1,9 +1,9 @@
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
+import { UserRepository } from '@/users/repositories';
+import { createUserFactory } from '@/users/user.factory';
 import { FirebaseService } from '@/firebase/firebase.service';
-import { createUserFactory } from '@/users/util/createUser.factory';
-import { UserRepository } from '@/users/repositories/user.repository';
 
 @Injectable()
 export class AuthService {
