@@ -1,10 +1,10 @@
 import {
-  Building2,
-  ClipboardList,
+  Mic,
   Users,
+  Building2,
   BarChart3,
   CalendarDays,
-  Mic,
+  ClipboardList,
 } from 'lucide-react';
 
 const features = [

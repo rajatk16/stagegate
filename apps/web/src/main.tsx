@@ -2,9 +2,9 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 
+import { router, AppProviders } from '@/app';
+
 import './index.css';
-import { router } from '@/app/router';
-import { AppProviders } from '@/app/providers';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

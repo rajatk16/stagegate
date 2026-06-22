@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import type { AuthenticatedUser, FirebaseUserInfo } from './authTypes';
+
+import type { AuthenticatedUser, FirebaseUserInfo } from './types';
 
 export interface AuthState {
   firebaseUser: FirebaseUserInfo | null;

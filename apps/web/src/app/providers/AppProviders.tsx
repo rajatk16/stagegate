@@ -2,7 +2,7 @@ import type { PropsWithChildren } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
-import { queryClient } from '@/api/queryClient';
+import { queryClient } from '@/api';
 
 import { AuthProvider } from './AuthProvider';
 import { ThemeProvider } from './ThemeProvider';

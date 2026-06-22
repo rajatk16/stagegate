@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 
-import { navItems } from '@/app/navigation/navItems';
-import { OrganizationSwitcher } from './OrganizationSwitcher';
+import { navItems } from '@/app';
+import { OrganizationSwitcher } from '@/features/organizations';
 
 export const Sidebar = () => {
   return (
