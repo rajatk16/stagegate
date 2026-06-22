@@ -1,6 +1,6 @@
 import type { AxiosError, AxiosInstance } from 'axios';
 
-import { useAuthStore } from '@/auth/authStore';
+import { useAuthStore } from '@/features/auth';
 
 export const setupInterceptors = (apiClient: AxiosInstance) => {
   apiClient.interceptors.request.use((config) => {

@@ -1,9 +1,10 @@
 import { Navigate } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
+import { useBootstrapInitialized } from '@/features/bootstrap';
+import { useAuthenticatedUser, useAuthInitialized } from '@/features/auth';
+
 import { RouteLoader } from './RouteLoader';
-import { useBootstrapInitialized } from '@/bootstrap/hooks';
-import { useAuthenticatedUser, useAuthInitialized } from '@/auth/authSelectors';
 
 export const ProtectedRoute = (props: PropsWithChildren) => {
   const authInitialized = useAuthInitialized();

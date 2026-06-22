@@ -1,5 +1,4 @@
-import { logOut } from '@/auth/authService';
-import { useAuthenticatedUser } from '@/auth/authSelectors';
+import { logOut, useAuthenticatedUser } from '@/features/auth';
 import {
   Avatar,
   DropdownMenu,

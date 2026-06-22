@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui';
-import { loginWIthGoogle } from '@/auth/authService';
+
+import { loginWIthGoogle } from '../service';
 
 const LoginPage = () => {
   const handleLogin = async () => {

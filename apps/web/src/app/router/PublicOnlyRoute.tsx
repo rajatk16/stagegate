@@ -1,8 +1,9 @@
+import { Navigate } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
-import { useAuthenticatedUser, useAuthInitialized } from '@/auth/authSelectors';
+
+import { useAuthenticatedUser, useAuthInitialized } from '@/features/auth';
 
 import { RouteLoader } from './RouteLoader';
-import { Navigate } from 'react-router-dom';
 
 export const PublicOnlyRoute = (props: PropsWithChildren) => {
   const initialized = useAuthInitialized();

@@ -1,9 +1,9 @@
 import { GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
 
-import { auth } from '@/firebase/firebase';
-import { bootstrapApp } from '@/bootstrap/api';
+import { auth } from '@/firebase';
+import { bootstrapApp } from '@/features/bootstrap';
 
-import { useAuthStore } from './authStore';
+import { useAuthStore } from './store';
 
 const provider = new GoogleAuthProvider();
 

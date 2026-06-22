@@ -1,6 +1,6 @@
 import { useEffect, type PropsWithChildren } from 'react';
 
-import { initializeAuth } from '@/auth/authListener';
+import { initializeAuth } from '@/features/auth';
 
 export const AuthProvider = (props: PropsWithChildren) => {
   useEffect(() => {

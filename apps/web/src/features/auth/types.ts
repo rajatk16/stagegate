@@ -10,3 +10,11 @@ export interface AuthenticatedUser {
   email: string;
   displayName: string;
 }
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  displayName: string;
+  avatarUrl?: string;
+  roles: string[];
+}

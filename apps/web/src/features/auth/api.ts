@@ -1,6 +1,6 @@
-import { apiClient } from '@/api/apiClient';
-import type { ApiResponse } from '@/api/types';
-import type { AuthenticatedUser } from '@/auth/authTypes';
+import { apiClient, type ApiResponse } from '@/api';
+
+import type { AuthenticatedUser } from './types';
 
 export const getCurrentUser = async () => {
   const response =

@@ -1,8 +1,7 @@
 import { useEffect, type PropsWithChildren } from 'react';
 
-import { bootstrapApp } from '@/bootstrap/api';
-import { useAuthStore } from '@/auth/authStore';
-import { useBootstrapStore } from '@/bootstrap/store';
+import { useAuthStore } from '@/features/auth';
+import { bootstrapApp, useBootstrapStore } from '@/features/bootstrap';
 
 export const BootstrapProvider = (props: PropsWithChildren) => {
   const authenticatedUser = useAuthStore((state) => state.authenticatedUser);

@@ -1,6 +1,6 @@
-import { apiClient } from '@/api/apiClient';
+import { apiClient, type ApiResponse } from '@/api';
+
 import type { Organization } from './types';
-import type { ApiResponse } from '@/api/types';
 
 export const getOrganizations = async () => {
   const response =

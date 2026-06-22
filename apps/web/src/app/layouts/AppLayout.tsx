@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom';
 
-import { Sidebar, TopNav } from '@/app/layouts/components';
+import { Sidebar, TopNav } from './components';
 
 export const AppLayout = () => (
   <div className="flex h-screen overflow-hidden">

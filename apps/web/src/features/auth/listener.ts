@@ -1,10 +1,10 @@
 import { onAuthStateChanged } from 'firebase/auth';
 
-import { auth } from '@/firebase/firebase';
-import { getCurrentUser } from '@/features/auth/api';
+import { auth } from '@/firebase';
+import { getCurrentUser } from '@/features/auth';
 
-import { useAuthStore } from './authStore';
-import { clearAccessToken, saveAccessToken } from './authStorage';
+import { useAuthStore } from './store';
+import { clearAccessToken, saveAccessToken } from './storage';
 
 export const initializeAuth = () => {
   return onAuthStateChanged(

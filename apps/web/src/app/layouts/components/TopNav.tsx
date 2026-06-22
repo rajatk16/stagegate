@@ -1,16 +1,19 @@
 import { Bell } from 'lucide-react';
+import { useMatches } from 'react-router-dom';
+
+import type { AppUIMatch } from '@/app';
+import { ThemeToggle } from '@/components/theme';
+import { useCurrentOrganization } from '@/features/organizations';
 
 import { UserMenu } from './UserMenu';
 import { MobileSidebar } from './MobileSidebar';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
-import { useMatches } from 'react-router-dom';
-
-import type { AppUIMatch } from '@/app/router/routeHandles';
 
 export const TopNav = () => {
   const matches = useMatches() as AppUIMatch[];
 
   const title = matches.at(-1)?.handle?.title ?? 'StageGate';
+
+  const organization = useCurrentOrganization();
   return (
     <header className="flex h-16 items-center justify-between border-b px-6">
       <div className="flex items-center gap-3">
@@ -19,6 +22,7 @@ export const TopNav = () => {
         </div>
 
         <h1 className="text-lg font-semibold">{title}</h1>
+        <p className="text-xs text-muted-foreground">{organization?.name}</p>
       </div>
 
       <div className="flex items-center gap-4">

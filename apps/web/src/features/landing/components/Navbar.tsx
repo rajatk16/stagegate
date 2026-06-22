@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui';
-import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import { ThemeToggle } from '@/components/theme';
 
 export const Navbar = () => {
   const navigate = useNavigate();

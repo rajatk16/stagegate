@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui';
+
 import { DashboardPreview } from './DashboardPreview';
-import { useNavigate } from 'react-router-dom';
 
 export const AnimatedHero = () => {
   const navigate = useNavigate();

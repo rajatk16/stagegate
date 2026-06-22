@@ -1,13 +1,15 @@
-const DashboardPage = () => (
-  <div>
-    <div className="mt-6 grid gap-6 md:grid-cols-3">
-      <div className="rounded-xl border bg-card p-6">Total Proposals</div>
+import { useCurrentOrganization } from '@/features/organizations';
 
-      <div className="rounded-xl border bg-card p-6">Active Reviewers</div>
+const DashboardPage = () => {
+  const organization = useCurrentOrganization();
+  return (
+    <div>
+      <h2 className="text-3xl font-bold">Dashboard</h2>
 
-      <div className="rounded-xl border bg-card p-6">Accepted Talks</div>
+      <p className="mt-2 text-muted-foreground">
+        Active Organization: {organization?.name}
+      </p>
     </div>
-  </div>
-);
-
+  );
+};
 export default DashboardPage;

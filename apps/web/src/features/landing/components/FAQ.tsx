@@ -1,9 +1,9 @@
 import {
   Accordion,
-  AccordionContent,
   AccordionItem,
+  AccordionContent,
   AccordionTrigger,
-} from '@/components/ui/accordion';
+} from '@/components/ui';
 
 export const FAQ = () => (
   <section id="faq" className="container mx-auto px-6 py-24">
