@@ -1,12 +1,12 @@
 import { Controller, Get, NotFoundException } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { UserRepository } from '@/users/repositories/user.repository';
-import { Authorized } from '@/swagger/decorators/authorized.decorators';
+import { Authorized } from '@/swagger/decorators';
+import { UserRepository } from '@/users/repositories';
 
 import { MeResponseDto } from './dto';
-import { CurrentUser } from './decorators/currentUser.decorator';
-import type { AuthenticatedUser } from './interfaces/authenticatedUser.interface';
+import { CurrentUser } from './decorators';
+import type { AuthenticatedUser } from './interfaces';
 
 @ApiTags('Authentication')
 @Authorized()

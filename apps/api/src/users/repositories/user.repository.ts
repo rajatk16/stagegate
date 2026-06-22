@@ -1,7 +1,7 @@
 import { FirebaseService } from '@/firebase/firebase.service';
 import { Injectable } from '@nestjs/common';
 import { USERS_COLLECTION } from '../users.constant';
-import { userConverter } from '../util/user.converter';
+import { userConverter } from './user.converter';
 import { User } from '../entities/user.entity';
 import { Timestamp } from 'firebase-admin/firestore';
 import { UserStatus } from '../enums';

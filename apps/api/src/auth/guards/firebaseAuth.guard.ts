@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 
 import { AuthService } from '../auth.service';
-import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { IS_PUBLIC_KEY } from '../decorators';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
