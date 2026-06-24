@@ -7,55 +7,68 @@ import {
   Injectable,
 } from '@nestjs/common';
 
-import { Permission, Role } from '../enums';
-import { ROLE_PERMISSIONS } from '../constants';
-import { PERMISSIONS_KEY, ROLES_KEY } from '../decorators';
+import { Permission } from '../types';
+import { PERMISSIONS_KEY } from '../decorators';
+import { EventRole, OrganizationRole } from '../enums';
+import { ORGANIZATION_ROLE_PERMISSIONS } from '../constants';
+import { EVENT_ROLE_PERMISSIONS } from '../constants/eventRolePermissions';
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
-
     const requiredPermissions = this.reflector.getAllAndOverride<Permission[]>(
       PERMISSIONS_KEY,
       [context.getHandler(), context.getClass()],
     );
 
-    if (!requiredRoles && !requiredPermissions) {
+    if (!requiredPermissions || requiredPermissions.length === 0) {
       return true;
     }
 
     const request = context.switchToHttp().getRequest<Request>();
 
-    const userRoles: Role[] = request.context?.roles ?? [];
+    const requestContext = request.context;
 
-    if (requiredRoles) {
-      const hasRole = requiredRoles.some((role) => userRoles.includes(role));
-
-      if (!hasRole) {
-        throw new ForbiddenException('Insufficient role');
-      }
+    if (!requestContext) {
+      throw new ForbiddenException('Request context not found');
     }
 
-    if (requiredPermissions) {
-      const userPermissions = userRoles.flatMap(
-        (role) => ROLE_PERMISSIONS[role] ?? [],
-      );
+    const organizationRoles = requestContext.organizationRoles ?? [];
+    const eventRoles = requestContext.eventRoles ?? [];
 
-      const hasPermissions = requiredPermissions.every((permission) =>
-        userPermissions.includes(permission),
-      );
+    const permissions = this.getPermissions(organizationRoles, eventRoles);
 
-      if (!hasPermissions) {
-        throw new ForbiddenException('Insufficient role');
-      }
+    const hasAllPermissions = requiredPermissions.every((permission) =>
+      permissions.has(permission),
+    );
+
+    if (!hasAllPermissions) {
+      throw new ForbiddenException('Insufficient permissions');
     }
 
     return true;
+  }
+
+  private getPermissions(
+    organizationRoles: OrganizationRole[],
+    eventRoles: EventRole[],
+  ): Set<Permission> {
+    const permissions = new Set<Permission>();
+
+    for (const role of organizationRoles) {
+      const rolePermissions = ORGANIZATION_ROLE_PERMISSIONS[role] ?? [];
+
+      rolePermissions.forEach((permission) => permissions.add(permission));
+    }
+
+    for (const role of eventRoles) {
+      const rolePermissions = EVENT_ROLE_PERMISSIONS[role] ?? [];
+
+      rolePermissions.forEach((permission) => permissions.add(permission));
+    }
+
+    return permissions;
   }
 }

@@ -1,1 +1,1 @@
-export * from './rolePermissions.mapping';
+export * from './organizationRolePermissions';
