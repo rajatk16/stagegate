@@ -10,6 +10,7 @@ import {
 
 import { useOrganizationStore } from '../store';
 import { useCurrentOrganization, useOrganizations } from '../selectors';
+import { Link } from 'react-router-dom';
 
 export const OrganizationSwitcher = () => {
   const organizations = useOrganizations();
@@ -19,6 +20,14 @@ export const OrganizationSwitcher = () => {
   const setCurrentOrganization = useOrganizationStore(
     (state) => state.setCurrentOrganization,
   );
+
+  if (organizations.length === 0) {
+    return (
+      <Button asChild variant="outline" className="w-full">
+        <Link to="/create-organization">No Organizations Yet</Link>
+      </Button>
+    );
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="cursor-pointer">

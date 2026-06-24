@@ -8,6 +8,7 @@ import {
   AuthLayoutRoute,
   DashboardPageRoute,
   DashboardLayoutRoute,
+  CreateOrganizationPageRoute,
 } from './routeElements';
 import { NotFoundPage } from '@/features/extra/pages/NotFoundPage';
 
@@ -41,6 +42,19 @@ export const router = createBrowserRouter([
         element: createElement(DashboardPageRoute),
         handle: {
           title: 'Dashboard',
+        },
+      },
+    ],
+  },
+  {
+    path: '/create-organization',
+    element: createElement(DashboardLayoutRoute),
+    children: [
+      {
+        index: true,
+        element: createElement(CreateOrganizationPageRoute),
+        handle: {
+          title: 'Create Organization',
         },
       },
     ],

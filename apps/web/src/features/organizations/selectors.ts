@@ -5,3 +5,6 @@ export const useOrganizations = () =>
 
 export const useCurrentOrganization = () =>
   useOrganizationStore((state) => state.currentOrganization);
+
+export const useHasOrganizations = () =>
+  useOrganizationStore((state) => state.organizations.length > 0);

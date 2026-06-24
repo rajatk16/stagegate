@@ -1,12 +1,8 @@
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-
-import { Button } from '@/components/ui';
 
 import { DashboardPreview } from './DashboardPreview';
 
 export const AnimatedHero = () => {
-  const navigate = useNavigate();
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 bg-linear-to-b from-primary/20 via-transparent to-transparent" />
@@ -48,19 +44,6 @@ export const AnimatedHero = () => {
             Collect, review, score and select conference talks using a
             collaborative workflow built for modern event organizers.
           </motion.p>
-
-          <motion.div
-            className="mt-10 flex justify-center gap-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{
-              delay: 0.6,
-            }}
-          >
-            <Button size="lg" onClick={() => navigate('/login')}>
-              Get Started
-            </Button>
-          </motion.div>
         </div>
 
         <DashboardPreview />

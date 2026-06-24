@@ -9,6 +9,10 @@ const DashboardPage = lazy(
   () => import('@/features/dashboard/pages/DashboardPage'),
 );
 
+const CreateOrganizationPage = lazy(
+  () => import('@/features/organizations/pages/CreateOrganizationPage'),
+);
+
 export function LoginPageRoute() {
   return (
     <Suspense fallback={<div />}>
@@ -38,5 +42,13 @@ export function AuthLayoutRoute() {
     <PublicOnlyRoute>
       <AuthLayout />
     </PublicOnlyRoute>
+  );
+}
+
+export function CreateOrganizationPageRoute() {
+  return (
+    <Suspense fallback={<div />}>
+      <CreateOrganizationPage />
+    </Suspense>
   );
 }
