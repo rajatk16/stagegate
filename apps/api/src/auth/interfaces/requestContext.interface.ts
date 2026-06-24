@@ -1,8 +1,11 @@
-import { Role } from '@/authorization/enums';
+import { EventRole, OrganizationRole } from '@/authorization/enums';
+
 import { AuthenticatedUser } from './authenticatedUser.interface';
 
 export interface RequestContext {
   user: AuthenticatedUser;
-  organizationId?: string;
-  roles: Role[];
+  activeOrganizationId?: string;
+  activeEventId?: string;
+  organizationRoles: OrganizationRole[];
+  eventRoles: EventRole[];
 }
