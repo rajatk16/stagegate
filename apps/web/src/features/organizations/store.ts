@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 
-import { mockOrganizations } from './mock';
 import type { Organization } from './types';
 
 interface OrganizationState {
@@ -8,12 +7,18 @@ interface OrganizationState {
 
   currentOrganization: Organization | null;
 
-  setCurrentOrganization: (organization: Organization) => void;
+  setOrganizations: (organizations: Organization[]) => void;
+
+  setCurrentOrganization: (organization: Organization | null) => void;
+  clearOrganizations: () => void;
 }
 
 export const useOrganizationStore = create<OrganizationState>((set) => ({
-  organizations: mockOrganizations,
-  currentOrganization: mockOrganizations[0],
+  organizations: [],
+  currentOrganization: null,
+  setOrganizations: (organizations) => set({ organizations }),
   setCurrentOrganization: (organization) =>
     set({ currentOrganization: organization }),
+  clearOrganizations: () =>
+    set({ organizations: [], currentOrganization: null }),
 }));

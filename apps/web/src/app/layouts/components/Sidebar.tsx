@@ -1,25 +1,29 @@
 import { NavLink } from 'react-router-dom';
 
 import { navItems } from '@/app';
-import { OrganizationSwitcher } from '@/features/organizations';
+import {
+  OrganizationSwitcher,
+  useHasOrganizations,
+} from '@/features/organizations';
 
 export const Sidebar = () => {
+  const hasOrganizations = useHasOrganizations();
   return (
     <aside className="hidden w-72 border-r bg-background lg:flex lg:flex-col">
       <div className="p-4">
         <OrganizationSwitcher />
       </div>
+      {hasOrganizations && (
+        <div className="px-3">
+          {navItems.map((item) => {
+            const Icon = item.icon;
 
-      <div className="px-3">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-
-          return (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `
                 mb-1
                 flex
                 items-center
@@ -34,15 +38,16 @@ export const Sidebar = () => {
                     : 'hover:bg-muted'
                 }
                 `
-              }
-            >
-              <Icon size={18} />
+                }
+              >
+                <Icon size={18} />
 
-              {item.label}
-            </NavLink>
-          );
-        })}
-      </div>
+                {item.label}
+              </NavLink>
+            );
+          })}
+        </div>
+      )}
     </aside>
   );
 };
