@@ -36,4 +36,8 @@ export class FirebaseService {
   get auth(): admin.auth.Auth {
     return admin.auth(this.app);
   }
+
+  getFirestore() {
+    return this.firestore;
+  }
 }
