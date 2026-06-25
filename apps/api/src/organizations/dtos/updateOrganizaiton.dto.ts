@@ -1,4 +1,4 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsUrl,
   Matches,
@@ -8,26 +8,25 @@ import {
   IsOptional,
 } from 'class-validator';
 
-export class CreateOrganizationDto {
-  @ApiProperty({
-    example: 'Google Developer Group New York',
+export class UpdateOrganizationDto {
+  @ApiPropertyOptional({
+    example: 'Google Developer Group Bengaluru',
   })
+  @IsOptional()
   @IsString()
   @MinLength(3)
   @MaxLength(100)
-  name: string;
+  name?: string;
 
   @ApiPropertyOptional({
-    description:
-      'The slug of the organization. If not provided, it will be generated from the name.',
-    example: 'google-developer-group-new-york',
+    example: 'gdg-bengaluru',
   })
   @IsOptional()
   @IsString()
   @MinLength(3)
   @MaxLength(64)
   @Matches(/^[a-z0-9-]+$/, {
-    message: 'Slug must contain only lowercase letters, numbers, and hyphens.',
+    message: 'Slug may only contain lowercase letters, numbers and hyphens.',
   })
   slug?: string;
 

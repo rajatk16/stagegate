@@ -1,6 +1,7 @@
-import slugify from 'slugify';
 import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase-admin/firestore';
+
+import { normalizeSlug } from '@/common/utils';
 
 import { Organization } from '../entities';
 import { OrganizationStatus } from '../enums';
@@ -12,17 +13,10 @@ export const createOrganizationFactory = (
 ): Organization => {
   const now = Timestamp.now();
 
-  const slug =
-    dto.slug ??
-    slugify(dto.name, {
-      lower: true,
-      strict: true,
-    });
-
   return {
     id: randomUUID(),
     name: dto.name,
-    slug,
+    slug: dto.slug ?? normalizeSlug(dto.name),
     description: dto.description ?? null,
     websiteUrl: dto.websiteUrl ?? null,
     logoUrl: dto.logoUrl ?? null,

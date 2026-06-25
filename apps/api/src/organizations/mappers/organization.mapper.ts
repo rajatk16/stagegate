@@ -24,6 +24,7 @@ export class OrganizationMapper {
       websiteUrl: organization.websiteUrl,
       logoUrl: organization.logoUrl,
       status: organization.status,
+      createdBy: organization.createdBy,
       createdAt: organization.createdAt,
       updatedAt: organization.updatedAt,
     };

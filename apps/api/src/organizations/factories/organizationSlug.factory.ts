@@ -10,3 +10,12 @@ export const createOrganizationSlugFactory = (
   organizationId,
   createdAt: Timestamp.now(),
 });
+
+export const createOrganizationSlugReservationFactory = (
+  slug: string,
+  organizationId: string,
+): OrganizationSlug => ({
+  slug,
+  organizationId,
+  createdAt: Timestamp.now(),
+});

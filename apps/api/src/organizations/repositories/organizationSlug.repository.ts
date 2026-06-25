@@ -29,4 +29,14 @@ export class OrganizationSlugRepository {
 
     return snapshot.data() as OrganizationSlug;
   }
+
+  async exists(slug: string): Promise<boolean> {
+    const snapshot = await this.collection().doc(slug).get();
+
+    return snapshot.exists;
+  }
+
+  async delete(slug: string): Promise<void> {
+    await this.collection().doc(slug).delete();
+  }
 }
