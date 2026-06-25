@@ -52,10 +52,6 @@ export class FirebaseAuthGuard implements CanActivate {
         email: appUser.email,
         displayName: appUser.displayName,
       },
-      activeOrganizationId: undefined,
-      activeEventId: undefined,
-      organizationRoles: [],
-      eventRoles: [],
     };
 
     request.log = request.log.child({

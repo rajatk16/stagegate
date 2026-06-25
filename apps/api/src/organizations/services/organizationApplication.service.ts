@@ -1,13 +1,13 @@
-import {
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { Timestamp } from 'firebase-admin/firestore';
+import { ConflictException, Injectable } from '@nestjs/common';
 
+import { normalizeSlug } from '@/common/utils';
 import { FirebaseService } from '@/firebase/firebase.service';
 
+import { Organization } from '../entities';
 import { OrganizationMapper } from '../mappers';
-import { OrganizationDetailsDto } from '../dtos';
+import { createOrganizationSlugFactory } from '../factories';
+import { OrganizationDetailsDto, UpdateOrganizationDto } from '../dtos';
 import {
   OrganizationService,
   OrganizationMembershipService,
@@ -16,10 +16,6 @@ import {
   OrganizationRepository,
   OrganizationSlugRepository,
 } from '../repositories';
-import { UpdateOrganizationDto } from '../dtos/updateOrganizaiton.dto';
-import { normalizeSlug } from '@/common/utils';
-import { Timestamp } from 'firebase-admin/firestore';
-import { createOrganizationSlugFactory } from '../factories';
 
 @Injectable()
 export class OrganizationApplicationService {
@@ -49,39 +45,14 @@ export class OrganizationApplicationService {
     }
   }
 
-  async getOrganization(organizationSlug: string, userId: string) {
-    const organization =
-      await this.organizationService.findBySlug(organizationSlug);
-
-    const membership = await this.organizationMembershipService.findMembership(
-      userId,
-      organization.id,
-    );
-
-    if (!membership) {
-      throw new ForbiddenException('You are not a member of this organization');
-    }
-
+  getOrganization(organization: Organization) {
     return OrganizationMapper.toDetailsDto(organization);
   }
 
   async updateOrganization(
-    organizationId: string,
-    userId: string,
+    organization: Organization,
     dto: UpdateOrganizationDto,
   ): Promise<OrganizationDetailsDto> {
-    const organization =
-      await this.organizationService.findBySlug(organizationId);
-
-    const membership = await this.organizationMembershipService.findMembership(
-      userId,
-      organization.id,
-    );
-
-    if (!membership) {
-      throw new ForbiddenException('You are not a member of this organization');
-    }
-
     const updatedSlug = dto.slug ? normalizeSlug(dto.slug) : organization.slug;
 
     const slugChanged = updatedSlug !== organization.slug;

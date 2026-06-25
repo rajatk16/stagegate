@@ -1,17 +1,17 @@
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import {
+  Injectable,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
-  Injectable,
 } from '@nestjs/common';
+
+import { RequestContext } from '@/auth/interfaces';
 
 import { Permission } from '../types';
 import { PERMISSIONS_KEY } from '../decorators';
-import { EventRole, OrganizationRole } from '../enums';
 import { ORGANIZATION_ROLE_PERMISSIONS } from '../constants';
-import { EVENT_ROLE_PERMISSIONS } from '../constants/eventRolePermissions';
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
@@ -35,10 +35,7 @@ export class AuthorizationGuard implements CanActivate {
       throw new ForbiddenException('Request context not found');
     }
 
-    const organizationRoles = requestContext.organizationRoles ?? [];
-    const eventRoles = requestContext.eventRoles ?? [];
-
-    const permissions = this.getPermissions(organizationRoles, eventRoles);
+    const permissions = this.resolvePermissions(requestContext);
 
     const hasAllPermissions = requiredPermissions.every((permission) =>
       permissions.has(permission),
@@ -51,22 +48,15 @@ export class AuthorizationGuard implements CanActivate {
     return true;
   }
 
-  private getPermissions(
-    organizationRoles: OrganizationRole[],
-    eventRoles: EventRole[],
-  ): Set<Permission> {
+  private resolvePermissions(requestContext: RequestContext): Set<Permission> {
     const permissions = new Set<Permission>();
 
-    for (const role of organizationRoles) {
-      const rolePermissions = ORGANIZATION_ROLE_PERMISSIONS[role] ?? [];
+    if (requestContext.organizationMembership) {
+      for (const role of requestContext.organizationMembership.roles) {
+        const rolePermissions = ORGANIZATION_ROLE_PERMISSIONS[role] ?? [];
 
-      rolePermissions.forEach((permission) => permissions.add(permission));
-    }
-
-    for (const role of eventRoles) {
-      const rolePermissions = EVENT_ROLE_PERMISSIONS[role] ?? [];
-
-      rolePermissions.forEach((permission) => permissions.add(permission));
+        rolePermissions.forEach((permission) => permissions.add(permission));
+      }
     }
 
     return permissions;

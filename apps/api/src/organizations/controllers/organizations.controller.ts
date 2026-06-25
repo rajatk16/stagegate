@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Get, Body, Post, Patch, UseGuards, Controller } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -6,23 +6,26 @@ import {
   ApiCreatedResponse,
 } from '@nestjs/swagger';
 
-import { CurrentUser } from '@/auth/decorators';
 import { Authorized } from '@/swagger/decorators';
 import { Permissions } from '@/authorization/decorators';
 import type { AuthenticatedUser } from '@/auth/interfaces';
 import { OrganizationPermission } from '@/authorization/enums';
+import { CurrentOrganization, CurrentUser } from '@/auth/decorators';
 
+import { Organization } from '../entities';
+import { OrganizationContext } from '../decorators';
+import { OrganizationContextGuard } from '../guards';
 import {
   OrganizationsService,
   OrganizationApplicationService,
 } from '../services';
 import {
   CreateOrganizationDto,
+  UpdateOrganizationDto,
   OrganizationDetailsDto,
   OrganizationSummaryDto,
   CreateOrganizationResponseDto,
 } from '../dtos';
-import { UpdateOrganizationDto } from '../dtos/updateOrganizaiton.dto';
 
 @Authorized()
 @ApiTags('Organizations')
@@ -80,15 +83,13 @@ export class OrganizationsController {
     type: OrganizationDetailsDto,
   })
   @Get(':organizationSlug')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.ORGANIZATION_READ)
-  async getOrganization(
-    @Param('organizationSlug') organizationSlug: string,
-    @CurrentUser() user: AuthenticatedUser,
-  ): Promise<OrganizationDetailsDto> {
-    return this.organizationApplicationService.getOrganization(
-      organizationSlug,
-      user.userId,
-    );
+  getOrganization(
+    @CurrentOrganization() organization: Organization,
+  ): OrganizationDetailsDto {
+    return this.organizationApplicationService.getOrganization(organization);
   }
 
   @ApiOperation({
@@ -98,15 +99,15 @@ export class OrganizationsController {
     type: OrganizationDetailsDto,
   })
   @Patch(':organizationId')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.ORGANIZATION_UPDATE)
   async updateOrganization(
-    @Param('organizationId') organizationId: string,
+    @CurrentOrganization() organization: Organization,
     @Body() dto: UpdateOrganizationDto,
-    @CurrentUser() user: AuthenticatedUser,
   ): Promise<OrganizationDetailsDto> {
     return this.organizationApplicationService.updateOrganization(
-      organizationId,
-      user.userId,
+      organization,
       dto,
     );
   }
