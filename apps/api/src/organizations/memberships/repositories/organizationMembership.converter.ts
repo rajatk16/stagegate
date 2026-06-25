@@ -3,6 +3,7 @@ import { FirestoreDataConverter, Timestamp } from 'firebase-admin/firestore';
 import { OrganizationRole } from '@/authorization/enums';
 
 import { OrganizationMembership } from '../entities';
+import { MembershipStatus } from '../enums';
 
 const toDate = (value: unknown): Timestamp => {
   if (value instanceof Timestamp) {
@@ -27,6 +28,7 @@ export const organizationMembershipConverter: FirestoreDataConverter<Organizatio
         organizationId: data.organizationId as string,
         userId: data.userId as string,
         roles: (data.roles as OrganizationRole[]) ?? [],
+        status: (data.status as MembershipStatus) ?? MembershipStatus.ACTIVE,
         createdAt: toDate(data.createdAt),
         updatedAt: toDate(data.updatedAt),
       };

@@ -5,6 +5,7 @@ import { FirebaseService } from '@/firebase/firebase.service';
 import { organizationMembershipConverter } from './organizationMembership.converter';
 import { ORGANIZATION_MEMBERSHIPS_COLLECTION } from '../organizationMemberships.constant';
 import { OrganizationMembership } from '../entities';
+import { Timestamp } from 'firebase-admin/firestore';
 
 @Injectable()
 export class OrganizationMembershipRepository {
@@ -43,5 +44,52 @@ export class OrganizationMembershipRepository {
     }
 
     return snapshot.docs[0].data();
+  }
+
+  async findById(id: string): Promise<OrganizationMembership | null> {
+    const snapshot = await this.collection().doc(id).get();
+
+    return snapshot.data() ?? null;
+  }
+
+  async findByUser(userId: string): Promise<OrganizationMembership | null> {
+    const snapshot = await this.collection()
+      .where('userId', '==', userId)
+      .limit(1)
+      .get();
+
+    return snapshot.docs[0].data() ?? null;
+  }
+
+  async findByOrganization(
+    organizationId: string,
+  ): Promise<OrganizationMembership[]> {
+    const snapshot = await this.collection()
+      .where('organizationId', '==', organizationId)
+      .get();
+
+    return snapshot.docs.map((doc) => doc.data());
+  }
+
+  async exists(userId: string, organizationId: string): Promise<boolean> {
+    const snapshot = await this.collection()
+      .where('userId', '==', userId)
+      .where('organizationId', '==', organizationId)
+      .limit(1)
+      .get();
+
+    return !snapshot.empty;
+  }
+
+  async update(
+    id: string,
+    updates: Partial<Pick<OrganizationMembership, 'roles' | 'status'>>,
+  ): Promise<void> {
+    await this.collection()
+      .doc(id)
+      .update({
+        ...updates,
+        updatedAt: Timestamp.now(),
+      });
   }
 }
