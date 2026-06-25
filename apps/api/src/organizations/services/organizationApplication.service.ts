@@ -1,17 +1,26 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { normalizeSlug } from '@/common/utils';
+import { UserRepository } from '@/users/repositories';
 import { FirebaseService } from '@/firebase/firebase.service';
 
-import { Organization } from '../entities';
-import { OrganizationMapper } from '../mappers';
 import { createOrganizationSlugFactory } from '../factories';
-import { OrganizationDetailsDto, UpdateOrganizationDto } from '../dtos';
+import { Organization, OrganizationMembership } from '../entities';
+import { OrganizationMapper, OrganizationMemberMapper } from '../mappers';
 import {
   OrganizationRepository,
   OrganizationSlugRepository,
 } from '../repositories';
+import {
+  OrganizationMemberDto,
+  UpdateOrganizationDto,
+  OrganizationDetailsDto,
+} from '../dtos';
 import {
   OrganizationService,
   OrganizationDomainService,
@@ -21,6 +30,7 @@ import {
 @Injectable()
 export class OrganizationApplicationService {
   constructor(
+    private readonly userRepository: UserRepository,
     private readonly firebaseService: FirebaseService,
     private readonly organizationService: OrganizationService,
     private readonly organizationRepository: OrganizationRepository,
@@ -120,5 +130,41 @@ export class OrganizationApplicationService {
     this.organizationDomainService.restore(organization);
 
     await this.organizationRepository.save(organization);
+  }
+
+  async getMembers(
+    organization: Organization,
+  ): Promise<OrganizationMemberDto[]> {
+    const memberships =
+      await this.organizationMembershipService.findActiveMembers(
+        organization.id,
+      );
+
+    const users = await this.userRepository.findByIds(
+      memberships.map((membership) => membership.userId),
+    );
+
+    const usersById = new Map(users.map((user) => [user.id, user]));
+
+    return memberships.flatMap((membership) => {
+      const user = usersById.get(membership.userId);
+
+      if (!user) {
+        return [];
+      }
+
+      return [OrganizationMemberMapper.toDto(user, membership)];
+    });
+  }
+
+  async getCurrentMember(
+    membership: OrganizationMembership,
+  ): Promise<OrganizationMemberDto> {
+    const user = await this.userRepository.findById(membership.userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return OrganizationMemberMapper.toDto(user, membership);
   }
 }

@@ -1,10 +1,11 @@
-import { FirebaseService } from '@/firebase/firebase.service';
 import { Injectable } from '@nestjs/common';
-import { USERS_COLLECTION } from '../users.constant';
-import { userConverter } from './user.converter';
-import { User } from '../entities/user.entity';
 import { Timestamp } from 'firebase-admin/firestore';
+import { FirebaseService } from '@/firebase/firebase.service';
+
 import { UserStatus } from '../enums';
+import { User } from '../entities/user.entity';
+import { userConverter } from './user.converter';
+import { USERS_COLLECTION } from '../users.constant';
 
 @Injectable()
 export class UserRepository {
@@ -30,6 +31,20 @@ export class UserRepository {
     }
 
     return snapshot.data() as User;
+  }
+
+  async findByIds(userIds: string[]): Promise<User[]> {
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    const snapshots = await Promise.all(
+      userIds.map((id) => this.collection().doc(id).get()),
+    );
+
+    return snapshots
+      .filter((snapshot) => snapshot.exists)
+      .map((snapshot) => snapshot.data()!);
   }
 
   async findByFirebaseUid(firebaseUid: string): Promise<User | null> {

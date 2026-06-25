@@ -11,17 +11,22 @@ import { Authorized } from '@/swagger/decorators';
 import { Permissions } from '@/authorization/decorators';
 import type { AuthenticatedUser } from '@/auth/interfaces';
 import { OrganizationPermission } from '@/authorization/enums';
-import { CurrentOrganization, CurrentUser } from '@/auth/decorators';
+import {
+  CurrentUser,
+  CurrentOrganization,
+  CurrentOrganizationMembership,
+} from '@/auth/decorators';
 
-import { Organization } from '../entities';
 import { OrganizationContext } from '../decorators';
 import { OrganizationContextGuard } from '../guards';
+import { Organization, OrganizationMembership } from '../entities';
 import {
   OrganizationsService,
   OrganizationApplicationService,
 } from '../services';
 import {
   CreateOrganizationDto,
+  OrganizationMemberDto,
   UpdateOrganizationDto,
   OrganizationDetailsDto,
   OrganizationSummaryDto,
@@ -143,5 +148,37 @@ export class OrganizationsController {
     @CurrentOrganization() organization: Organization,
   ): Promise<void> {
     await this.organizationApplicationService.restoreOrganization(organization);
+  }
+
+  @ApiOperation({
+    summary: 'List organization members',
+  })
+  @ApiOkResponse({
+    type: OrganizationMemberDto,
+    isArray: true,
+  })
+  @Get(':organizationSlug/members')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
+  @Permissions(OrganizationPermission.MEMBER_READ)
+  async getMembers(
+    @CurrentOrganization() organization: Organization,
+  ): Promise<OrganizationMemberDto[]> {
+    return this.organizationApplicationService.getMembers(organization);
+  }
+
+  @ApiOperation({
+    summary: 'Get current member details',
+  })
+  @ApiOkResponse({
+    type: OrganizationMemberDto,
+  })
+  @Get(':organizationSlug/members/me')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
+  async getCurrentMember(
+    @CurrentOrganizationMembership() membership: OrganizationMembership,
+  ): Promise<OrganizationMemberDto> {
+    return this.organizationApplicationService.getCurrentMember(membership);
   }
 }

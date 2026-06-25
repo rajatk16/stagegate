@@ -5,6 +5,7 @@ export const ORGANIZATION_ROLE_PERMISSIONS: Record<
   OrganizationPermission[]
 > = {
   [OrganizationRole.OWNER]: [
+    OrganizationPermission.MEMBER_READ,
     OrganizationPermission.MEMBER_INVITE,
     OrganizationPermission.MEMBER_REMOVE,
     OrganizationPermission.ORGANIZATION_READ,
@@ -15,6 +16,7 @@ export const ORGANIZATION_ROLE_PERMISSIONS: Record<
   ],
   [OrganizationRole.ADMIN]: [
     OrganizationPermission.MEMBER_INVITE,
+    OrganizationPermission.MEMBER_READ,
     OrganizationPermission.ORGANIZATION_READ,
     OrganizationPermission.ORGANIZATION_UPDATE,
   ],
