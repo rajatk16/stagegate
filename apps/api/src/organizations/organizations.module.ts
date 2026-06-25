@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 
+import { OrganizationContextGuard } from './guards';
 import { OrganizationsController } from './controllers';
 import {
   OrganizationRepository,
@@ -9,6 +10,7 @@ import {
 import {
   OrganizationService,
   OrganizationsService,
+  OrganizationContextService,
   OrganizationMembershipService,
   OrganizationApplicationService,
 } from './services';
@@ -17,8 +19,9 @@ import {
   exports: [
     OrganizationService,
     OrganizationRepository,
+    OrganizationContextGuard,
+    OrganizationContextService,
     OrganizationSlugRepository,
-    OrganizationMembershipService,
     OrganizationMembershipService,
     OrganizationApplicationService,
     OrganizationMembershipRepository,
@@ -27,11 +30,12 @@ import {
     OrganizationService,
     OrganizationsService,
     OrganizationRepository,
+    OrganizationContextGuard,
     OrganizationSlugRepository,
+    OrganizationContextService,
     OrganizationMembershipService,
     OrganizationApplicationService,
     OrganizationMembershipRepository,
-    OrganizationMembershipService,
   ],
   controllers: [OrganizationsController],
 })
