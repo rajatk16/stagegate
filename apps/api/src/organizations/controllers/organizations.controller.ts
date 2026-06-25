@@ -4,6 +4,7 @@ import {
   ApiOperation,
   ApiOkResponse,
   ApiCreatedResponse,
+  ApiNoContentResponse,
 } from '@nestjs/swagger';
 
 import { Authorized } from '@/swagger/decorators';
@@ -98,7 +99,7 @@ export class OrganizationsController {
   @ApiOkResponse({
     type: OrganizationDetailsDto,
   })
-  @Patch(':organizationId')
+  @Patch(':organizationSlug')
   @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.ORGANIZATION_UPDATE)
@@ -110,5 +111,37 @@ export class OrganizationsController {
       organization,
       dto,
     );
+  }
+
+  @ApiOperation({
+    summary: 'Archive an organization',
+  })
+  @ApiNoContentResponse({
+    description: 'Organization archived successfully',
+  })
+  @Patch(':organizationSlug/archive')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
+  @Permissions(OrganizationPermission.ORGANIZATION_ARCHIVE)
+  async archiveOrganization(
+    @CurrentOrganization() organization: Organization,
+  ): Promise<void> {
+    await this.organizationApplicationService.archiveOrganization(organization);
+  }
+
+  @ApiOperation({
+    summary: 'Restore an organization',
+  })
+  @ApiNoContentResponse({
+    description: 'Organization restored successfully',
+  })
+  @Patch(':organizationSlug/restore')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
+  @Permissions(OrganizationPermission.ORGANIZATION_RESTORE)
+  async restoreOrganization(
+    @CurrentOrganization() organization: Organization,
+  ): Promise<void> {
+    await this.organizationApplicationService.restoreOrganization(organization);
   }
 }

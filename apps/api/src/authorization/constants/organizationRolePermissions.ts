@@ -10,6 +10,8 @@ export const ORGANIZATION_ROLE_PERMISSIONS: Record<
     OrganizationPermission.ORGANIZATION_READ,
     OrganizationPermission.ORGANIZATION_DELETE,
     OrganizationPermission.ORGANIZATION_UPDATE,
+    OrganizationPermission.ORGANIZATION_ARCHIVE,
+    OrganizationPermission.ORGANIZATION_RESTORE,
   ],
   [OrganizationRole.ADMIN]: [
     OrganizationPermission.MEMBER_INVITE,

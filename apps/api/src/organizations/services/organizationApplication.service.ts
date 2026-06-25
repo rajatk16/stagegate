@@ -9,22 +9,24 @@ import { OrganizationMapper } from '../mappers';
 import { createOrganizationSlugFactory } from '../factories';
 import { OrganizationDetailsDto, UpdateOrganizationDto } from '../dtos';
 import {
-  OrganizationService,
-  OrganizationMembershipService,
-} from '../services';
-import {
   OrganizationRepository,
   OrganizationSlugRepository,
 } from '../repositories';
+import {
+  OrganizationService,
+  OrganizationDomainService,
+  OrganizationMembershipService,
+} from '../services';
 
 @Injectable()
 export class OrganizationApplicationService {
   constructor(
-    private readonly organizationService: OrganizationService,
-    private readonly organizationMembershipService: OrganizationMembershipService,
-    private readonly organizationRepository: OrganizationRepository,
-    private readonly organizationSlugRepository: OrganizationSlugRepository,
     private readonly firebaseService: FirebaseService,
+    private readonly organizationService: OrganizationService,
+    private readonly organizationRepository: OrganizationRepository,
+    private readonly organizationDomainService: OrganizationDomainService,
+    private readonly organizationSlugRepository: OrganizationSlugRepository,
+    private readonly organizationMembershipService: OrganizationMembershipService,
   ) {}
 
   async getOrganizationsForUser(userId: string) {
@@ -106,5 +108,17 @@ export class OrganizationApplicationService {
     });
 
     return OrganizationMapper.toDetailsDto(updatedOrganization);
+  }
+
+  async archiveOrganization(organization: Organization): Promise<void> {
+    this.organizationDomainService.archive(organization);
+
+    await this.organizationRepository.save(organization);
+  }
+
+  async restoreOrganization(organization: Organization): Promise<void> {
+    this.organizationDomainService.restore(organization);
+
+    await this.organizationRepository.save(organization);
   }
 }

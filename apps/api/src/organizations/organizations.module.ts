@@ -10,6 +10,7 @@ import {
 import {
   OrganizationService,
   OrganizationsService,
+  OrganizationDomainService,
   OrganizationContextService,
   OrganizationMembershipService,
   OrganizationApplicationService,
@@ -31,6 +32,7 @@ import {
     OrganizationsService,
     OrganizationRepository,
     OrganizationContextGuard,
+    OrganizationDomainService,
     OrganizationSlugRepository,
     OrganizationContextService,
     OrganizationMembershipService,

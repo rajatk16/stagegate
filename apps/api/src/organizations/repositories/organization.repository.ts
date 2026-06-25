@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Timestamp } from 'firebase-admin/firestore';
 
 import { FirebaseService } from '@/firebase/firebase.service';
 
@@ -66,13 +65,8 @@ export class OrganizationRepository {
     return this.findById(slugReservation.organizationId);
   }
 
-  async update(id: string, updates: Partial<Organization>): Promise<void> {
-    await this.collection()
-      .doc(id)
-      .update({
-        ...updates,
-        updatedAt: Timestamp.now(),
-      });
+  async save(organization: Organization): Promise<void> {
+    await this.collection().doc(organization.id).set(organization);
   }
 
   async exists(organizationId: string): Promise<boolean> {

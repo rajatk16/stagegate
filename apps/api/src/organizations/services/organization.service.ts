@@ -34,10 +34,7 @@ export class OrganizationService {
     return organization;
   }
 
-  async update(
-    organizationId: string,
-    updates: Partial<Organization>,
-  ): Promise<void> {
-    await this.organizationRepository.update(organizationId, updates);
+  async save(organization: Organization): Promise<void> {
+    await this.organizationRepository.save(organization);
   }
 }
