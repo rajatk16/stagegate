@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 
+import { UsersModule } from '@/users/users.module';
+
 import { OrganizationContextGuard } from './guards';
 import { OrganizationsController } from './controllers';
 import {
@@ -17,6 +19,8 @@ import {
 } from './services';
 
 @Module({
+  imports: [UsersModule],
+  controllers: [OrganizationsController],
   exports: [
     OrganizationService,
     OrganizationRepository,
@@ -39,6 +43,5 @@ import {
     OrganizationApplicationService,
     OrganizationMembershipRepository,
   ],
-  controllers: [OrganizationsController],
 })
 export class OrganizationsModule {}

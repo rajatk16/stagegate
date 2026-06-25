@@ -24,4 +24,17 @@ export class OrganizationMembershipService {
       organizationId,
     );
   }
+
+  async findActiveMembers(organizationId: string) {
+    return this.organizationMembershipRepository.findActiveByOrganization(
+      organizationId,
+    );
+  }
+
+  async findActiveMembership(userId: string, organizationId: string) {
+    return this.organizationMembershipRepository.findActiveByUserAndOrganization(
+      userId,
+      organizationId,
+    );
+  }
 }

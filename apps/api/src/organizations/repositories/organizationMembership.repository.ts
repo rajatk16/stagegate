@@ -6,6 +6,7 @@ import { FirebaseService } from '@/firebase/firebase.service';
 import { OrganizationMembership } from '../entities';
 import { organizationMembershipConverter } from '../converters';
 import { ORGANIZATION_MEMBERSHIPS_COLLECTION } from '../constants';
+import { MembershipStatus } from '../enums';
 
 @Injectable()
 export class OrganizationMembershipRepository {
@@ -73,6 +74,35 @@ export class OrganizationMembershipRepository {
       .get();
 
     return snapshot.docs.map((doc) => doc.data());
+  }
+
+  async findActiveByOrganization(
+    organizationId: string,
+  ): Promise<OrganizationMembership[]> {
+    const snapshot = await this.collection()
+      .where('organizationId', '==', organizationId)
+      .where('status', '==', MembershipStatus.ACTIVE)
+      .get();
+
+    return snapshot.docs.map((doc) => doc.data());
+  }
+
+  async findActiveByUserAndOrganization(
+    userId: string,
+    organizationId: string,
+  ): Promise<OrganizationMembership | null> {
+    const snapshot = await this.collection()
+      .where('userId', '==', userId)
+      .where('organizationId', '==', organizationId)
+      .where('status', '==', MembershipStatus.ACTIVE)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return null;
+    }
+
+    return snapshot.docs[0].data();
   }
 
   async exists(userId: string, organizationId: string): Promise<boolean> {
