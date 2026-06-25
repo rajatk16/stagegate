@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { Organization } from '../entities';
 import { OrganizationRepository } from '../repositories';
 
 @Injectable()
@@ -31,5 +32,12 @@ export class OrganizationService {
     }
 
     return organization;
+  }
+
+  async update(
+    organizationId: string,
+    updates: Partial<Organization>,
+  ): Promise<void> {
+    await this.organizationRepository.update(organizationId, updates);
   }
 }

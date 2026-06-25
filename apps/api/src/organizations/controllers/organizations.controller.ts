@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -22,6 +22,7 @@ import {
   OrganizationSummaryDto,
   CreateOrganizationResponseDto,
 } from '../dtos';
+import { UpdateOrganizationDto } from '../dtos/updateOrganizaiton.dto';
 
 @Authorized()
 @ApiTags('Organizations')
@@ -87,6 +88,26 @@ export class OrganizationsController {
     return this.organizationApplicationService.getOrganization(
       organizationSlug,
       user.userId,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Update organization details',
+  })
+  @ApiOkResponse({
+    type: OrganizationDetailsDto,
+  })
+  @Patch(':organizationId')
+  @Permissions(OrganizationPermission.ORGANIZATION_UPDATE)
+  async updateOrganization(
+    @Param('organizationId') organizationId: string,
+    @Body() dto: UpdateOrganizationDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<OrganizationDetailsDto> {
+    return this.organizationApplicationService.updateOrganization(
+      organizationId,
+      user.userId,
+      dto,
     );
   }
 }

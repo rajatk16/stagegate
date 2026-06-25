@@ -75,9 +75,9 @@ export class OrganizationRepository {
       });
   }
 
-  async existsBySlug(slug: string): Promise<boolean> {
-    const org = await this.findById(slug);
+  async exists(organizationId: string): Promise<boolean> {
+    const snapshot = await this.collection().doc(organizationId).get();
 
-    return !!org;
+    return snapshot.exists;
   }
 }

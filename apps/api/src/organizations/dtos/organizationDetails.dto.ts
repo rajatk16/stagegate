@@ -39,4 +39,7 @@ export class OrganizationDetailsDto {
 
   @ApiProperty()
   updatedAt: Timestamp;
+
+  @ApiProperty()
+  createdBy: string;
 }
