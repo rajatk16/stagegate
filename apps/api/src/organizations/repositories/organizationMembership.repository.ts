@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { Timestamp } from 'firebase-admin/firestore';
 
 import { FirebaseService } from '@/firebase/firebase.service';
 
-import { organizationMembershipConverter } from './organizationMembership.converter';
-import { ORGANIZATION_MEMBERSHIPS_COLLECTION } from '../organizationMemberships.constant';
 import { OrganizationMembership } from '../entities';
-import { Timestamp } from 'firebase-admin/firestore';
+import { organizationMembershipConverter } from '../converters';
+import { ORGANIZATION_MEMBERSHIPS_COLLECTION } from '../constants';
 
 @Injectable()
 export class OrganizationMembershipRepository {
@@ -49,16 +49,20 @@ export class OrganizationMembershipRepository {
   async findById(id: string): Promise<OrganizationMembership | null> {
     const snapshot = await this.collection().doc(id).get();
 
-    return snapshot.data() ?? null;
+    if (!snapshot.exists) {
+      return null;
+    }
+
+    return snapshot.data()!;
   }
 
-  async findByUser(userId: string): Promise<OrganizationMembership | null> {
+  async findByUser(userId: string): Promise<OrganizationMembership[] | null> {
     const snapshot = await this.collection()
       .where('userId', '==', userId)
       .limit(1)
       .get();
 
-    return snapshot.docs[0].data() ?? null;
+    return snapshot.docs.map((doc) => doc.data());
   }
 
   async findByOrganization(
@@ -91,5 +95,9 @@ export class OrganizationMembershipRepository {
         ...updates,
         updatedAt: Timestamp.now(),
       });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.collection().doc(id).delete();
   }
 }

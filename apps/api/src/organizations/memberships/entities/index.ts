@@ -1,1 +1,0 @@
-export * from './organizationMembership.entity';

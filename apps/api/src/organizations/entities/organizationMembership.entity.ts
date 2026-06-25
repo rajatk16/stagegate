@@ -10,6 +10,7 @@ export class OrganizationMembership {
   userId: string;
   roles: OrganizationRole[];
   status: MembershipStatus;
+  joinedAt: Timestamp;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }

@@ -2,9 +2,9 @@ import slugify from 'slugify';
 import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { Organization } from './entities';
-import { OrganizationStatus } from './enums';
-import { CreateOrganizationDto } from './dto';
+import { Organization } from '../entities';
+import { OrganizationStatus } from '../enums';
+import { CreateOrganizationDto } from '../dtos';
 
 export const createOrganizationFactory = (
   dto: CreateOrganizationDto,
@@ -12,13 +12,17 @@ export const createOrganizationFactory = (
 ): Organization => {
   const now = Timestamp.now();
 
+  const slug =
+    dto.slug ??
+    slugify(dto.name, {
+      lower: true,
+      strict: true,
+    });
+
   return {
     id: randomUUID(),
     name: dto.name,
-    slug: slugify(dto.name, {
-      lower: true,
-      strict: true,
-    }),
+    slug,
     description: dto.description ?? null,
     websiteUrl: dto.websiteUrl ?? null,
     logoUrl: dto.logoUrl ?? null,

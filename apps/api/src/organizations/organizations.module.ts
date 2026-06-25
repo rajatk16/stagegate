@@ -1,25 +1,37 @@
 import { Module } from '@nestjs/common';
 
-import { OrganizationRepository } from './repositories';
-import { OrganizationsService } from './organizations.service';
-import { OrganizationSlugRepository } from './slugs/repositories';
-import { OrganizationsController } from './organizations.controller';
-import { OrganizationMembershipRepository } from './memberships/repositories';
-import { OrganizationMembershipService } from './memberships/organizationMembership.service';
+import { OrganizationsController } from './controllers';
+import {
+  OrganizationRepository,
+  OrganizationSlugRepository,
+  OrganizationMembershipRepository,
+} from './repositories';
+import {
+  OrganizationService,
+  OrganizationsService,
+  OrganizationMembershipService,
+  OrganizationApplicationService,
+} from './services';
 
 @Module({
   exports: [
+    OrganizationService,
     OrganizationRepository,
     OrganizationSlugRepository,
     OrganizationMembershipService,
+    OrganizationMembershipService,
+    OrganizationApplicationService,
     OrganizationMembershipRepository,
   ],
   providers: [
+    OrganizationService,
     OrganizationsService,
     OrganizationRepository,
     OrganizationSlugRepository,
     OrganizationMembershipService,
+    OrganizationApplicationService,
     OrganizationMembershipRepository,
+    OrganizationMembershipService,
   ],
   controllers: [OrganizationsController],
 })

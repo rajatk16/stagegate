@@ -1,8 +1,8 @@
 import {
-  DocumentData,
-  FirestoreDataConverter,
-  QueryDocumentSnapshot,
   Timestamp,
+  DocumentData,
+  QueryDocumentSnapshot,
+  FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
 import { OrganizationSlug } from '../entities';
