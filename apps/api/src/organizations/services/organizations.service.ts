@@ -3,13 +3,17 @@ import { ConflictException, Injectable } from '@nestjs/common';
 
 import { FirebaseService } from '@/firebase/firebase.service';
 
-import { CreateOrganizationDto } from './dto';
-import { OrganizationRepository } from './repositories';
-import { createOrganizationFactory } from './organization.factory';
-import { OrganizationMembershipRepository } from './memberships/repositories';
-import { createMembershipFactory } from './memberships/organizationMembership.factory';
-import { OrganizationSlugRepository } from './slugs/repositories/organizationSlug.repository';
-import { createOrganizationSlugFactory } from './slugs/organizationSlug.factory';
+import { CreateOrganizationDto } from '../dtos';
+import {
+  createMembershipFactory,
+  createOrganizationFactory,
+  createOrganizationSlugFactory,
+} from '../factories';
+import {
+  OrganizationRepository,
+  OrganizationSlugRepository,
+  OrganizationMembershipRepository,
+} from '../repositories';
 
 @Injectable()
 export class OrganizationsService {

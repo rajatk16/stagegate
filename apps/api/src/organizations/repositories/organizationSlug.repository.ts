@@ -1,8 +1,10 @@
-import { FirebaseService } from '@/firebase/firebase.service';
 import { Injectable } from '@nestjs/common';
-import { ORGANIZATION_SLUGS_COLLECTION } from '../entities/organizationSlugs.constants';
-import { organizationSlugConverter } from './organizationSlug.converter';
+
+import { FirebaseService } from '@/firebase/firebase.service';
+
 import { OrganizationSlug } from '../entities';
+import { organizationSlugConverter } from '../converters';
+import { ORGANIZATION_SLUGS_COLLECTION } from '../constants';
 
 @Injectable()
 export class OrganizationSlugRepository {

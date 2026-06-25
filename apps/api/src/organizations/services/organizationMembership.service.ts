@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { OrganizationMembershipRepository } from './repositories';
+import { OrganizationMembershipRepository } from '../repositories';
 
 @Injectable()
 export class OrganizationMembershipService {
@@ -8,20 +8,20 @@ export class OrganizationMembershipService {
     private readonly organizationMembershipRepository: OrganizationMembershipRepository,
   ) {}
 
-  async getMembership(userId: string, organizationId: string) {
+  async findMembership(userId: string, organizationId: string) {
     return this.organizationMembershipRepository.findByUserAndOrganization(
       userId,
       organizationId,
     );
   }
 
-  async getOrganizationMembers(organizationId: string) {
+  async findUserMemberships(userId: string) {
+    return this.organizationMembershipRepository.findByUser(userId);
+  }
+
+  async findOrganizationMembers(organizationId: string) {
     return this.organizationMembershipRepository.findByOrganization(
       organizationId,
     );
-  }
-
-  async getUserOrganizations(userId: string) {
-    return this.organizationMembershipRepository.findByUser(userId);
   }
 }

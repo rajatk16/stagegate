@@ -5,6 +5,11 @@ export class CreateOrganizationDto {
   @MaxLength(100)
   name: string;
 
+  @IsString()
+  @MaxLength(255)
+  @IsOptional()
+  slug?: string;
+
   @IsOptional()
   @IsString()
   description?: string;

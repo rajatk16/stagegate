@@ -1,5 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { OrganizationSlug } from './entities';
+
+import { OrganizationSlug } from '../entities';
 
 export const createOrganizationSlugFactory = (
   slug: string,

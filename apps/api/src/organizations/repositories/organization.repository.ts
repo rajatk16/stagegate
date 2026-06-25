@@ -4,9 +4,9 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { FirebaseService } from '@/firebase/firebase.service';
 
 import { Organization } from '../entities';
-import { organizationConverter } from './organization.converter';
-import { ORGANIZATIONS_COLLECTION } from '../organizations.constants';
-import { OrganizationSlugRepository } from '../slugs/repositories';
+import { organizationConverter } from '../converters';
+import { ORGANIZATIONS_COLLECTION } from '../constants';
+import { OrganizationSlugRepository } from './organizationSlug.repository';
 
 @Injectable()
 export class OrganizationRepository {
@@ -39,6 +39,20 @@ export class OrganizationRepository {
     }
 
     return snapshot.data() as Organization;
+  }
+
+  async findByIds(organizationIds: string[]): Promise<Organization[]> {
+    if (organizationIds.length === 0) {
+      return [];
+    }
+
+    const snapshots = await Promise.all(
+      organizationIds.map((id) => this.collection().doc(id).get()),
+    );
+
+    return snapshots
+      .filter((snapshot) => snapshot.exists)
+      .map((snapshot) => snapshot.data()!);
   }
 
   async findBySlug(slug: string): Promise<Organization | null> {
