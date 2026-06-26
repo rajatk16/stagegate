@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Timestamp } from 'firebase-admin/firestore';
 import { FirebaseService } from '@/firebase/firebase.service';
 
+import { User } from '../entities';
 import { UserStatus } from '../enums';
-import { User } from '../entities/user.entity';
-import { userConverter } from './user.converter';
-import { USERS_COLLECTION } from '../users.constant';
+import { userConverter } from '../converters';
+import { USERS_COLLECTION } from '../constants';
 
 @Injectable()
 export class UserRepository {
@@ -62,7 +62,7 @@ export class UserRepository {
 
   async findByEmail(email: string): Promise<User | null> {
     const snapshot = await this.collection()
-      .where('email', '==', email)
+      .where('email', '==', email.toLowerCase())
       .limit(1)
       .get();
 

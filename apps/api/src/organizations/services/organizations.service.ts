@@ -1,8 +1,10 @@
 import { Transaction } from 'firebase-admin/firestore';
 import { ConflictException, Injectable } from '@nestjs/common';
 
+import { OrganizationRole } from '@/authorization/enums';
 import { FirebaseService } from '@/firebase/firebase.service';
 
+import { MembershipStatus } from '../enums';
 import { CreateOrganizationDto } from '../dtos';
 import {
   createMembershipFactory,
@@ -27,7 +29,12 @@ export class OrganizationsService {
   async createOrganization(dto: CreateOrganizationDto, userId: string) {
     const organization = createOrganizationFactory(dto, userId);
 
-    const membership = createMembershipFactory(organization.id, userId);
+    const membership = createMembershipFactory(
+      organization.id,
+      userId,
+      [OrganizationRole.ADMIN],
+      MembershipStatus.ACTIVE,
+    );
 
     const slugReservation = createOrganizationSlugFactory(
       organization.slug,
