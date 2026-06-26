@@ -150,15 +150,15 @@ export class OrganizationMembershipRepository {
     await this.collection().doc(id).delete();
   }
 
-  async isOwner(organizationId: string, userId: string): Promise<boolean> {
+  async findOwner(organizationId: string): Promise<OrganizationMembership> {
     const snapshot = await this.collection()
-      .where('userId', '==', userId)
       .where('organizationId', '==', organizationId)
+      .where('status', '==', MembershipStatus.ACTIVE)
       .where('roles', 'array-contains', OrganizationRole.OWNER)
       .limit(1)
       .get();
 
-    return !snapshot.empty;
+    return snapshot.docs[0].data();
   }
 
   async save(membership: OrganizationMembership): Promise<void> {

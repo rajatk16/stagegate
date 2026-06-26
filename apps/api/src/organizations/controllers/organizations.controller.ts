@@ -41,6 +41,7 @@ import {
   UpdateOrganizationMemberDto,
   CreateMembershipInvitationDto,
   CreateOrganizationResponseDto,
+  TransferOrganizationOwnershipDto,
   OrganizationMembershipInvitationDto,
 } from '../dtos';
 
@@ -258,6 +259,47 @@ export class OrganizationsController {
       organization,
       membership,
       userId,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Leave the organization',
+  })
+  @ApiNoContentResponse({
+    description: 'Left the organization successfully',
+  })
+  @Post(':organizationSlug/members/leave')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
+  async leaveOrganization(
+    @CurrentOrganization() organization: Organization,
+    @CurrentOrganizationMembership() membership: OrganizationMembership,
+  ): Promise<void> {
+    return this.organizationApplicationService.leaveOrganization(
+      organization,
+      membership,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Transfer organization ownership',
+  })
+  @ApiOkResponse({
+    type: OrganizationMemberDto,
+  })
+  @Patch(':organizationSlug/ownership/transfer')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
+  @Permissions(OrganizationPermission.MEMBER_UPDATE)
+  async transferOwnership(
+    @CurrentOrganization() organization: Organization,
+    @CurrentOrganizationMembership() membership: OrganizationMembership,
+    @Body() dto: TransferOrganizationOwnershipDto,
+  ): Promise<OrganizationMemberDto> {
+    return this.organizationApplicationService.transferOwnership(
+      organization,
+      membership,
+      dto.userId,
     );
   }
 }
