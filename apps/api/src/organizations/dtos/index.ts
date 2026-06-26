@@ -6,5 +6,6 @@ export * from './organizationSummary.dto';
 export * from './updateOrganizationMember.dto';
 export * from './createMembershipInvitation.dto';
 export * from './createOrganizationResponse.dto';
+export * from './transferOrganizationOwnership.dto';
 export * from './organizationMembershipResponse.dto';
 export * from './organizationMembershipInvitation.dto';

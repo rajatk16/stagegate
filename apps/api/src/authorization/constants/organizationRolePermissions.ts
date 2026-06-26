@@ -9,6 +9,7 @@ export const ORGANIZATION_ROLE_PERMISSIONS: Record<
     OrganizationPermission.MEMBER_INVITE,
     OrganizationPermission.MEMBER_REMOVE,
     OrganizationPermission.ORGANIZATION_READ,
+    OrganizationPermission.TRANSFER_OWNERSHIP,
     OrganizationPermission.ORGANIZATION_DELETE,
     OrganizationPermission.ORGANIZATION_UPDATE,
     OrganizationPermission.ORGANIZATION_ARCHIVE,

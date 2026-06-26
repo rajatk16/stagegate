@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Timestamp } from 'firebase-admin/firestore';
 
 import { OrganizationRole } from '@/authorization/enums';
+import { FirebaseService } from '@/firebase/firebase.service';
 
 import { MembershipStatus } from '../enums';
 import { OrganizationMembership } from '../entities';
@@ -10,6 +11,7 @@ import { OrganizationMembershipRepository } from '../repositories';
 @Injectable()
 export class OrganizationMembershipService {
   constructor(
+    private readonly firebaseService: FirebaseService,
     private readonly organizationMembershipRepository: OrganizationMembershipRepository,
   ) {}
 
@@ -63,13 +65,6 @@ export class OrganizationMembershipService {
     await this.organizationMembershipRepository.save(membership);
   }
 
-  async isOwner(organizationId: string, userId: string) {
-    return this.organizationMembershipRepository.isOwner(
-      organizationId,
-      userId,
-    );
-  }
-
   async remove(membership: OrganizationMembership, removedBy: string) {
     membership.status = MembershipStatus.REMOVED;
     membership.removedBy = removedBy;
@@ -77,5 +72,41 @@ export class OrganizationMembershipService {
     membership.updatedAt = Timestamp.now();
 
     await this.organizationMembershipRepository.save(membership);
+  }
+
+  async transferOwnership(
+    currentMembership: OrganizationMembership,
+    targetMembership: OrganizationMembership,
+  ): Promise<void> {
+    await this.firebaseService.firestore.runTransaction(async (transaction) => {
+      currentMembership.roles = currentMembership.roles.filter(
+        (role) => role !== OrganizationRole.OWNER,
+      );
+
+      currentMembership.updatedAt = Timestamp.now();
+
+      targetMembership.roles = [
+        ...targetMembership.roles,
+        OrganizationRole.OWNER,
+      ];
+
+      targetMembership.updatedAt = Timestamp.now();
+
+      transaction.set(
+        this.organizationMembershipRepository.getDocumentReference(
+          currentMembership.id,
+        ),
+        currentMembership,
+      );
+
+      transaction.set(
+        this.organizationMembershipRepository.getDocumentReference(
+          targetMembership.id,
+        ),
+        targetMembership,
+      );
+
+      await Promise.resolve();
+    });
   }
 }

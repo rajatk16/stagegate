@@ -254,6 +254,12 @@ export class OrganizationApplicationService {
       );
     }
 
+    if (dto.roles.includes(OrganizationRole.OWNER)) {
+      throw new BadRequestException(
+        'The OWNER role cannot be modified through this endpoint. Use the transfer ownership endpoint.',
+      );
+    }
+
     const targetMembership =
       await this.organizationMembershipService.findActiveMembership(
         targetUserId,
@@ -270,14 +276,6 @@ export class OrganizationApplicationService {
 
     if (currentMembership.id === targetMembership.id) {
       throw new BadRequestException('You cannot modify your own roles');
-    }
-
-    const assigningOwner = dto.roles.includes(OrganizationRole.OWNER);
-
-    if (assigningOwner) {
-      throw new ForbiddenException(
-        'Cannot assign ownership to other members yet. Use the transfer ownership endpoint instead (TBD).',
-      );
     }
 
     await this.organizationMembershipService.updateRoles(
@@ -338,6 +336,71 @@ export class OrganizationApplicationService {
     await this.organizationMembershipService.remove(
       targetMembership,
       actingMembership.userId,
+    );
+
+    const user = await this.usersService.findById(targetMembership.userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return OrganizationMemberMapper.toDto(user, targetMembership);
+  }
+
+  async leaveOrganization(
+    organization: Organization,
+    currentMembership: OrganizationMembership,
+  ): Promise<void> {
+    if (organization.status === OrganizationStatus.ARCHIVED) {
+      throw new BadRequestException(
+        'Archived organizations cannot be modified.',
+      );
+    }
+
+    if (currentMembership.roles.includes(OrganizationRole.OWNER)) {
+      throw new ForbiddenException(
+        'Cannot leave the organization as an owner. Use transfer ownership endpoint instead.',
+      );
+    }
+
+    await this.organizationMembershipService.remove(
+      currentMembership,
+      currentMembership.userId,
+    );
+  }
+
+  async transferOwnership(
+    organization: Organization,
+    currentMembership: OrganizationMembership,
+    targetUserId: string,
+  ): Promise<OrganizationMemberDto> {
+    if (!currentMembership.roles.includes(OrganizationRole.OWNER)) {
+      throw new ForbiddenException(
+        'Only the organization owner can transfer ownership.',
+      );
+    }
+
+    const targetMembership =
+      await this.organizationMembershipService.findActiveMembership(
+        targetUserId,
+        organization.id,
+      );
+
+    if (!targetMembership) {
+      throw new NotFoundException('Member not found.');
+    }
+
+    if (targetMembership.userId === currentMembership.userId) {
+      throw new BadRequestException('You already own this organization.');
+    }
+
+    if (targetMembership.roles.includes(OrganizationRole.OWNER)) {
+      throw new BadRequestException('Target member is already the owner.');
+    }
+
+    await this.organizationMembershipService.transferOwnership(
+      currentMembership,
+      targetMembership,
     );
 
     const user = await this.usersService.findById(targetMembership.userId);
