@@ -3,11 +3,15 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from '@/users/users.module';
 
 import { OrganizationContextGuard } from './guards';
-import { OrganizationsController } from './controllers';
+import {
+  OrganizationsController,
+  OrganizationInvitationsController,
+} from './controllers';
 import {
   OrganizationRepository,
   OrganizationSlugRepository,
   OrganizationMembershipRepository,
+  OrganizationMembershipInvitationRepository,
 } from './repositories';
 import {
   OrganizationService,
@@ -16,11 +20,12 @@ import {
   OrganizationContextService,
   OrganizationMembershipService,
   OrganizationApplicationService,
+  OrganizationMembershipInvitationService,
 } from './services';
 
 @Module({
   imports: [UsersModule],
-  controllers: [OrganizationsController],
+  controllers: [OrganizationsController, OrganizationInvitationsController],
   exports: [
     OrganizationService,
     OrganizationRepository,
@@ -29,7 +34,7 @@ import {
     OrganizationSlugRepository,
     OrganizationMembershipService,
     OrganizationApplicationService,
-    OrganizationMembershipRepository,
+    OrganizationMembershipInvitationService,
   ],
   providers: [
     OrganizationService,
@@ -42,6 +47,8 @@ import {
     OrganizationMembershipService,
     OrganizationApplicationService,
     OrganizationMembershipRepository,
+    OrganizationMembershipInvitationService,
+    OrganizationMembershipInvitationRepository,
   ],
 })
 export class OrganizationsModule {}

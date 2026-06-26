@@ -9,6 +9,8 @@ import { OrganizationMembership } from '../entities';
 export const createMembershipFactory = (
   organizationId: string,
   userId: string,
+  roles: OrganizationRole[],
+  status: MembershipStatus,
 ): OrganizationMembership => {
   const now = Timestamp.now();
 
@@ -16,8 +18,8 @@ export const createMembershipFactory = (
     id: randomUUID(),
     organizationId,
     userId,
-    roles: [OrganizationRole.OWNER],
-    status: MembershipStatus.ACTIVE,
+    roles: roles,
+    status: status,
     joinedAt: now,
     createdAt: now,
     updatedAt: now,

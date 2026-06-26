@@ -37,4 +37,10 @@ export class OrganizationMembershipService {
       organizationId,
     );
   }
+
+  async isActiveMember(organizationId: string, userId: string) {
+    const membership = await this.findActiveMembership(userId, organizationId);
+
+    return membership !== null;
+  }
 }

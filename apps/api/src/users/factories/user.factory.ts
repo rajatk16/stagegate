@@ -1,9 +1,9 @@
 import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { User } from './entities';
-import { UserStatus } from './enums';
-import { CreateUserDto } from './dto';
+import { User } from '../entities';
+import { UserStatus } from '../enums';
+import { CreateUserDto } from '../dtos';
 
 export const createUserFactory = (dto: CreateUserDto): User => {
   const now = Timestamp.now();

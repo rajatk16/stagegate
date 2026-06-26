@@ -30,7 +30,9 @@ import {
   UpdateOrganizationDto,
   OrganizationDetailsDto,
   OrganizationSummaryDto,
+  CreateMembershipInvitationDto,
   CreateOrganizationResponseDto,
+  OrganizationMembershipInvitationDto,
 } from '../dtos';
 
 @Authorized()
@@ -180,5 +182,27 @@ export class OrganizationsController {
     @CurrentOrganizationMembership() membership: OrganizationMembership,
   ): Promise<OrganizationMemberDto> {
     return this.organizationApplicationService.getCurrentMember(membership);
+  }
+
+  @ApiOperation({
+    summary: 'Invite a new member to the organization',
+  })
+  @ApiCreatedResponse({
+    type: OrganizationMembershipInvitationDto,
+  })
+  @Post(':organizationSlug/members/invitations')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
+  @Permissions(OrganizationPermission.MEMBER_INVITE)
+  async inviteMember(
+    @CurrentOrganization() organization: Organization,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreateMembershipInvitationDto,
+  ): Promise<OrganizationMembershipInvitationDto> {
+    return this.organizationApplicationService.inviteMember(
+      organization,
+      user.userId,
+      dto,
+    );
   }
 }

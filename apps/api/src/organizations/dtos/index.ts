@@ -3,5 +3,7 @@ export * from './organizationMember.dto';
 export * from './updateOrganization.dto';
 export * from './organizationDetails.dto';
 export * from './organizationSummary.dto';
+export * from './createMembershipInvitation.dto';
 export * from './createOrganizationResponse.dto';
 export * from './organizationMembershipResponse.dto';
+export * from './organizationMembershipInvitation.dto';

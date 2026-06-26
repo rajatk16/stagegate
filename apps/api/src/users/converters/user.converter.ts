@@ -1,7 +1,7 @@
 import { FirestoreDataConverter, Timestamp } from 'firebase-admin/firestore';
 
+import { User } from '../entities';
 import { UserStatus } from '../enums';
-import { User } from '../entities/user.entity';
 
 const toDate = (value: unknown): Timestamp => {
   if (value instanceof Timestamp) {

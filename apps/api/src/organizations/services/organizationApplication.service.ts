@@ -3,40 +3,51 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 
 import { normalizeSlug } from '@/common/utils';
-import { UserRepository } from '@/users/repositories';
+import { UsersService } from '@/users/services';
+import { AuthenticatedUser } from '@/auth/interfaces';
 import { FirebaseService } from '@/firebase/firebase.service';
 
-import { createOrganizationSlugFactory } from '../factories';
+import { OrganizationService } from './organization.service';
 import { Organization, OrganizationMembership } from '../entities';
-import { OrganizationMapper, OrganizationMemberMapper } from '../mappers';
+import { OrganizationDomainService } from './organizationDomain.service';
+import { OrganizationMembershipService } from './organizationMembership.service';
+import { OrganizationMembershipInvitationService } from './organizationMembershipInvitation.service';
+import {
+  createOrganizationSlugFactory,
+  createMembershipInvitationFactory,
+} from '../factories';
 import {
   OrganizationRepository,
   OrganizationSlugRepository,
 } from '../repositories';
 import {
+  OrganizationMapper,
+  OrganizationMemberMapper,
+  OrganizationMembershipInvitationMapper,
+} from '../mappers';
+import {
   OrganizationMemberDto,
   UpdateOrganizationDto,
   OrganizationDetailsDto,
+  CreateMembershipInvitationDto,
+  OrganizationMembershipInvitationDto,
 } from '../dtos';
-import {
-  OrganizationService,
-  OrganizationDomainService,
-  OrganizationMembershipService,
-} from '../services';
 
 @Injectable()
 export class OrganizationApplicationService {
   constructor(
-    private readonly userRepository: UserRepository,
+    private readonly usersService: UsersService,
     private readonly firebaseService: FirebaseService,
     private readonly organizationService: OrganizationService,
     private readonly organizationRepository: OrganizationRepository,
     private readonly organizationDomainService: OrganizationDomainService,
     private readonly organizationSlugRepository: OrganizationSlugRepository,
     private readonly organizationMembershipService: OrganizationMembershipService,
+    private readonly organizationMembershipInvitationService: OrganizationMembershipInvitationService,
   ) {}
 
   async getOrganizationsForUser(userId: string) {
@@ -140,7 +151,7 @@ export class OrganizationApplicationService {
         organization.id,
       );
 
-    const users = await this.userRepository.findByIds(
+    const users = await this.usersService.findByIds(
       memberships.map((membership) => membership.userId),
     );
 
@@ -160,11 +171,70 @@ export class OrganizationApplicationService {
   async getCurrentMember(
     membership: OrganizationMembership,
   ): Promise<OrganizationMemberDto> {
-    const user = await this.userRepository.findById(membership.userId);
+    const user = await this.usersService.findById(membership.userId);
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
     return OrganizationMemberMapper.toDto(user, membership);
+  }
+
+  async inviteMember(
+    organization: Organization,
+    invitedBy: string,
+    dto: CreateMembershipInvitationDto,
+  ): Promise<OrganizationMembershipInvitationDto> {
+    const normalizedEmail = dto.email.trim().toLowerCase();
+
+    await this.organizationMembershipInvitationService.ensureNoPendingInvitation(
+      organization.id,
+      normalizedEmail,
+    );
+
+    const existingUser = await this.usersService.findByEmail(normalizedEmail);
+
+    if (existingUser) {
+      const isMember = await this.organizationMembershipService.isActiveMember(
+        organization.id,
+        existingUser.id,
+      );
+
+      if (isMember) {
+        throw new BadRequestException(
+          'User is already a member of the organization',
+        );
+      }
+    }
+
+    const invitation = createMembershipInvitationFactory(
+      organization.id,
+      normalizedEmail,
+      invitedBy,
+      dto.roles,
+    );
+
+    await this.organizationMembershipInvitationService.save(invitation);
+
+    return OrganizationMembershipInvitationMapper.toDto(invitation);
+  }
+
+  async acceptInvitation(
+    user: AuthenticatedUser,
+    invitationId: string,
+  ): Promise<void> {
+    await this.organizationMembershipInvitationService.acceptInvitation(
+      user,
+      invitationId,
+    );
+  }
+
+  async declineInvitation(
+    user: AuthenticatedUser,
+    invitationId: string,
+  ): Promise<void> {
+    await this.organizationMembershipInvitationService.declineInvitation(
+      user,
+      invitationId,
+    );
   }
 }
