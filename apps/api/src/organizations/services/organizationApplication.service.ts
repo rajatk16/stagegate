@@ -255,7 +255,7 @@ export class OrganizationApplicationService {
     }
 
     const targetMembership =
-      await this.organizationMembershipService.findMembership(
+      await this.organizationMembershipService.findActiveMembership(
         targetUserId,
         organization.id,
       );
@@ -272,31 +272,72 @@ export class OrganizationApplicationService {
       throw new BadRequestException('You cannot modify your own roles');
     }
 
-    const actingIsOwner = currentMembership.roles.includes(
-      OrganizationRole.OWNER,
-    );
-
     const assigningOwner = dto.roles.includes(OrganizationRole.OWNER);
 
-    if (assigningOwner && !actingIsOwner) {
+    if (assigningOwner) {
       throw new ForbiddenException(
-        'Only organization owners can assign ownership.',
+        'Cannot assign ownership to other members yet. Use the transfer ownership endpoint instead (TBD).',
       );
-    }
-
-    const currentlyOwner = targetMembership.roles.includes(
-      OrganizationRole.OWNER,
-    );
-
-    const willRemainOwner = dto.roles.includes(OrganizationRole.OWNER);
-
-    if (currentlyOwner && !willRemainOwner) {
-      throw new ForbiddenException('Cannot remove ownership.');
     }
 
     await this.organizationMembershipService.updateRoles(
       targetMembership,
       dto.roles,
+    );
+
+    const user = await this.usersService.findById(targetMembership.userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return OrganizationMemberMapper.toDto(user, targetMembership);
+  }
+
+  async removeMember(
+    organization: Organization,
+    actingMembership: OrganizationMembership,
+    targetUserId: string,
+  ): Promise<OrganizationMemberDto> {
+    if (organization.status === OrganizationStatus.ARCHIVED) {
+      throw new BadRequestException(
+        'Archived organizations cannot be modified.',
+      );
+    }
+
+    const targetMembership =
+      await this.organizationMembershipService.findActiveMembership(
+        targetUserId,
+        organization.id,
+      );
+
+    if (!targetMembership) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (targetMembership.organizationId !== organization.id) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (actingMembership.userId === targetMembership.userId) {
+      throw new BadRequestException(
+        'You cannot remove yourself. Use the leave organization endpoint instead.',
+      );
+    }
+
+    const targetIsOwner = targetMembership.roles.includes(
+      OrganizationRole.OWNER,
+    );
+
+    if (targetIsOwner) {
+      throw new ForbiddenException(
+        'Cannot remove owners from the organization',
+      );
+    }
+
+    await this.organizationMembershipService.remove(
+      targetMembership,
+      actingMembership.userId,
     );
 
     const user = await this.usersService.findById(targetMembership.userId);

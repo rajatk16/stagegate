@@ -106,6 +106,24 @@ export class OrganizationMembershipRepository {
     return snapshot.docs[0].data();
   }
 
+  async findRemovedMembership(
+    organizationId: string,
+    userId: string,
+  ): Promise<OrganizationMembership | null> {
+    const snapshot = await this.collection()
+      .where('organizationId', '==', organizationId)
+      .where('userId', '==', userId)
+      .where('status', '==', MembershipStatus.REMOVED)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) {
+      return null;
+    }
+
+    return snapshot.docs[0].data();
+  }
+
   async exists(userId: string, organizationId: string): Promise<boolean> {
     const snapshot = await this.collection()
       .where('userId', '==', userId)

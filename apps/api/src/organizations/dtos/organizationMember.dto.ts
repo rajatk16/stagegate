@@ -33,4 +33,9 @@ export class OrganizationMemberDto {
 
   @ApiProperty()
   joinedAt: Timestamp;
+
+  @ApiProperty({
+    nullable: true,
+  })
+  removedAt?: Timestamp | null;
 }

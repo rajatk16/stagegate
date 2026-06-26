@@ -3,6 +3,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 
 import { OrganizationRole } from '@/authorization/enums';
 
+import { MembershipStatus } from '../enums';
 import { OrganizationMembership } from '../entities';
 import { OrganizationMembershipRepository } from '../repositories';
 
@@ -67,5 +68,14 @@ export class OrganizationMembershipService {
       organizationId,
       userId,
     );
+  }
+
+  async remove(membership: OrganizationMembership, removedBy: string) {
+    membership.status = MembershipStatus.REMOVED;
+    membership.removedBy = removedBy;
+    membership.removedAt = Timestamp.now();
+    membership.updatedAt = Timestamp.now();
+
+    await this.organizationMembershipRepository.save(membership);
   }
 }

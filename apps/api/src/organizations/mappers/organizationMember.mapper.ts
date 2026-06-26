@@ -16,6 +16,7 @@ export class OrganizationMemberMapper {
       status: membership.status,
       roles: membership.roles,
       joinedAt: membership.joinedAt,
+      removedAt: membership.removedAt,
     };
   }
 }
