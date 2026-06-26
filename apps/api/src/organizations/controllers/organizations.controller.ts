@@ -238,4 +238,26 @@ export class OrganizationsController {
       dto,
     );
   }
+
+  @ApiOperation({
+    summary: 'Remove a member from the organization',
+  })
+  @ApiOkResponse({
+    type: OrganizationMemberDto,
+  })
+  @Patch(':organizationSlug/members/:userId/remove')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
+  @Permissions(OrganizationPermission.MEMBER_REMOVE)
+  async removeMember(
+    @CurrentOrganization() organization: Organization,
+    @CurrentOrganizationMembership() membership: OrganizationMembership,
+    @Param('userId') userId: string,
+  ): Promise<OrganizationMemberDto> {
+    return this.organizationApplicationService.removeMember(
+      organization,
+      membership,
+      userId,
+    );
+  }
 }

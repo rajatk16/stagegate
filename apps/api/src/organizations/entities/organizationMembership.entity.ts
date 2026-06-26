@@ -11,6 +11,8 @@ export class OrganizationMembership {
   roles: OrganizationRole[];
   status: MembershipStatus;
   joinedAt: Timestamp;
+  removedAt?: Timestamp | null;
+  removedBy?: string | null;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
