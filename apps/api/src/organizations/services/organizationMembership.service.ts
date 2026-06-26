@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { Timestamp } from 'firebase-admin/firestore';
 
+import { OrganizationRole } from '@/authorization/enums';
+
+import { OrganizationMembership } from '../entities';
 import { OrganizationMembershipRepository } from '../repositories';
 
 @Injectable()
@@ -13,6 +17,10 @@ export class OrganizationMembershipService {
       userId,
       organizationId,
     );
+  }
+
+  async findMembershipById(id: string) {
+    return this.organizationMembershipRepository.findById(id);
   }
 
   async findUserMemberships(userId: string) {
@@ -42,5 +50,22 @@ export class OrganizationMembershipService {
     const membership = await this.findActiveMembership(userId, organizationId);
 
     return membership !== null;
+  }
+
+  async updateRoles(
+    membership: OrganizationMembership,
+    roles: OrganizationRole[],
+  ): Promise<void> {
+    membership.roles = [...new Set(roles)];
+    membership.updatedAt = Timestamp.now();
+
+    await this.organizationMembershipRepository.save(membership);
+  }
+
+  async isOwner(organizationId: string, userId: string) {
+    return this.organizationMembershipRepository.isOwner(
+      organizationId,
+      userId,
+    );
   }
 }

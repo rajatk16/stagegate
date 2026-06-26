@@ -3,14 +3,17 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
 
 import { normalizeSlug } from '@/common/utils';
 import { UsersService } from '@/users/services';
 import { AuthenticatedUser } from '@/auth/interfaces';
+import { OrganizationRole } from '@/authorization/enums';
 import { FirebaseService } from '@/firebase/firebase.service';
 
+import { OrganizationStatus } from '../enums';
 import { OrganizationService } from './organization.service';
 import { Organization, OrganizationMembership } from '../entities';
 import { OrganizationDomainService } from './organizationDomain.service';
@@ -33,6 +36,7 @@ import {
   OrganizationMemberDto,
   UpdateOrganizationDto,
   OrganizationDetailsDto,
+  UpdateOrganizationMemberDto,
   CreateMembershipInvitationDto,
   OrganizationMembershipInvitationDto,
 } from '../dtos';
@@ -236,5 +240,71 @@ export class OrganizationApplicationService {
       user,
       invitationId,
     );
+  }
+
+  async updateMemberRoles(
+    organization: Organization,
+    currentMembership: OrganizationMembership,
+    targetUserId: string,
+    dto: UpdateOrganizationMemberDto,
+  ): Promise<OrganizationMemberDto> {
+    if (organization.status === OrganizationStatus.ARCHIVED) {
+      throw new BadRequestException(
+        'Archived organizations cannot be modified.',
+      );
+    }
+
+    const targetMembership =
+      await this.organizationMembershipService.findMembership(
+        targetUserId,
+        organization.id,
+      );
+
+    if (!targetMembership) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (targetMembership.organizationId !== organization.id) {
+      throw new NotFoundException('Member not found');
+    }
+
+    if (currentMembership.id === targetMembership.id) {
+      throw new BadRequestException('You cannot modify your own roles');
+    }
+
+    const actingIsOwner = currentMembership.roles.includes(
+      OrganizationRole.OWNER,
+    );
+
+    const assigningOwner = dto.roles.includes(OrganizationRole.OWNER);
+
+    if (assigningOwner && !actingIsOwner) {
+      throw new ForbiddenException(
+        'Only organization owners can assign ownership.',
+      );
+    }
+
+    const currentlyOwner = targetMembership.roles.includes(
+      OrganizationRole.OWNER,
+    );
+
+    const willRemainOwner = dto.roles.includes(OrganizationRole.OWNER);
+
+    if (currentlyOwner && !willRemainOwner) {
+      throw new ForbiddenException('Cannot remove ownership.');
+    }
+
+    await this.organizationMembershipService.updateRoles(
+      targetMembership,
+      dto.roles,
+    );
+
+    const user = await this.usersService.findById(targetMembership.userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return OrganizationMemberMapper.toDto(user, targetMembership);
   }
 }

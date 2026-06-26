@@ -1,4 +1,12 @@
-import { Get, Body, Post, Patch, UseGuards, Controller } from '@nestjs/common';
+import {
+  Get,
+  Body,
+  Post,
+  Param,
+  Patch,
+  UseGuards,
+  Controller,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -30,6 +38,7 @@ import {
   UpdateOrganizationDto,
   OrganizationDetailsDto,
   OrganizationSummaryDto,
+  UpdateOrganizationMemberDto,
   CreateMembershipInvitationDto,
   CreateOrganizationResponseDto,
   OrganizationMembershipInvitationDto,
@@ -202,6 +211,30 @@ export class OrganizationsController {
     return this.organizationApplicationService.inviteMember(
       organization,
       user.userId,
+      dto,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Update member roles',
+  })
+  @ApiOkResponse({
+    type: OrganizationMemberDto,
+  })
+  @Patch(':organizationSlug/members/:userId')
+  @UseGuards(OrganizationContextGuard)
+  @OrganizationContext('organizationSlug')
+  @Permissions(OrganizationPermission.MEMBER_UPDATE)
+  async updateMemberRoles(
+    @CurrentOrganization() organization: Organization,
+    @CurrentOrganizationMembership() membership: OrganizationMembership,
+    @Param('userId') userId: string,
+    @Body() dto: UpdateOrganizationMemberDto,
+  ): Promise<OrganizationMemberDto> {
+    return this.organizationApplicationService.updateMemberRoles(
+      organization,
+      membership,
+      userId,
       dto,
     );
   }
