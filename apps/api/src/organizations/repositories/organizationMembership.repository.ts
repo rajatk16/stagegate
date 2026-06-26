@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Timestamp } from 'firebase-admin/firestore';
 
+import { OrganizationRole } from '@/authorization/enums';
 import { FirebaseService } from '@/firebase/firebase.service';
 
+import { MembershipStatus } from '../enums';
 import { OrganizationMembership } from '../entities';
 import { organizationMembershipConverter } from '../converters';
 import { ORGANIZATION_MEMBERSHIPS_COLLECTION } from '../constants';
-import { MembershipStatus } from '../enums';
 
 @Injectable()
 export class OrganizationMembershipRepository {
@@ -129,5 +130,20 @@ export class OrganizationMembershipRepository {
 
   async delete(id: string): Promise<void> {
     await this.collection().doc(id).delete();
+  }
+
+  async isOwner(organizationId: string, userId: string): Promise<boolean> {
+    const snapshot = await this.collection()
+      .where('userId', '==', userId)
+      .where('organizationId', '==', organizationId)
+      .where('roles', 'array-contains', OrganizationRole.OWNER)
+      .limit(1)
+      .get();
+
+    return !snapshot.empty;
+  }
+
+  async save(membership: OrganizationMembership): Promise<void> {
+    await this.collection().doc(membership.id).set(membership);
   }
 }
