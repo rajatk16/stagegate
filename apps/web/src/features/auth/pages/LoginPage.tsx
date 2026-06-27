@@ -2,7 +2,7 @@ import { Button } from '@/components/ui';
 
 import { loginWIthGoogle } from '../service';
 
-const LoginPage = () => {
+export const LoginPage = () => {
   const handleLogin = async () => {
     await loginWIthGoogle();
   };
@@ -18,5 +18,3 @@ const LoginPage = () => {
     </div>
   );
 };
-
-export default LoginPage;
