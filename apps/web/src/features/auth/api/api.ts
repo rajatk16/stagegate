@@ -1,8 +1,8 @@
 import { apiClient, type ApiResponse } from '@/api';
 
-import type { AuthenticatedUser } from './types';
+import type { AuthenticatedUser } from '../types';
 
-export const getCurrentUser = async () => {
+export const getAuthenticatedUser = async () => {
   const response =
     await apiClient.get<ApiResponse<AuthenticatedUser>>('/auth/me');
 

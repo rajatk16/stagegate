@@ -19,7 +19,7 @@ export const AppHeader = () => {
     <header className="flex h-16 items-center justify-between border-b px-6">
       <div />
       <Avatar>
-        <AvatarFallback>{getInitials(user?.displayName)}</AvatarFallback>
+        <AvatarFallback>{getInitials(user?.displayName ?? 'U')}</AvatarFallback>
       </Avatar>
     </header>
   );

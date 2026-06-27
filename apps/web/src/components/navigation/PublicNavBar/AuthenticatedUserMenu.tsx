@@ -11,7 +11,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui';
-import { logOut, useAuthenticatedUser } from '@/features/auth';
+import { useAuthenticatedUser, useLogout } from '@/features/auth';
 
 const getInitials = (displayName?: string) =>
   displayName
@@ -25,6 +25,7 @@ const getInitials = (displayName?: string) =>
 
 export const AuthenticatedUserMenu = () => {
   const user = useAuthenticatedUser();
+  const { signOut, isPending } = useLogout();
 
   if (!user) return null;
 
@@ -37,7 +38,9 @@ export const AuthenticatedUserMenu = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Avatar className="cursor-pointer">
-            <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+            <AvatarFallback>
+              {getInitials(user?.displayName ?? 'U')}
+            </AvatarFallback>
           </Avatar>
         </DropdownMenuTrigger>
 
@@ -46,7 +49,7 @@ export const AuthenticatedUserMenu = () => {
             <Link to={buildAppRoute()}>Dashboard</Link>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={() => logOut()}>
+          <DropdownMenuItem disabled={isPending} onClick={() => void signOut()}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </DropdownMenuItem>
