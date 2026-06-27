@@ -1,21 +1,18 @@
 import { Navigate } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
-import { useAuthenticatedUser, useAuthInitialized } from '@/features/auth';
+import { useAuthInitialized, useIsAuthenticated } from '@/features/auth';
 
-import { RouteLoader } from './RouteLoader';
+import { buildAppRoute } from './routeBuilders';
 
 export const PublicOnlyRoute = (props: PropsWithChildren) => {
   const initialized = useAuthInitialized();
+  const authenticated = useIsAuthenticated();
 
-  const authenticatedUser = useAuthenticatedUser();
+  if (!initialized) return null;
 
-  if (!initialized) {
-    return <RouteLoader />;
-  }
-
-  if (authenticatedUser) {
-    return <Navigate replace to="/dashboard" />;
+  if (authenticated) {
+    return <Navigate replace to={buildAppRoute()} />;
   }
 
   return <>{props.children}</>;
