@@ -1,4 +1,4 @@
-import { logOut, useAuthenticatedUser } from '@/features/auth';
+import { useAuthenticatedUser, useLogout } from '@/features/auth';
 import {
   Avatar,
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 
 export const LandingUserMenu = () => {
   const user = useAuthenticatedUser();
+  const { signOut, isPending } = useLogout();
 
   const initials =
     user?.displayName
@@ -29,8 +30,9 @@ export const LandingUserMenu = () => {
 
       <DropdownMenuContent align="end">
         <DropdownMenuItem
+          disabled={isPending}
           onClick={() => {
-            void logOut();
+            void signOut();
           }}
         >
           Logout

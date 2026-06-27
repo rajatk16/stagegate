@@ -1,21 +1,10 @@
-import {
-  FAQ,
-  Footer,
-  Navbar,
-  Features,
-  AnimatedHero,
-  WorkflowDiagram,
-} from '../components';
+import { FAQ, Features, AnimatedHero, WorkflowDiagram } from '../components';
 
-const LandingPage = () => (
+export const LandingPage = () => (
   <main className="bg-background">
-    <Navbar />
     <AnimatedHero />
     <Features />
     <WorkflowDiagram />
     <FAQ />
-    <Footer />
   </main>
 );
-
-export default LandingPage;
