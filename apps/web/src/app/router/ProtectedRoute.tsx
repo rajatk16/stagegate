@@ -1,24 +1,19 @@
 import { Navigate } from 'react-router-dom';
 import type { PropsWithChildren } from 'react';
 
-import { useBootstrapInitialized } from '@/features/bootstrap';
-import { useAuthenticatedUser, useAuthInitialized } from '@/features/auth';
+import { useAuthInitialized, useIsAuthenticated } from '@/features/auth';
 
-import { RouteLoader } from './RouteLoader';
+import { buildLoginRoute } from './routeBuilders';
 
-export const ProtectedRoute = (props: PropsWithChildren) => {
-  const authInitialized = useAuthInitialized();
-  const bootstrapInitialized = useBootstrapInitialized();
+export const ProtectedRoute = ({ children }: PropsWithChildren) => {
+  const initialized = useAuthInitialized();
+  const authenticated = useIsAuthenticated();
 
-  const user = useAuthenticatedUser();
+  if (!initialized) return null;
 
-  if (!authInitialized || (user && !bootstrapInitialized)) {
-    return <RouteLoader />;
+  if (!authenticated) {
+    return <Navigate replace to={buildLoginRoute()} />;
   }
 
-  if (!user) {
-    return <Navigate replace to="/login" />;
-  }
-
-  return <>{props.children}</>;
+  return <>{children}</>;
 };
