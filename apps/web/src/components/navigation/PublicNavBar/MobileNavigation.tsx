@@ -2,11 +2,11 @@ import { Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { buildLoginRoute } from '@/app/router';
+import { ThemeToggle } from '@/components/theme';
 import { useIsAuthenticated } from '@/features/auth';
 import { Button, Sheet, SheetContent, SheetTrigger } from '@/components/ui';
 
 import { publicNavigation } from './publicNavigation';
-import { ThemeToggle } from '@/components/theme';
 
 export const MobileNavigation = () => {
   const isAuthenticated = useIsAuthenticated();

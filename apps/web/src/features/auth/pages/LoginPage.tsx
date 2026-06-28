@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+
 import { GoogleSignInButton } from '../components';
 
 export const LoginPage = () => {

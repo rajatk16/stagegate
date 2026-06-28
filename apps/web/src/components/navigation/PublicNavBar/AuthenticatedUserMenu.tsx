@@ -2,6 +2,7 @@ import { LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 import { buildAppRoute } from '@/app';
+import { useAuthenticatedUser, useLogout } from '@/features/auth';
 import {
   Avatar,
   Button,
@@ -11,7 +12,6 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui';
-import { useAuthenticatedUser, useLogout } from '@/features/auth';
 
 const getInitials = (displayName?: string) =>
   displayName
