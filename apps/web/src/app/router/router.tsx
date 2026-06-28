@@ -1,15 +1,15 @@
 import { createBrowserRouter } from 'react-router-dom';
 
+import { LoginPage } from '@/features/auth';
 import { NotFoundPage } from '@/features/common';
+import { LandingPage } from '@/features/landing';
 import { AppLayout, PublicLayout } from '@/components/layouts';
 
+import { LazyRoute } from './LazyRoute';
 import { RoutePaths } from './routePaths';
 import { ProtectedRoute } from './ProtectedRoute';
-import { RouteErrorBoundary } from './RouteErrorBoundary';
 import { PublicOnlyRoute } from './PublicOnlyRoute';
-import { LazyRoute } from './LazyRoute';
-import { LoginPage } from '@/features/auth';
-import { LandingPage } from '@/features/landing';
+import { RouteErrorBoundary } from './RouteErrorBoundary';
 
 export const router = createBrowserRouter([
   {

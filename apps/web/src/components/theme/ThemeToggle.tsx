@@ -1,8 +1,8 @@
 import { useTheme } from 'next-themes';
 import { Check, Laptop, Moon, Sun } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import {
+  Button,
   DropdownMenu,
   DropdownMenuItem,
   DropdownMenuContent,

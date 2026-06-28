@@ -1,6 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
+
+import { apiClient } from '@/lib/api';
+
 import { firebaseAuthService } from './firebaseAuth';
-import { apiClient } from '@/api';
 
 export class AuthSessionService {
   private queryClient: QueryClient;

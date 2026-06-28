@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+
 import { firebaseAuthService } from '../services';
 
 export const useAuthenticate = () => {

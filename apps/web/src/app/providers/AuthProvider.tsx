@@ -1,7 +1,7 @@
 import { AxiosError } from 'axios';
 import { useEffect, type PropsWithChildren } from 'react';
 
-import { apiClient } from '@/api';
+import { apiClient } from '@/lib/api';
 import {
   useAuthStore,
   firebaseAuthService,
