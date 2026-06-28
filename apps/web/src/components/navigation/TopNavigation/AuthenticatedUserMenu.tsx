@@ -32,7 +32,9 @@ export const AuthenticatedUserMenu = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="cursor-pointer">
-          <AvatarFallback>{getInitials(user.displayName)}</AvatarFallback>
+          <AvatarFallback>
+            {getInitials(user?.displayName ?? '')}
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
 
