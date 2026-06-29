@@ -1,4 +1,8 @@
+import { createQueryKeys } from '@/lib';
+
+const authRoot = createQueryKeys('auth');
+
 export const queryKeys = {
-  all: ['auth'],
+  ...authRoot,
   me: () => [...queryKeys.all, 'me'],
 };
