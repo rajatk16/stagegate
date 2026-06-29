@@ -5,6 +5,3 @@ export const requiredString = (min = 1, max = 255) =>
 
 export const optionalString = (max = 255) =>
   z.string().trim().max(max).optional();
-
-export const optionalUrl = () =>
-  z.string().trim().url().optional().or(z.literal(''));

@@ -8,7 +8,10 @@ interface FormActionsProps {
 
 export const FormActions = (props: PropsWithChildren<FormActionsProps>) => (
   <div
-    className={cn('flex items-center justify-end gap-2 pt-6', props.className)}
+    className={cn(
+      'flex flex-col-reverse gap-3 sm:flex-row sm:justify-end',
+      props.className,
+    )}
   >
     {props.children}
   </div>
