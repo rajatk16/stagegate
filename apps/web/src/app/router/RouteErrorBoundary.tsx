@@ -7,8 +7,21 @@ export const RouteErrorBoundary = () => {
 
   if (isRouteErrorResponse(error)) {
     return (
-      <PageError title={`${error.status}`} description={error.statusText} />
+      <PageError
+        title={`${error.status} ${error.statusText}`}
+        description="An unexpected routing error occurred."
+      />
     );
   }
-  return <PageError />;
+
+  if (error instanceof Error) {
+    return <PageError title="Application Error" description={error.message} />;
+  }
+
+  return (
+    <PageError
+      title="Unexpected Error"
+      description="Something went wrong while rendering this page."
+    />
+  );
 };

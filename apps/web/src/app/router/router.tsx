@@ -1,8 +1,9 @@
 import { createBrowserRouter } from 'react-router-dom';
 
 import { LoginPage } from '@/features/auth';
-import { NotFoundPage } from '@/features/common';
 import { LandingPage } from '@/features/landing';
+import { Page, PageContent } from '@/components/page';
+import { AccessDenied, NotFound } from '@/components/states';
 import { AppLayout, PublicLayout } from '@/components/layouts';
 
 import { LazyRoute } from './LazyRoute';
@@ -56,6 +57,22 @@ export const router = createBrowserRouter([
   },
   {
     path: RoutePaths.NOT_FOUND,
-    element: <NotFoundPage />,
+    element: <NotFound />,
+  },
+  {
+    path: '/403',
+    element: <AppLayout />,
+    children: [
+      {
+        index: true,
+        element: (
+          <Page>
+            <PageContent>
+              <AccessDenied />
+            </PageContent>
+          </Page>
+        ),
+      },
+    ],
   },
 ]);

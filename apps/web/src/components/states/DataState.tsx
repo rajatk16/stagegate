@@ -4,11 +4,11 @@ import { EmptyState } from './EmptyState';
 import { InlineLoader, PageError } from '../feedback';
 
 interface DataStateProps<T> {
-  data: T | null | undefined;
-  isLoading?: boolean;
   error?: unknown;
-  isEmpty?: (data: T) => boolean;
+  isLoading?: boolean;
   emptyState?: ReactNode;
+  data: T | null | undefined;
+  isEmpty?: (data: T) => boolean;
   children: (data: T) => ReactNode;
 }
 
