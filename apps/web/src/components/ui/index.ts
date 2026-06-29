@@ -9,6 +9,7 @@ export * from './button';
 export * from './dialog';
 export * from './sonner';
 export * from './tooltip';
+export * from './skeleton';
 export * from './textarea';
 export * from './accordion';
 export * from './separator';

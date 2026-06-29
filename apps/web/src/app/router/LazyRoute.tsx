@@ -1,9 +1,13 @@
 import { Suspense, type PropsWithChildren, type ReactNode } from 'react';
 
-interface LazyRouteProps extends PropsWithChildren {
+import { SuspenseFallback } from '@/components/feedback';
+
+interface LazyRouteProps {
   fallback?: ReactNode;
 }
 
-export const LazyRoute = (props: LazyRouteProps) => (
-  <Suspense fallback={props.fallback ?? null}>{props.children}</Suspense>
+export const LazyRoute = (props: PropsWithChildren<LazyRouteProps>) => (
+  <Suspense fallback={props.fallback ?? <SuspenseFallback />}>
+    {props.children}
+  </Suspense>
 );

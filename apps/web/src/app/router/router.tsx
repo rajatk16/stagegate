@@ -33,11 +33,11 @@ export const router = createBrowserRouter([
       {
         path: RoutePaths.LOGIN,
         element: (
-          <PublicOnlyRoute>
-            <LazyRoute>
+          <LazyRoute>
+            <PublicOnlyRoute>
               <LoginPage />
-            </LazyRoute>
-          </PublicOnlyRoute>
+            </PublicOnlyRoute>
+          </LazyRoute>
         ),
         handle: {
           title: 'Login',

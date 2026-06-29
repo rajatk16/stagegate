@@ -20,14 +20,6 @@ export const DashboardPreview = () => (
     }}
   >
     <div className="overflow-hidden rounded-2xl border bg-card shadow-2xl">
-      <div className="flex h-12 items-center border-b px-4">
-        <div className="flex gap-2">
-          <div className="h-3 w-3 rounded-full bg-red-500" />
-          <div className="h-3 w-3 rounded-full bg-yellow-500" />
-          <div className="h-3 w-3 rounded-full bg-green-500" />
-        </div>
-      </div>
-
       <div className="grid md:grid-cols-[250px_1fr]">
         <aside className="border-r p-4">
           <div className="font-semibold">React Summit 2027</div>
