@@ -1,6 +1,7 @@
 import type { AxiosError, AxiosInstance } from 'axios';
 
-import { firebaseAuthService, useAuthStore } from '@/features/auth';
+import { useAuthStore } from '@/features/auth/store';
+import { firebaseAuthService } from '@/features/auth/services';
 
 export const setupInterceptors = (apiClient: AxiosInstance) => {
   apiClient.interceptors.request.use((config) => {

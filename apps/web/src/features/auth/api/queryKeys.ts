@@ -1,4 +1,4 @@
-import { createQueryKeys } from '@/lib';
+import { createQueryKeys } from '@/lib/query/createQueryKeys';
 
 const authRoot = createQueryKeys('auth');
 
