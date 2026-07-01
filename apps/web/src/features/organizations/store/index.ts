@@ -5,7 +5,7 @@ import type { OrganizationSummary } from '../types';
 
 interface OrganizationStore {
   currentOrganization: OrganizationSummary | null;
-  setCurrentOrganization: (organization: OrganizationSummary) => void;
+  setCurrentOrganization: (organization: OrganizationSummary | null) => void;
   clearCurrentOrganization: () => void;
 }
 
