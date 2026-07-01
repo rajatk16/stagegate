@@ -1,5 +1,6 @@
+import { OrganizationSwitcher } from '@/features/organizations';
+
 import { SidebarTrigger } from './SidebarTrigger';
-import { OrganizationSwitcher } from './OrganizationSwitcher';
 
 export const TopNavigationStart = () => {
   return (

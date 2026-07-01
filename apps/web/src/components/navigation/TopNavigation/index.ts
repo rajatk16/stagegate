@@ -4,5 +4,4 @@ export * from './SidebarTrigger';
 export * from './TopNavigationEnd';
 export * from './NotificationButton';
 export * from './TopNavigationStart';
-export * from './OrganizationSwitcher';
 export * from './AuthenticatedUserMenu';
