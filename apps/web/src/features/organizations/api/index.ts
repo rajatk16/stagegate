@@ -102,7 +102,7 @@ export const removeMember = async (
   organizationSlug: string,
   userId: string,
 ): Promise<OrganizationMember> =>
-  httpClient.post<OrganizationMember, void>(
+  httpClient.patch<OrganizationMember, void>(
     ENDPOINTS.removeMember(organizationSlug, userId),
     undefined,
   );

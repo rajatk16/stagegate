@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 
 import { useOrganizationStore } from '../store';
+import type { OrganizationSummary } from '../types';
 
-export const useCurrentOrganization = () =>
-  useOrganizationStore((state) => state.currentOrganization);
+export const useCurrentOrganization = (): OrganizationSummary | null =>
+  useOrganizationStore((state) => state.currentOrganization ?? null);
 
 export const useCurrentOrganizationSlug = () => {
   const organization = useCurrentOrganization();

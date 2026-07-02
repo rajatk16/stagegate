@@ -4,8 +4,8 @@ import { useAuthStore } from '@/features/auth/store';
 import { firebaseAuthService } from '@/features/auth/services';
 
 export const setupInterceptors = (apiClient: AxiosInstance) => {
-  apiClient.interceptors.request.use((config) => {
-    const token = useAuthStore.getState().firebaseUser?.getIdToken();
+  apiClient.interceptors.request.use(async (config) => {
+    const token = await useAuthStore.getState().firebaseUser?.getIdToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

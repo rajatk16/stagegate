@@ -6,7 +6,6 @@ COPY package*.json ./
 COPY turbo.json ./
 
 COPY apps/web/package.json ./apps/web/
-COPY packages/ui/package.json ./packages/ui/
 
 RUN npm install
 

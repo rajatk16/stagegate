@@ -9,8 +9,8 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "prepare": "husky",
-    "docker:prod:build": "docker compose -f infra/docker/docker-compose.prod.yml --build",
-    "docker:prod": "docker compose -f infra/docker/docker-compose.prod.yml up"
+    "docker:prod:build": "docker compose -f infra/docker/docker-compose.yml --build",
+    "docker:prod": "docker compose -f infra/docker/docker-compose.yml up"
   },
   "devDependencies": {
     "husky": "^9.1.7",

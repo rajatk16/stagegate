@@ -32,7 +32,7 @@ export class OrganizationsService {
     const membership = createMembershipFactory(
       organization.id,
       userId,
-      [OrganizationRole.ADMIN],
+      [OrganizationRole.OWNER],
       MembershipStatus.ACTIVE,
     );
 
