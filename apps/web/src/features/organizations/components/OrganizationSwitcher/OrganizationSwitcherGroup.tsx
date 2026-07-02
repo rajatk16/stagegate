@@ -7,7 +7,7 @@ interface OrganizationSwitcherGroupProps {
     title: string;
     organizations: OrganizationSummary[];
   };
-  currentOrganization: OrganizationSummary;
+  currentOrganization: OrganizationSummary | null;
 
   onSelect: (organization: OrganizationSummary) => void;
 }
