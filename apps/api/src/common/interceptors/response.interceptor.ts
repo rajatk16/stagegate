@@ -18,13 +18,11 @@ export class ResponseInterceptor implements NestInterceptor<
     next: CallHandler<unknown>,
   ): Observable<APIResponseDto<unknown>> {
     return next.handle().pipe(
-      map(
-        (data: unknown): APIResponseDto<unknown> => ({
-          success: true,
-          timestamp: new Date().toISOString(),
-          data,
-        }),
-      ),
+      map((data: unknown): APIResponseDto<unknown> => ({
+        success: true,
+        timestamp: new Date().toISOString(),
+        data,
+      })),
     );
   }
 }

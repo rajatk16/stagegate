@@ -61,7 +61,6 @@ export class OrganizationMembershipRepository {
   async findByUser(userId: string): Promise<OrganizationMembership[] | null> {
     const snapshot = await this.collection()
       .where('userId', '==', userId)
-      .limit(1)
       .get();
 
     return snapshot.docs.map((doc) => doc.data());

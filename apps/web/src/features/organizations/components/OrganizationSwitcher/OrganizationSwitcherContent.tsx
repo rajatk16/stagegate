@@ -16,7 +16,7 @@ import { OrganizationSwitcherLoading } from './OrganizationSwitcherLoading';
 interface Props {
   isLoading: boolean;
   organizations: OrganizationSummary[];
-  currentOrganization: OrganizationSummary;
+  currentOrganization: OrganizationSummary | null;
 
   onCreate: () => void;
   onSelect: (organization: OrganizationSummary) => void;
