@@ -8,6 +8,7 @@ export * from './avatar';
 export * from './button';
 export * from './dialog';
 export * from './sonner';
+export * from './command';
 export * from './tooltip';
 export * from './skeleton';
 export * from './textarea';
