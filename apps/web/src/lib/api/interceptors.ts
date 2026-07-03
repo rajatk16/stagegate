@@ -1,14 +1,15 @@
 import type { AxiosError, AxiosInstance } from 'axios';
 
-import { useAuthStore } from '@/features/auth/store';
-import { firebaseAuthService } from '@/features/auth/services';
+import { useAuthStore, firebaseAuthService } from '@/features/auth';
 
 export const setupInterceptors = (apiClient: AxiosInstance) => {
   apiClient.interceptors.request.use(async (config) => {
-    const token = await useAuthStore.getState().firebaseUser?.getIdToken();
+    const token = await firebaseAuthService.getIdToken();
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      delete config.headers.Authorization;
     }
 
     return config;

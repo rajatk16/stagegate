@@ -29,7 +29,13 @@ class FirebaseAuthService {
     return auth.currentUser;
   }
 
+  async waitUntilReady(): Promise<void> {
+    await auth.authStateReady();
+  }
+
   async getIdToken(forceRefresh = false): Promise<string | null> {
+    await this.waitUntilReady();
+
     const user = auth.currentUser;
 
     if (!user) {

@@ -1,10 +1,16 @@
 import { createBrowserRouter } from 'react-router-dom';
 
 import { LoginPage } from '@/features/auth';
+import { AppEntryPage } from '@/features/app';
 import { LandingPage } from '@/features/landing';
 import { Page, PageContent } from '@/components/page';
 import { AccessDenied, NotFound } from '@/components/states';
 import { AppLayout, PublicLayout } from '@/components/layouts';
+import {
+  ORGANIZATION_ROUTES,
+  OrganizationDashboard,
+  CreateOrganizationPage,
+} from '@/features/organizations';
 
 import { LazyRoute } from './LazyRoute';
 import { RoutePaths } from './routePaths';
@@ -53,7 +59,34 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     errorElement: <RouteErrorBoundary />,
-    children: [],
+    children: [
+      {
+        path: RoutePaths.APP,
+        element: (
+          <LazyRoute>
+            <AppEntryPage />
+          </LazyRoute>
+        ),
+      },
+    ],
+  },
+  {
+    element: (
+      <ProtectedRoute>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
+    errorElement: <RouteErrorBoundary />,
+    children: [
+      {
+        path: ORGANIZATION_ROUTES.CREATE,
+        element: <CreateOrganizationPage />,
+      },
+      {
+        path: ORGANIZATION_ROUTES.DASHBOARD(':slug'),
+        element: <OrganizationDashboard />,
+      },
+    ],
   },
   {
     path: RoutePaths.NOT_FOUND,

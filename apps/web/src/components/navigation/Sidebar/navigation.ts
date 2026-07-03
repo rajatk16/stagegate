@@ -9,35 +9,23 @@ export const appNavigation: SidebarGroupModel[] = [
     items: [
       {
         id: 'dashboard',
-
         label: 'Dashboard',
-
-        href: '/app',
-
-        icon: LayoutDashboard,
-      },
-
-      {
-        id: 'events',
-
-        label: 'Events',
-
         href: '#',
-
-        icon: CalendarDays,
-
+        icon: LayoutDashboard,
         disabled: true,
       },
-
+      {
+        id: 'events',
+        label: 'Events',
+        href: '#',
+        icon: CalendarDays,
+        disabled: true,
+      },
       {
         id: 'members',
-
         label: 'Members',
-
         href: '#',
-
         icon: Users,
-
         disabled: true,
       },
     ],
@@ -45,19 +33,13 @@ export const appNavigation: SidebarGroupModel[] = [
 
   {
     id: 'settings',
-
     title: 'Settings',
-
     items: [
       {
         id: 'settings',
-
         label: 'Settings',
-
         href: '#',
-
         icon: Settings,
-
         disabled: true,
       },
     ],

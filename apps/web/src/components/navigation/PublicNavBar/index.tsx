@@ -5,8 +5,6 @@ import { ThemeToggle } from '@/components/theme';
 import { useIsAuthenticated } from '@/features/auth';
 import { buildHomeRoute, buildLoginRoute } from '@/app/router';
 
-import { MobileNavigation } from './MobileNavigation';
-import { DesktopNavigation } from './DesktopNavigation';
 import { AuthenticatedUserMenu } from './AuthenticatedUserMenu';
 
 export const PublicNavbar = () => {
@@ -19,9 +17,7 @@ export const PublicNavbar = () => {
           StageGate
         </Link>
 
-        <DesktopNavigation />
-
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="items-center gap-3 flex">
           <ThemeToggle />
           {!isAuthenticated ? (
             <>
@@ -37,8 +33,6 @@ export const PublicNavbar = () => {
             <AuthenticatedUserMenu />
           )}
         </div>
-
-        <MobileNavigation />
       </div>
     </header>
   );

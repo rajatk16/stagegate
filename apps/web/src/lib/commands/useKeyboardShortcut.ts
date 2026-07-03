@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+
 import type { KeyboardShortcut } from './types';
 
 const matchesShortcut = (event: KeyboardEvent, shortcut: KeyboardShortcut) => {

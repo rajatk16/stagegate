@@ -1,15 +1,25 @@
+import type { ComponentProps } from 'react';
 import { Building2, ChevronsUpDown } from 'lucide-react';
 
+import { cn } from '@/lib';
 import { Button } from '@/components/ui';
 
 import type { OrganizationSummary } from '../../types';
 
-interface Props {
+type Props = ComponentProps<typeof Button> & {
   organization: OrganizationSummary | null;
-}
+};
 
-export const OrganizationSwitcherTrigger = ({ organization }: Props) => (
-  <Button variant="ghost" className="flex w-full items-center justify-between">
+export const OrganizationSwitcherTrigger = ({
+  organization,
+  className,
+  ...props
+}: Props) => (
+  <Button
+    {...props}
+    variant="ghost"
+    className={cn('flex w-full items-center justify-between', className)}
+  >
     <div className="flex items-center gap-2">
       <Building2 className="h-4 w-4" />
       <span className="truncate">

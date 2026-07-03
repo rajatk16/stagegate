@@ -17,6 +17,7 @@ export const NotFound = ({
 }: NotFoundProps) => {
   return (
     <EmptyState
+      className="min-h-screen"
       icon={SearchX}
       title={title}
       description={description}
