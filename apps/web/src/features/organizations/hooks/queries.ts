@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
+import type { ApiResponse } from '@/lib';
+
 import {
   get,
   list,
@@ -7,6 +9,7 @@ import {
   getCurrentMember,
   organizationsKeys,
 } from '../api';
+import type { OrganizationSummary } from '../types';
 
 export const useCurrentOrganizationMember = (organizationSlug: string) =>
   useQuery({
@@ -30,7 +33,8 @@ export const useOrganizationMembers = (organizationSlug: string) =>
   });
 
 export const useOrganizations = () =>
-  useQuery({
+  useQuery<ApiResponse<OrganizationSummary[]>, Error, OrganizationSummary[]>({
     queryKey: organizationsKeys.list(),
     queryFn: list,
+    select: (response) => response.data,
   });

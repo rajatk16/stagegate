@@ -1,8 +1,8 @@
-import { httpClient } from '@/lib';
+import { httpClient, type ApiResponse } from '@/lib';
 
 import type {
-  OrganizationDetails,
   OrganizationMember,
+  OrganizationDetails,
   OrganizationSummary,
   OrganizationInvitation,
   UpdateMemberRolesRequest,
@@ -34,8 +34,8 @@ const ENDPOINTS = {
     `/organization-invitations/${invitationId}/decline`,
 };
 
-export const list = async (): Promise<OrganizationSummary[]> =>
-  httpClient.get<OrganizationSummary[]>(ENDPOINTS.organizations);
+export const list = async (): Promise<ApiResponse<OrganizationSummary[]>> =>
+  httpClient.get<ApiResponse<OrganizationSummary[]>>(ENDPOINTS.organizations);
 
 export const get = async (slug: string): Promise<OrganizationDetails> =>
   httpClient.get<OrganizationDetails>(ENDPOINTS.organization(slug));

@@ -16,7 +16,10 @@ export const buildNavigation = ({
     ...section,
     items: section.items.map((item) => ({
       ...item,
-      href: item.href === '#' ? '#' : `/app/${organizationSlug}/${item.id}`,
+      href:
+        item.href === '#'
+          ? '#'
+          : `/organizations/${organizationSlug}/${item.id}`,
     })),
   }));
 };

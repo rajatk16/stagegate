@@ -4,14 +4,14 @@ import { DropdownMenu, DropdownMenuTrigger } from '@/components/ui';
 
 import { ORGANIZATION_ROUTES } from '../../constants';
 import { useCurrentOrganization, useOrganizations } from '../../hooks';
-import { OrganizationSwitcherTrigger } from './OrganizationSwitcherTrigger';
 import { OrganizationSwitcherContent } from './OrganizationSwitcherContent';
+import { OrganizationSwitcherTrigger } from './OrganizationSwitcherTrigger';
 
 export const OrganizationSwitcher = () => {
   const navigate = useNavigate();
 
   const currentOrganization = useCurrentOrganization();
-  const { data: organizations = [], isLoading } = useOrganizations();
+  const { data, isLoading } = useOrganizations();
 
   return (
     <DropdownMenu>
@@ -20,11 +20,11 @@ export const OrganizationSwitcher = () => {
       </DropdownMenuTrigger>
       <OrganizationSwitcherContent
         isLoading={isLoading}
-        organizations={organizations}
+        organizations={data ?? []}
         currentOrganization={currentOrganization}
         onCreate={() => navigate(ORGANIZATION_ROUTES.CREATE)}
         onSelect={(organization) =>
-          navigate(ORGANIZATION_ROUTES.DETAIL(organization.slug))
+          navigate(ORGANIZATION_ROUTES.DASHBOARD(organization.slug))
         }
       />
     </DropdownMenu>

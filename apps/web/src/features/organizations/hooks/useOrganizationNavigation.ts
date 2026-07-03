@@ -21,7 +21,7 @@ export const useOrganizationNavigation = () => {
         return;
       }
 
-      navigate(ORGANIZATION_ROUTES.DETAIL(organizationSlug));
+      navigate(ORGANIZATION_ROUTES.DASHBOARD(organizationSlug));
     },
     [location.pathname, navigate],
   );

@@ -22,8 +22,15 @@ export const useSyncOrganization = () => {
       (organization) => organization.slug === organizationSlug,
     );
 
+    if (organizations?.length === 0) {
+      navigate(ORGANIZATION_ROUTES.CREATE, { replace: true });
+      return;
+    }
+
     if (!organization) {
-      navigate(ORGANIZATION_ROUTES.ROOT, { replace: true });
+      navigate(ORGANIZATION_ROUTES.DASHBOARD(organizations[0].slug), {
+        replace: true,
+      });
       return;
     }
     setCurrentOrganization(organization);

@@ -1,4 +1,5 @@
 import { CommandGroup } from '@/components/ui';
+
 import type { OrganizationSummary } from '../../types';
 import { OrganizationSwitcherItem } from './OrganizationSwitcherItem';
 
