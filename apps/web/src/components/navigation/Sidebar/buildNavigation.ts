@@ -9,17 +9,14 @@ export const buildNavigation = ({
   organizationSlug,
 }: BuildNavigationOptions): SidebarGroupModel[] => {
   if (!organizationSlug) {
-    return appNavigation;
+    return [];
   }
 
   return appNavigation.map((section) => ({
     ...section,
     items: section.items.map((item) => ({
       ...item,
-      href:
-        item.href === '#'
-          ? '#'
-          : `/organizations/${organizationSlug}/${item.id}`,
+      href: item.href.replace(':slug', organizationSlug),
     })),
   }));
 };

@@ -15,6 +15,8 @@ import { AuthorizationModule } from '@/authorization/authorization.module';
 import { OrganizationsModule } from '@/organizations/organizations.module';
 import { AuthorizationGuard } from '@/authorization/guards/authorization.guard';
 
+import { OrganizationContextGuard } from './organizations/guards';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -35,6 +37,10 @@ import { AuthorizationGuard } from '@/authorization/guards/authorization.guard';
     {
       provide: APP_GUARD,
       useClass: FirebaseAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: OrganizationContextGuard,
     },
     {
       provide: APP_GUARD,

@@ -5,11 +5,17 @@ import { AppEntryPage } from '@/features/app';
 import { LandingPage } from '@/features/landing';
 import { Page, PageContent } from '@/components/page';
 import { AccessDenied, NotFound } from '@/components/states';
-import { AppLayout, PublicLayout } from '@/components/layouts';
+import {
+  AppLayout,
+  PublicLayout,
+  OrganizationLayout,
+} from '@/components/layouts';
 import {
   ORGANIZATION_ROUTES,
-  OrganizationDashboard,
   CreateOrganizationPage,
+  OrganizationMembersPage,
+  OrganizationSettingsPage,
+  OrganizationDashboardPage,
 } from '@/features/organizations';
 
 import { LazyRoute } from './LazyRoute';
@@ -73,7 +79,7 @@ export const router = createBrowserRouter([
   {
     element: (
       <ProtectedRoute>
-        <AppLayout />
+        <OrganizationLayout />
       </ProtectedRoute>
     ),
     errorElement: <RouteErrorBoundary />,
@@ -84,7 +90,15 @@ export const router = createBrowserRouter([
       },
       {
         path: ORGANIZATION_ROUTES.DASHBOARD(':slug'),
-        element: <OrganizationDashboard />,
+        element: <OrganizationDashboardPage />,
+      },
+      {
+        path: ORGANIZATION_ROUTES.SETTINGS(':slug'),
+        element: <OrganizationSettingsPage />,
+      },
+      {
+        path: ORGANIZATION_ROUTES.MEMBERS(':slug'),
+        element: <OrganizationMembersPage />,
       },
     ],
   },

@@ -1,12 +1,4 @@
-import {
-  Get,
-  Body,
-  Post,
-  Param,
-  Patch,
-  UseGuards,
-  Controller,
-} from '@nestjs/common';
+import { Get, Body, Post, Param, Patch, Controller } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -26,7 +18,6 @@ import {
 } from '@/auth/decorators';
 
 import { OrganizationContext } from '../decorators';
-import { OrganizationContextGuard } from '../guards';
 import { Organization, OrganizationMembership } from '../entities';
 import {
   OrganizationsService,
@@ -101,7 +92,6 @@ export class OrganizationsController {
     type: OrganizationDetailsDto,
   })
   @Get(':organizationSlug')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.ORGANIZATION_READ)
   getOrganization(
@@ -117,7 +107,6 @@ export class OrganizationsController {
     type: OrganizationDetailsDto,
   })
   @Patch(':organizationSlug')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.ORGANIZATION_UPDATE)
   async updateOrganization(
@@ -137,7 +126,6 @@ export class OrganizationsController {
     description: 'Organization archived successfully',
   })
   @Patch(':organizationSlug/archive')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.ORGANIZATION_ARCHIVE)
   async archiveOrganization(
@@ -153,7 +141,6 @@ export class OrganizationsController {
     description: 'Organization restored successfully',
   })
   @Patch(':organizationSlug/restore')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.ORGANIZATION_RESTORE)
   async restoreOrganization(
@@ -170,7 +157,6 @@ export class OrganizationsController {
     isArray: true,
   })
   @Get(':organizationSlug/members')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.MEMBER_READ)
   async getMembers(
@@ -186,7 +172,6 @@ export class OrganizationsController {
     type: OrganizationMemberDto,
   })
   @Get(':organizationSlug/members/me')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   async getCurrentMember(
     @CurrentOrganizationMembership() membership: OrganizationMembership,
@@ -201,7 +186,6 @@ export class OrganizationsController {
     type: OrganizationMembershipInvitationDto,
   })
   @Post(':organizationSlug/members/invitations')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.MEMBER_INVITE)
   async inviteMember(
@@ -223,7 +207,6 @@ export class OrganizationsController {
     type: OrganizationMemberDto,
   })
   @Patch(':organizationSlug/members/:userId')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.MEMBER_UPDATE)
   async updateMemberRoles(
@@ -247,7 +230,6 @@ export class OrganizationsController {
     type: OrganizationMemberDto,
   })
   @Patch(':organizationSlug/members/:userId/remove')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.MEMBER_REMOVE)
   async removeMember(
@@ -269,7 +251,6 @@ export class OrganizationsController {
     description: 'Left the organization successfully',
   })
   @Post(':organizationSlug/members/leave')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   async leaveOrganization(
     @CurrentOrganization() organization: Organization,
@@ -288,7 +269,6 @@ export class OrganizationsController {
     type: OrganizationMemberDto,
   })
   @Patch(':organizationSlug/ownership/transfer')
-  @UseGuards(OrganizationContextGuard)
   @OrganizationContext('organizationSlug')
   @Permissions(OrganizationPermission.MEMBER_UPDATE)
   async transferOwnership(
