@@ -23,7 +23,7 @@ export const OrganizationSettingsPage = () => {
   const { updateOrganization, isPending } = useUpdateOrganization();
   const { restoreOrganization, isPending: isRestoring } =
     useRestoreOrganization();
-  const permissions = useOrganizationPermissions(currentOrganization.slug);
+  const permissions = useOrganizationPermissions(currentOrganization!.slug);
 
   const { data: organization, isLoading } = useOrganization(
     currentOrganization?.slug ?? '',

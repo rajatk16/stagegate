@@ -9,7 +9,7 @@ import { useCurrentOrganizationMember } from './queries';
 export const useOrganizationPermissions = (organizationSlug: string) => {
   const member = useCurrentOrganizationMember(organizationSlug);
 
-  if (!member) {
+  if (!member || !member.data) {
     return {
       roles: [],
       canManageMembers: false,
