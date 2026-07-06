@@ -12,7 +12,7 @@ export const OrganizationMembersPage = () => {
     isError,
     isLoading,
     data: members = [],
-  } = useOrganizationMembers(organization.slug);
+  } = useOrganizationMembers(organization!.slug);
 
   if (!organization) {
     return null;
