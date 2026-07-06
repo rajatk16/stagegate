@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useCallback, useMemo, useState } from 'react';
 
+import { useNavigationBlocker } from '@/app';
+import { ConfirmActionDialog } from '@/components/dialogs';
 import {
   Card,
   Form,
@@ -25,14 +27,20 @@ import { organizationFormSchema, type OrganizationFormSchema } from './schema';
 const DEFAULT_VALUES: OrganizationFormValues = {
   name: '',
   slug: '',
+  description: '',
+  websiteUrl: '',
+  logoUrl: '',
 };
 
 export const OrganizationForm = ({
+  disabled = false,
   onSubmit,
   defaultValues,
   isSubmitting = false,
   submitLabel = 'Save',
 }: OrganizationFormProps) => {
+  const [showDialog, setShowDialog] = useState(false);
+
   const initialValues = useMemo(
     () => ({
       ...DEFAULT_VALUES,
@@ -47,8 +55,22 @@ export const OrganizationForm = ({
     resolver: zodResolver(organizationFormSchema),
   });
 
+  const handleBlock = useCallback(() => {
+    setShowDialog(true);
+  }, []);
+
+  const blocker = useNavigationBlocker({
+    enabled: form.formState.isDirty,
+    onBlock: handleBlock,
+  });
+
   const handleSubmit = async (values: OrganizationFormSchema) => {
+    if (!form.formState.isDirty) {
+      return;
+    }
     await onSubmit(values);
+
+    form.reset(values);
   };
 
   return (
@@ -61,12 +83,33 @@ export const OrganizationForm = ({
       </CardHeader>
 
       <CardContent>
+        <ConfirmActionDialog
+          open={showDialog}
+          title="Unsaved Changes"
+          description="You have unsaved changes. Are you sure you want to leave this page?"
+          confirmLabel="Leave"
+          cancelLabel="Stay"
+          onOpenChange={(open) => {
+            setShowDialog(open);
+
+            if (!open && blocker.state === 'blocked') {
+              blocker.reset();
+            }
+          }}
+          onConfirm={() => {
+            if (blocker.state === 'blocked') {
+              blocker.proceed();
+            }
+            setShowDialog(false);
+          }}
+        />
         <Form {...form}>
           <form
             className="space-y-6"
             onSubmit={form.handleSubmit(handleSubmit)}
           >
             <FormField
+              disabled={disabled}
               control={form.control}
               name="name"
               render={({ field }) => (
@@ -84,6 +127,7 @@ export const OrganizationForm = ({
               )}
             />
             <FormField
+              disabled={disabled}
               control={form.control}
               name="slug"
               render={({ field }) => (
@@ -104,6 +148,7 @@ export const OrganizationForm = ({
               )}
             />
             <FormField
+              disabled={disabled}
               control={form.control}
               name="description"
               render={({ field }) => (
@@ -120,6 +165,7 @@ export const OrganizationForm = ({
               )}
             />
             <FormField
+              disabled={disabled}
               control={form.control}
               name="websiteUrl"
               render={({ field }) => (
@@ -137,6 +183,7 @@ export const OrganizationForm = ({
               )}
             />
             <FormField
+              disabled={disabled}
               control={form.control}
               name="logoUrl"
               render={({ field }) => (
@@ -156,6 +203,7 @@ export const OrganizationForm = ({
             <OrganizationFormActions
               isSubmitting={isSubmitting}
               submitLabel={submitLabel}
+              disabled={!form.formState.isDirty || disabled}
             />
           </form>
         </Form>

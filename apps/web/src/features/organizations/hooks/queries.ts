@@ -9,7 +9,11 @@ import {
   getCurrentMember,
   organizationsKeys,
 } from '../api';
-import type { OrganizationMember, OrganizationSummary } from '../types';
+import type {
+  OrganizationMember,
+  OrganizationDetails,
+  OrganizationSummary,
+} from '../types';
 
 export const useCurrentOrganizationMember = (organizationSlug: string) =>
   useQuery({
@@ -19,10 +23,11 @@ export const useCurrentOrganizationMember = (organizationSlug: string) =>
   });
 
 export const useOrganization = (organizationSlug: string) =>
-  useQuery({
+  useQuery<ApiResponse<OrganizationDetails>, Error, OrganizationDetails>({
     queryKey: organizationsKeys.detail(organizationSlug),
     queryFn: () => get(organizationSlug),
     enabled: !!organizationSlug,
+    select: (response) => response.data,
   });
 
 export const useOrganizationMembers = (organizationSlug: string) =>

@@ -15,14 +15,15 @@ import {
 interface ConfirmActionDialogProps {
   open: boolean;
   title: string;
+  icon?: ReactNode;
   description: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  variant?: 'default' | 'destructive';
   isPending?: boolean;
+  cancelLabel?: string;
+  confirmLabel?: string;
+  variant?: 'default' | 'destructive';
+
   onOpenChange: (open: boolean) => void;
   onConfirm(): void | Promise<void>;
-  icon?: ReactNode;
 }
 
 export const ConfirmActionDialog = ({
@@ -42,7 +43,6 @@ export const ConfirmActionDialog = ({
       <AlertDialogContent>
         <AlertDialogHeader>
           {icon}
-
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
