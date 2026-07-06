@@ -71,8 +71,10 @@ export const restore = async (organizationSlug: string): Promise<void> =>
 
 export const getMembers = async (
   organizationSlug: string,
-): Promise<OrganizationMember[]> =>
-  httpClient.get<OrganizationMember[]>(ENDPOINTS.members(organizationSlug));
+): Promise<ApiResponse<OrganizationMember[]>> =>
+  httpClient.get<ApiResponse<OrganizationMember[]>>(
+    ENDPOINTS.members(organizationSlug),
+  );
 
 export const getCurrentMember = async (
   organizationSlug: string,

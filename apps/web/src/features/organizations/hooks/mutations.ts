@@ -1,6 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { notificationService, type ApiResponse } from '@/lib';
+
+import { ORGANIZATION_ROUTES } from '../constants';
+import { useSetCurrentOrganization } from './useCurrentOrganization';
 import type {
+  OrganizationSummary,
   UpdateMemberRolesRequest,
   UpdateOrganizationRequest,
   CreateOrganizationInvitationRequest,
@@ -33,16 +39,34 @@ export const useArchiveOrganization = () => {
 };
 
 export const useCreateOrganization = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const setCurrentOrganization = useSetCurrentOrganization();
+
+  const mutation = useMutation({
     mutationFn: create,
-    onSuccess: () => {
+    onSuccess: async (organization) => {
       queryClient.invalidateQueries({
         queryKey: organizationsKeys.lists(),
       });
+      setCurrentOrganization(organization);
+      notificationService.success('Organizaiton created', {
+        description: 'Your organization has been created successfully.',
+      });
+      navigate(ORGANIZATION_ROUTES.DASHBOARD(organization.slug));
+    },
+    onError: (error) => {
+      notificationService.error('Failed to create organization', {
+        description: error.message,
+      });
     },
   });
+
+  return {
+    createOrganization: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };
 
 export const useInviteMember = () => {
@@ -154,9 +178,10 @@ export const useUpdateMember = () => {
 };
 
 export const useUpdateOrganization = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({
       organizationSlug,
       payload,
@@ -164,13 +189,50 @@ export const useUpdateOrganization = () => {
       organizationSlug: string;
       payload: UpdateOrganizationRequest;
     }) => update(organizationSlug, payload),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: organizationsKeys.detail(variables.organizationSlug),
-      });
+    onSuccess: (organization, variables) => {
+      queryClient.setQueryData(
+        organizationsKeys.detail(variables.organizationSlug),
+        organization,
+      );
+      queryClient.setQueryData(
+        organizationsKeys.lists(),
+        (response: ApiResponse<OrganizationSummary[]> | undefined) => {
+          return response?.data?.map((item) =>
+            item.id === organization.id
+              ? {
+                  ...item,
+                  name: organization.name,
+                  slug: organization.slug,
+                  description: organization.description,
+                  logoUrl: organization.logoUrl,
+                }
+              : item,
+          );
+        },
+      );
       queryClient.invalidateQueries({
         queryKey: organizationsKeys.lists(),
       });
+
+      notificationService.success('Organization Updated', {
+        description: 'Changes saved successfully.',
+      });
+
+      if (variables.organizationSlug === organization.slug) {
+        navigate(ORGANIZATION_ROUTES.SETTINGS(organization.slug), {
+          replace: true,
+        });
+      }
+    },
+    onError: (error) => {
+      notificationService.error('Failed to update organization', {
+        description: error.message,
+      });
     },
   });
+
+  return {
+    updateOrganization: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };
