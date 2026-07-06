@@ -4,4 +4,5 @@ export * from './useSyncOrganization';
 export * from './useCurrentOrganization';
 export * from './useOrganizationBootstrap';
 export * from './useOrganizationNavigation';
+export * from './useOrganizationPermissions';
 export * from './useOrganizationInitialization';

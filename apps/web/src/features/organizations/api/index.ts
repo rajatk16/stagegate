@@ -37,8 +37,12 @@ const ENDPOINTS = {
 export const list = async (): Promise<ApiResponse<OrganizationSummary[]>> =>
   httpClient.get<ApiResponse<OrganizationSummary[]>>(ENDPOINTS.organizations);
 
-export const get = async (slug: string): Promise<OrganizationDetails> =>
-  httpClient.get<OrganizationDetails>(ENDPOINTS.organization(slug));
+export const get = async (
+  slug: string,
+): Promise<ApiResponse<OrganizationDetails>> =>
+  httpClient.get<ApiResponse<OrganizationDetails>>(
+    ENDPOINTS.organization(slug),
+  );
 
 export const create = async (
   payload: CreateOrganizationRequest,

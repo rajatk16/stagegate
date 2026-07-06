@@ -1,5 +1,6 @@
 export * from './card';
 export * from './form';
+export * from './alert';
 export * from './badge';
 export * from './input';
 export * from './label';

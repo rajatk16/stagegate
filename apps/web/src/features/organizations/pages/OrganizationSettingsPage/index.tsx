@@ -2,17 +2,28 @@ import { notificationService } from '@/lib';
 
 import { ErrorState } from '@/components/states';
 import { FullPageLoader } from '@/components/feedback';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui';
 
-import { OrganizationForm } from '../../components';
+import { OrganizationStatus } from '../../types';
+import {
+  OrganizationForm,
+  ArchiveOrganizationCard,
+  RestoreOrganizationBanner,
+} from '../../components';
 import {
   useOrganization,
   useUpdateOrganization,
   useCurrentOrganization,
+  useRestoreOrganization,
+  useOrganizationPermissions,
 } from '../../hooks';
 
 export const OrganizationSettingsPage = () => {
   const currentOrganization = useCurrentOrganization();
   const { updateOrganization, isPending } = useUpdateOrganization();
+  const { restoreOrganization, isPending: isRestoring } =
+    useRestoreOrganization();
+  const permissions = useOrganizationPermissions(currentOrganization.slug);
 
   const { data: organization, isLoading } = useOrganization(
     currentOrganization?.slug ?? '',
@@ -33,14 +44,37 @@ export const OrganizationSettingsPage = () => {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8">
       <div>
         <h1 className="text-3xl font-bold">General Settings</h1>
         <p className="text-muted-foreground">
           Update your organization's general settings.
         </p>
       </div>
+      {organization.status === OrganizationStatus.ARCHIVED &&
+        permissions.canArchiveOrganization && (
+          <RestoreOrganizationBanner
+            isPending={isRestoring}
+            onRestore={() =>
+              restoreOrganization({
+                organizationSlug: currentOrganization.slug,
+              })
+            }
+          />
+        )}
+      {!permissions.canEditOrganization && (
+        <Alert>
+          <AlertTitle>Read-Only Access</AlertTitle>
+          <AlertDescription>
+            You do not have permission to edit this organization.
+          </AlertDescription>
+        </Alert>
+      )}
       <OrganizationForm
+        disabled={
+          organization.status === OrganizationStatus.ARCHIVED ||
+          !permissions.canEditOrganization
+        }
         isSubmitting={isPending}
         submitLabel="Save Changes"
         defaultValues={{
@@ -57,6 +91,14 @@ export const OrganizationSettingsPage = () => {
           });
         }}
       />
+
+      {organization.status === OrganizationStatus.ACTIVE &&
+        permissions.canArchiveOrganization && (
+          <ArchiveOrganizationCard
+            organizationName={currentOrganization.name}
+            organizationSlug={currentOrganization.slug}
+          />
+        )}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { RoutePaths } from '@/app';
 import { notificationService, type ApiResponse } from '@/lib';
 
 import { ORGANIZATION_ROUTES } from '../constants';
@@ -26,16 +27,38 @@ import {
 } from '../api';
 
 export const useArchiveOrganization = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: archive,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: organizationsKeys.all,
+  const mutation = useMutation({
+    mutationFn: ({ organizationSlug }: { organizationSlug: string }) =>
+      archive(organizationSlug),
+    onSuccess: async (_, variables) => {
+      queryClient.removeQueries({
+        queryKey: organizationsKeys.detail(variables.organizationSlug),
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: organizationsKeys.lists(),
+      });
+
+      notificationService.success('Organization archived');
+
+      navigate(RoutePaths.APP, {
+        replace: true,
+      });
+    },
+    onError: (error) => {
+      notificationService.error('Failed to archive organization', {
+        description: error.message,
       });
     },
   });
+
+  return {
+    archiveOrganization: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };
 
 export const useCreateOrganization = () => {
@@ -122,16 +145,39 @@ export const useRemoveMember = () => {
 };
 
 export const useRestoreOrganization = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: restore,
-    onSuccess: () => {
+  const mutation = useMutation({
+    mutationFn: ({ organizationSlug }: { organizationSlug: string }) =>
+      restore(organizationSlug),
+    onSuccess: (_, variables) => {
+      queryClient.removeQueries({
+        queryKey: organizationsKeys.detail(variables.organizationSlug),
+      });
       queryClient.invalidateQueries({
-        queryKey: organizationsKeys.all,
+        queryKey: organizationsKeys.lists(),
+      });
+
+      notificationService.success('Organization restored', {
+        description: 'The organization is active again.',
+      });
+
+      navigate(ORGANIZATION_ROUTES.SETTINGS(variables.organizationSlug), {
+        replace: true,
+      });
+    },
+    onError: (error) => {
+      notificationService.error('Failed to restore organization', {
+        description: error.message,
       });
     },
   });
+
+  return {
+    restoreOrganization: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };
 
 export const useTransferOwnership = () => {
