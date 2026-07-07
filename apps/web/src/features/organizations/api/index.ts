@@ -37,8 +37,12 @@ const ENDPOINTS = {
 export const list = async (): Promise<ApiResponse<OrganizationSummary[]>> =>
   httpClient.get<ApiResponse<OrganizationSummary[]>>(ENDPOINTS.organizations);
 
-export const get = async (slug: string): Promise<OrganizationDetails> =>
-  httpClient.get<OrganizationDetails>(ENDPOINTS.organization(slug));
+export const get = async (
+  slug: string,
+): Promise<ApiResponse<OrganizationDetails>> =>
+  httpClient.get<ApiResponse<OrganizationDetails>>(
+    ENDPOINTS.organization(slug),
+  );
 
 export const create = async (
   payload: CreateOrganizationRequest,
@@ -71,13 +75,17 @@ export const restore = async (organizationSlug: string): Promise<void> =>
 
 export const getMembers = async (
   organizationSlug: string,
-): Promise<OrganizationMember[]> =>
-  httpClient.get<OrganizationMember[]>(ENDPOINTS.members(organizationSlug));
+): Promise<ApiResponse<OrganizationMember[]>> =>
+  httpClient.get<ApiResponse<OrganizationMember[]>>(
+    ENDPOINTS.members(organizationSlug),
+  );
 
 export const getCurrentMember = async (
   organizationSlug: string,
-): Promise<OrganizationMember> =>
-  httpClient.get<OrganizationMember>(ENDPOINTS.currentMember(organizationSlug));
+): Promise<ApiResponse<OrganizationMember>> =>
+  httpClient.get<ApiResponse<OrganizationMember>>(
+    ENDPOINTS.currentMember(organizationSlug),
+  );
 
 export const inviteMember = async (
   organizationSlug: string,

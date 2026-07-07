@@ -16,7 +16,7 @@ export const PageError = ({
   onRetry,
 }: PageErrorProps) => {
   return (
-    <div className="flex min-h-[400px] items-center justify-center px-8 text-center">
+    <div className="flex min-h-[400px] flex-col items-center justify-center px-8 text-center">
       <AlertTriangle className="mb-6 h-12 w-12 text-destructive" />
       <h2 className="text-2xl font-semibold">{title}</h2>
       <p className="mt-3 max-w-md text-muted-foreground">{description}</p>

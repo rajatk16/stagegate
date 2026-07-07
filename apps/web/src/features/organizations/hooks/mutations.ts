@@ -1,6 +1,13 @@
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { RoutePaths } from '@/app';
+import { notificationService, type ApiResponse } from '@/lib';
+
+import { ORGANIZATION_ROUTES } from '../constants';
+import { useSetCurrentOrganization } from './useCurrentOrganization';
 import type {
+  OrganizationSummary,
   UpdateMemberRolesRequest,
   UpdateOrganizationRequest,
   CreateOrganizationInvitationRequest,
@@ -20,29 +27,69 @@ import {
 } from '../api';
 
 export const useArchiveOrganization = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: archive,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: organizationsKeys.all,
+  const mutation = useMutation({
+    mutationFn: ({ organizationSlug }: { organizationSlug: string }) =>
+      archive(organizationSlug),
+    onSuccess: async (_, variables) => {
+      queryClient.removeQueries({
+        queryKey: organizationsKeys.detail(variables.organizationSlug),
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: organizationsKeys.lists(),
+      });
+
+      notificationService.success('Organization archived');
+
+      navigate(RoutePaths.APP, {
+        replace: true,
+      });
+    },
+    onError: (error) => {
+      notificationService.error('Failed to archive organization', {
+        description: error.message,
       });
     },
   });
+
+  return {
+    archiveOrganization: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };
 
 export const useCreateOrganization = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const setCurrentOrganization = useSetCurrentOrganization();
+
+  const mutation = useMutation({
     mutationFn: create,
-    onSuccess: () => {
+    onSuccess: async (organization) => {
       queryClient.invalidateQueries({
         queryKey: organizationsKeys.lists(),
       });
+      setCurrentOrganization(organization);
+      notificationService.success('Organizaiton created', {
+        description: 'Your organization has been created successfully.',
+      });
+      navigate(ORGANIZATION_ROUTES.DASHBOARD(organization.slug));
+    },
+    onError: (error) => {
+      notificationService.error('Failed to create organization', {
+        description: error.message,
+      });
     },
   });
+
+  return {
+    createOrganization: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };
 
 export const useInviteMember = () => {
@@ -81,7 +128,7 @@ export const useLeaveOrganization = () => {
 export const useRemoveMember = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({
       organizationSlug,
       userId,
@@ -93,21 +140,57 @@ export const useRemoveMember = () => {
       queryClient.invalidateQueries({
         queryKey: organizationsKeys.members(variables.organizationSlug),
       });
+      notificationService.success('Member removed', {
+        description: 'The member has been removed from the organization.',
+      });
     },
-  });
-};
-
-export const useRestoreOrganization = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: restore,
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: organizationsKeys.all,
+    onError: (error) => {
+      notificationService.error('Failed to remove member', {
+        description: error.message,
       });
     },
   });
+
+  return {
+    isPending: mutation.isPending,
+    removeMember: mutation.mutateAsync,
+  };
+};
+
+export const useRestoreOrganization = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: ({ organizationSlug }: { organizationSlug: string }) =>
+      restore(organizationSlug),
+    onSuccess: (_, variables) => {
+      queryClient.removeQueries({
+        queryKey: organizationsKeys.detail(variables.organizationSlug),
+      });
+      queryClient.invalidateQueries({
+        queryKey: organizationsKeys.lists(),
+      });
+
+      notificationService.success('Organization restored', {
+        description: 'The organization is active again.',
+      });
+
+      navigate(ORGANIZATION_ROUTES.SETTINGS(variables.organizationSlug), {
+        replace: true,
+      });
+    },
+    onError: (error) => {
+      notificationService.error('Failed to restore organization', {
+        description: error.message,
+      });
+    },
+  });
+
+  return {
+    restoreOrganization: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };
 
 export const useTransferOwnership = () => {
@@ -132,31 +215,45 @@ export const useTransferOwnership = () => {
   });
 };
 
-export const useUpdateMember = () => {
+export const useUpdateMemberRole = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({
-      organizationSlug,
       userId,
       payload,
+      organizationSlug,
     }: {
-      organizationSlug: string;
       userId: string;
+      organizationSlug: string;
       payload: UpdateMemberRolesRequest;
     }) => updateMemberRoles(organizationSlug, userId, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: organizationsKeys.members(variables.organizationSlug),
       });
+      notificationService.success('Member role updated', {
+        description: 'The member role has been updated.',
+      });
+    },
+    onError: (error) => {
+      notificationService.error('Failed to update member role', {
+        description: error.message,
+      });
     },
   });
+
+  return {
+    isPending: mutation.isPending,
+    updateMemberRole: mutation.mutateAsync,
+  };
 };
 
 export const useUpdateOrganization = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({
       organizationSlug,
       payload,
@@ -164,13 +261,50 @@ export const useUpdateOrganization = () => {
       organizationSlug: string;
       payload: UpdateOrganizationRequest;
     }) => update(organizationSlug, payload),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: organizationsKeys.detail(variables.organizationSlug),
-      });
+    onSuccess: (organization, variables) => {
+      queryClient.setQueryData(
+        organizationsKeys.detail(variables.organizationSlug),
+        organization,
+      );
+      queryClient.setQueryData(
+        organizationsKeys.lists(),
+        (response: ApiResponse<OrganizationSummary[]> | undefined) => {
+          return response?.data?.map((item) =>
+            item.id === organization.id
+              ? {
+                  ...item,
+                  name: organization.name,
+                  slug: organization.slug,
+                  description: organization.description,
+                  logoUrl: organization.logoUrl,
+                }
+              : item,
+          );
+        },
+      );
       queryClient.invalidateQueries({
         queryKey: organizationsKeys.lists(),
       });
+
+      notificationService.success('Organization Updated', {
+        description: 'Changes saved successfully.',
+      });
+
+      if (variables.organizationSlug === organization.slug) {
+        navigate(ORGANIZATION_ROUTES.SETTINGS(organization.slug), {
+          replace: true,
+        });
+      }
+    },
+    onError: (error) => {
+      notificationService.error('Failed to update organization', {
+        description: error.message,
+      });
     },
   });
+
+  return {
+    updateOrganization: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };

@@ -7,7 +7,7 @@ import { useSetCurrentOrganization } from './useCurrentOrganization';
 
 export const useSyncOrganization = () => {
   const navigate = useNavigate();
-  const { organizationSlug } = useParams<{ organizationSlug: string }>();
+  const { slug } = useParams<{ slug: string }>();
 
   const { data: organizations, isSuccess } = useOrganizations();
 
@@ -16,10 +16,10 @@ export const useSyncOrganization = () => {
   useEffect(() => {
     if (!isSuccess) return;
 
-    if (!organizationSlug) return;
+    if (!slug) return;
 
     const organization = organizations?.find(
-      (organization) => organization.slug === organizationSlug,
+      (organization) => organization.slug === slug,
     );
 
     if (organizations?.length === 0) {
@@ -34,33 +34,25 @@ export const useSyncOrganization = () => {
       return;
     }
     setCurrentOrganization(organization);
-  }, [
-    organizationSlug,
-    organizations,
-    isSuccess,
-    navigate,
-    setCurrentOrganization,
-  ]);
+  }, [slug, organizations, isSuccess, navigate, setCurrentOrganization]);
 
   const organization = useMemo(() => {
-    if (!organizations || !organizationSlug) {
+    if (!organizations || !slug) {
       return null;
     }
 
     return (
-      organizations.find(
-        (organization) => organization.slug === organizationSlug,
-      ) ?? null
+      organizations.find((organization) => organization.slug === slug) ?? null
     );
-  }, [organizations, organizationSlug]);
+  }, [organizations, slug]);
 
   const isSynced = useMemo(() => {
-    if (!organizationSlug) return true;
+    if (!slug) return true;
 
     if (!isSuccess) return false;
 
     return organization !== null;
-  }, [isSuccess, organization, organizationSlug]);
+  }, [isSuccess, organization, slug]);
 
   return {
     organization,
