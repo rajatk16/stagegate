@@ -49,6 +49,7 @@ export const MembersTable = (props: MembersTableProps) => {
           <TableHead>Name</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Roles</TableHead>
+          <TableHead>Status</TableHead>
           <TableHead>Joined</TableHead>
           <TableHead className="w-16" />
         </TableRow>
