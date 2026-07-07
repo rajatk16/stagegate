@@ -128,7 +128,7 @@ export const useLeaveOrganization = () => {
 export const useRemoveMember = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({
       organizationSlug,
       userId,
@@ -140,8 +140,21 @@ export const useRemoveMember = () => {
       queryClient.invalidateQueries({
         queryKey: organizationsKeys.members(variables.organizationSlug),
       });
+      notificationService.success('Member removed', {
+        description: 'The member has been removed from the organization.',
+      });
+    },
+    onError: (error) => {
+      notificationService.error('Failed to remove member', {
+        description: error.message,
+      });
     },
   });
+
+  return {
+    isPending: mutation.isPending,
+    removeMember: mutation.mutateAsync,
+  };
 };
 
 export const useRestoreOrganization = () => {
@@ -202,25 +215,38 @@ export const useTransferOwnership = () => {
   });
 };
 
-export const useUpdateMember = () => {
+export const useUpdateMemberRole = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({
-      organizationSlug,
       userId,
       payload,
+      organizationSlug,
     }: {
-      organizationSlug: string;
       userId: string;
+      organizationSlug: string;
       payload: UpdateMemberRolesRequest;
     }) => updateMemberRoles(organizationSlug, userId, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: organizationsKeys.members(variables.organizationSlug),
       });
+      notificationService.success('Member role updated', {
+        description: 'The member role has been updated.',
+      });
+    },
+    onError: (error) => {
+      notificationService.error('Failed to update member role', {
+        description: error.message,
+      });
     },
   });
+
+  return {
+    isPending: mutation.isPending,
+    updateMemberRole: mutation.mutateAsync,
+  };
 };
 
 export const useUpdateOrganization = () => {
