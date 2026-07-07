@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 import type { ApiResponse } from '@/lib';
 
@@ -15,11 +15,14 @@ import type {
   OrganizationSummary,
 } from '../types';
 
-export const useCurrentOrganizationMember = (organizationSlug: string) =>
-  useQuery({
+export const useCurrentOrganizationMember = (
+  organizationSlug: string,
+): UseQueryResult<OrganizationMember> =>
+  useQuery<ApiResponse<OrganizationMember>, Error, OrganizationMember>({
     enabled: !!organizationSlug,
     queryFn: () => getCurrentMember(organizationSlug),
     queryKey: organizationsKeys.currentMember(organizationSlug),
+    select: (response) => response.data,
   });
 
 export const useOrganization = (organizationSlug: string) =>

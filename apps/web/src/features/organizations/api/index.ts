@@ -82,8 +82,10 @@ export const getMembers = async (
 
 export const getCurrentMember = async (
   organizationSlug: string,
-): Promise<OrganizationMember> =>
-  httpClient.get<OrganizationMember>(ENDPOINTS.currentMember(organizationSlug));
+): Promise<ApiResponse<OrganizationMember>> =>
+  httpClient.get<ApiResponse<OrganizationMember>>(
+    ENDPOINTS.currentMember(organizationSlug),
+  );
 
 export const inviteMember = async (
   organizationSlug: string,

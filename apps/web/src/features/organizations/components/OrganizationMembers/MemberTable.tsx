@@ -12,10 +12,17 @@ import { MemberRow } from './MemberRow';
 import type { OrganizationMember } from '../../types';
 
 interface MembersTableProps {
-  members: OrganizationMember[];
-  isLoading?: boolean;
   isError: boolean;
   error: Error | null;
+  isLoading?: boolean;
+  canManageMembers: boolean;
+  members: OrganizationMember[];
+  currentMember: OrganizationMember;
+
+  refetch: () => void;
+  onInvite: () => void;
+  onEditRole?: (member: OrganizationMember) => void;
+  onRemoveMember?: (member: OrganizationMember) => void;
 }
 
 export const MembersTable = (props: MembersTableProps) => {
@@ -43,11 +50,19 @@ export const MembersTable = (props: MembersTableProps) => {
           <TableHead>Email</TableHead>
           <TableHead>Roles</TableHead>
           <TableHead>Joined</TableHead>
+          <TableHead className="w-16" />
         </TableRow>
       </TableHeader>
       <TableBody>
         {props.members.map((member) => (
-          <MemberRow key={member.id} member={member} />
+          <MemberRow
+            key={member.id}
+            member={member}
+            onEditRole={props.onEditRole}
+            currentMember={props.currentMember}
+            onRemoveMember={props.onRemoveMember}
+            canManageMembers={props.canManageMembers}
+          />
         ))}
       </TableBody>
     </Table>

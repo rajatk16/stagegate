@@ -11,13 +11,20 @@ export interface UpdateMemberRolesRequest {
   roles: OrganizationRole[];
 }
 
+export interface FirebaseTimestampLike {
+  _seconds?: number;
+  _nanoseconds?: number;
+  seconds?: number;
+  nanoseconds?: number;
+}
+
 export interface OrganizationMember {
   id: string;
-  displayName: string;
   email: string;
-  avatarUrl?: string | null;
+  displayName: string;
   status: MembershipStatus;
+  avatarUrl?: string | null;
   roles: OrganizationRole[];
-  joinedAt: Date;
-  removedAt?: Date | null;
+  joinedAt: string | Date | FirebaseTimestampLike;
+  removedAt?: string | Date | FirebaseTimestampLike | null;
 }
