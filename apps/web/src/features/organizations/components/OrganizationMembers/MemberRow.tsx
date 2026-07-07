@@ -5,6 +5,7 @@ import { MemberActions } from './MemberActions';
 import { MemberRoleBadge } from './MemberRoleBadge';
 import { CurrentUserBadge } from './CurrentUserBadge';
 import type { OrganizationMember } from '../../types';
+import { MemberStatusBadge } from './MemberStatusBadge';
 
 interface MemberRowProps {
   member: OrganizationMember;
@@ -56,6 +57,10 @@ export const MemberRow = ({
 
     <TableCell>
       <MemberRoleBadge role={member.roles[0]} />
+    </TableCell>
+
+    <TableCell>
+      <MemberStatusBadge status={member.status} />
     </TableCell>
 
     <TableCell>{formatJoinedAt(member.joinedAt)}</TableCell>
