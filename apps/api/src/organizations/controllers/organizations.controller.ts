@@ -1,4 +1,13 @@
-import { Get, Body, Post, Param, Patch, Controller } from '@nestjs/common';
+import {
+  Get,
+  Body,
+  Post,
+  Param,
+  Patch,
+  Query,
+  Delete,
+  Controller,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -18,6 +27,7 @@ import {
 } from '@/auth/decorators';
 
 import { OrganizationContext } from '../decorators';
+import { OrganizationMembershipInvitationStatus } from '../enums';
 import { Organization, OrganizationMembership } from '../entities';
 import {
   OrganizationsService,
@@ -180,6 +190,26 @@ export class OrganizationsController {
   }
 
   @ApiOperation({
+    summary: 'List pending invitations for the organization',
+  })
+  @ApiOkResponse({
+    description: 'List of pending invitations',
+    type: [OrganizationMembershipInvitationDto],
+  })
+  @Get(':organizationSlug/members/invitations')
+  @OrganizationContext('organizationSlug')
+  @Permissions(OrganizationPermission.MEMBER_INVITE)
+  async getInvitations(
+    @CurrentOrganization() organization: Organization,
+    @Query('status') status?: OrganizationMembershipInvitationStatus,
+  ): Promise<OrganizationMembershipInvitationDto[]> {
+    return this.organizationApplicationService.getInvitations(
+      organization,
+      status,
+    );
+  }
+
+  @ApiOperation({
     summary: 'Invite a new member to the organization',
   })
   @ApiCreatedResponse({
@@ -197,6 +227,26 @@ export class OrganizationsController {
       organization,
       user.userId,
       dto,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Revoke a pending invitation',
+  })
+  @ApiNoContentResponse({
+    description: 'Invitation revoked successfully',
+  })
+  @Delete(':organizationSlug/members/invitations/:invitationId')
+  @OrganizationContext('organizationSlug')
+  @Permissions(OrganizationPermission.MEMBER_INVITE)
+  async revokeInvitation(
+    @CurrentOrganization() organization: Organization,
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('invitationId') invitationId: string,
+  ): Promise<void> {
+    return this.organizationApplicationService.revokeInvitation(
+      organization,
+      invitationId,
     );
   }
 

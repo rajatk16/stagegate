@@ -6,15 +6,15 @@ import { OrganizationMembershipInvitationStatus } from '../enums';
 
 export class OrganizationMembershipInvitation {
   id: string;
-  organizationId: string;
   email: string;
+  invitedBy: string;
+  createdAt: Timestamp;
+  expiresAt: Timestamp;
+  updatedAt: Timestamp;
+  organizationId: string;
   userId?: string | null;
   roles: OrganizationRole[];
-  invitedBy: string;
-  status: OrganizationMembershipInvitationStatus;
-  expiresAt: Timestamp;
-  acceptedAt?: Timestamp | null;
   acceptedBy?: string | null;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  acceptedAt?: Timestamp | null;
+  status: OrganizationMembershipInvitationStatus;
 }

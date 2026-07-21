@@ -13,12 +13,15 @@ import { AuthenticatedUser } from '@/auth/interfaces';
 import { OrganizationRole } from '@/authorization/enums';
 import { FirebaseService } from '@/firebase/firebase.service';
 
-import { OrganizationStatus } from '../enums';
 import { OrganizationService } from './organization.service';
 import { Organization, OrganizationMembership } from '../entities';
 import { OrganizationDomainService } from './organizationDomain.service';
 import { OrganizationMembershipService } from './organizationMembership.service';
 import { OrganizationMembershipInvitationService } from './organizationMembershipInvitation.service';
+import {
+  OrganizationStatus,
+  OrganizationMembershipInvitationStatus,
+} from '../enums';
 import {
   createOrganizationSlugFactory,
   createMembershipInvitationFactory,
@@ -181,6 +184,52 @@ export class OrganizationApplicationService {
       throw new NotFoundException('User not found');
     }
     return OrganizationMemberMapper.toDto(user, membership);
+  }
+
+  async getInvitations(
+    organization: Organization,
+    status?: OrganizationMembershipInvitationStatus,
+  ): Promise<OrganizationMembershipInvitationDto[]> {
+    const invitations =
+      await this.organizationMembershipInvitationService.getInvitations(
+        organization.id,
+        status,
+      );
+
+    return invitations.map((invitation) =>
+      OrganizationMembershipInvitationMapper.toDto(invitation),
+    );
+  }
+
+  async revokeInvitation(
+    organization: Organization,
+    invitationId: string,
+  ): Promise<void> {
+    const invitation =
+      await this.organizationMembershipInvitationService.findById(invitationId);
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.organizationId !== organization.id) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (
+      invitation.status !== OrganizationMembershipInvitationStatus.PENDING &&
+      invitation.status !== OrganizationMembershipInvitationStatus.EXPIRED
+    ) {
+      throw new BadRequestException(
+        'Only pending or expired invitations can be revoked.',
+      );
+    }
+
+    invitation.status = OrganizationMembershipInvitationStatus.REVOKED;
+
+    invitation.updatedAt = Timestamp.now();
+
+    await this.organizationMembershipInvitationService.save(invitation);
   }
 
   async inviteMember(

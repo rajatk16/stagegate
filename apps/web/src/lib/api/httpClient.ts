@@ -15,7 +15,7 @@ class HttpClient {
 
   async post<TResponse, TBody>(
     url: string,
-    body: TBody,
+    body?: TBody,
     options?: RequestOptions,
   ): Promise<TResponse> {
     try {

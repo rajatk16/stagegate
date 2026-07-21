@@ -7,7 +7,10 @@ export class OrganizationMembershipInvitationMapper {
       email: invitation.email,
       roles: invitation.roles,
       status: invitation.status,
+      userId: invitation.userId ?? null,
       expiresAt: invitation.expiresAt,
+      invitedBy: invitation.invitedBy,
+      createdAt: invitation.createdAt,
     };
   }
 }

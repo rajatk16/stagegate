@@ -9,6 +9,7 @@ import type {
   CreateOrganizationRequest,
   UpdateOrganizationRequest,
   CreateOrganizationResponse,
+  OrganizationInvitationStatus,
   CreateOrganizationInvitationRequest,
   TransferOrganizationOwnershipRequest,
 } from '../types';
@@ -90,11 +91,11 @@ export const getCurrentMember = async (
 export const inviteMember = async (
   organizationSlug: string,
   payload: CreateOrganizationInvitationRequest,
-): Promise<OrganizationInvitation> =>
-  httpClient.post<OrganizationInvitation, CreateOrganizationInvitationRequest>(
-    ENDPOINTS.invitations(organizationSlug),
-    payload,
-  );
+) =>
+  httpClient.post<
+    ApiResponse<OrganizationInvitation>,
+    CreateOrganizationInvitationRequest
+  >(ENDPOINTS.invitations(organizationSlug), payload);
 
 export const updateMemberRoles = async (
   organizationSlug: string,
@@ -130,16 +131,31 @@ export const transferOwnership = async (
     payload,
   );
 
-export const acceptInvitation = async (invitationId: string) =>
-  httpClient.post<void, void>(
-    ENDPOINTS.acceptInvitation(invitationId),
-    undefined,
+export const getInvitations = async (
+  organizationSlug: string,
+  status?: OrganizationInvitationStatus,
+) =>
+  httpClient.get<ApiResponse<OrganizationInvitation[]>>(
+    ENDPOINTS.invitations(organizationSlug),
+    {
+      params: {
+        status,
+      },
+    },
   );
 
+export const acceptInvitation = async (invitationId: string) =>
+  httpClient.post<void, void>(ENDPOINTS.acceptInvitation(invitationId));
+
 export const declineInvitation = async (invitationId: string) =>
-  httpClient.post<void, void>(
-    ENDPOINTS.declineInvitation(invitationId),
-    undefined,
+  httpClient.post<void, void>(ENDPOINTS.declineInvitation(invitationId));
+
+export const revokeInvitation = async (
+  organizationSlug: string,
+  invitationId: string,
+) =>
+  httpClient.delete<void>(
+    `/organizations/${organizationSlug}/members/invitations/${invitationId}`,
   );
 
 export const organizationsKeys = {

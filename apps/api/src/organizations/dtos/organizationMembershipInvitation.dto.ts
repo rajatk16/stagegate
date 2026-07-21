@@ -13,6 +13,11 @@ export class OrganizationMembershipInvitationDto {
   email: string;
 
   @ApiProperty({
+    nullable: true,
+  })
+  userId: string | null;
+
+  @ApiProperty({
     enum: OrganizationRole,
     isArray: true,
   })
@@ -22,6 +27,12 @@ export class OrganizationMembershipInvitationDto {
     enum: OrganizationMembershipInvitationStatus,
   })
   status: OrganizationMembershipInvitationStatus;
+
+  @ApiProperty()
+  invitedBy: string;
+
+  @ApiProperty()
+  createdAt: Timestamp;
 
   @ApiProperty()
   expiresAt: Timestamp;

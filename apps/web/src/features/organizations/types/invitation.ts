@@ -1,4 +1,5 @@
 import type { OrganizationRole } from './permission';
+import type { FirebaseTimestampLike } from './member';
 
 export enum OrganizationInvitationStatus {
   PENDING = 'PENDING',
@@ -16,7 +17,14 @@ export interface CreateOrganizationInvitationRequest {
 export interface OrganizationInvitation {
   id: string;
   email: string;
+  invitedBy: string;
+  createdAt: FirebaseTimestampLike;
+  expiresAt: FirebaseTimestampLike;
+  updatedAt: FirebaseTimestampLike;
+  organizationId: string;
+  userId?: string | null;
   roles: OrganizationRole[];
+  acceptedBy?: string | null;
+  acceptedAt?: FirebaseTimestampLike | null;
   status: OrganizationInvitationStatus;
-  expiresAt: Date;
 }
