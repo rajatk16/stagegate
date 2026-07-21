@@ -8,6 +8,7 @@ import { ORGANIZATION_ROUTES } from '../constants';
 import { useSetCurrentOrganization } from './useCurrentOrganization';
 import type {
   OrganizationSummary,
+  OrganizationInvitation,
   UpdateMemberRolesRequest,
   UpdateOrganizationRequest,
   CreateOrganizationInvitationRequest,
@@ -20,11 +21,19 @@ import {
   restore,
   inviteMember,
   removeMember,
+  acceptInvitation,
+  revokeInvitation,
+  declineInvitation,
   leaveOrganization,
   organizationsKeys,
   transferOwnership,
   updateMemberRoles,
 } from '../api';
+
+interface InvitationActionVariables {
+  invitationId: string;
+  organizationSlug: string;
+}
 
 export const useArchiveOrganization = () => {
   const navigate = useNavigate();
@@ -95,7 +104,7 @@ export const useCreateOrganization = () => {
 export const useInviteMember = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: ({
       organizationSlug,
       payload,
@@ -107,8 +116,20 @@ export const useInviteMember = () => {
       queryClient.invalidateQueries({
         queryKey: organizationsKeys.invitations(variables.organizationSlug),
       });
+
+      notificationService.success('Invitation sent');
+    },
+    onError: (error) => {
+      notificationService.error('Unable to send invitation', {
+        description: error.message,
+      });
     },
   });
+
+  return {
+    inviteMember: mutation.mutateAsync,
+    isPending: mutation.isPending,
+  };
 };
 
 export const useLeaveOrganization = () => {
@@ -307,4 +328,180 @@ export const useUpdateOrganization = () => {
     updateOrganization: mutation.mutateAsync,
     isPending: mutation.isPending,
   };
+};
+
+// export const useAcceptInvitation = () => {
+//   const mutation = useMutation({
+//     mutationFn: acceptInvitation,
+//     onSuccess: () => {
+//       notificationService.success('Invitation accepted');
+//     },
+//   });
+
+//   return {
+//     acceptInvitation: mutation.mutateAsync,
+//     isPending: mutation.isPending,
+//   };
+// };
+
+// export const useDeclineInvitation = () => {
+//   const mutation = useMutation({
+//     mutationFn: declineInvitation,
+//     onSuccess: () => {
+//       notificationService.success('Invitation declined');
+//     },
+//   });
+
+//   return {
+//     declineInvitation: mutation.mutateAsync,
+//     isPending: mutation.isPending,
+//   };
+// };
+
+export const useInvitationActions = () => {
+  const queryClient = useQueryClient();
+
+  const acceptMutation = useMutation({
+    mutationFn: ({ invitationId }: InvitationActionVariables) =>
+      acceptInvitation(invitationId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: organizationsKeys.invitations(variables.organizationSlug),
+      });
+      queryClient.invalidateQueries({
+        queryKey: organizationsKeys.members(variables.organizationSlug),
+      });
+
+      notificationService.success('Invitation accepted', {
+        description: 'The invitation has been accepted successfully.',
+      });
+    },
+
+    onError: (error: Error, variables, context) => {
+      queryClient.setQueryData(
+        organizationsKeys.invitations(variables.organizationSlug),
+        context?.previous,
+      );
+      notificationService.error('Unable to accept invitation', {
+        description: error.message,
+      });
+    },
+    onMutate: async ({
+      invitationId,
+      organizationSlug,
+    }: InvitationActionVariables) => {
+      await queryClient.cancelQueries({
+        queryKey: organizationsKeys.invitations(organizationSlug),
+      });
+      const previous = queryClient.getQueryData(
+        organizationsKeys.invitations(organizationSlug),
+      );
+
+      queryClient.setQueryData(
+        organizationsKeys.invitations(organizationSlug),
+        (invitations: OrganizationInvitation[] = []) =>
+          invitations.filter((invitation) => invitation.id !== invitationId),
+      );
+
+      return { previous };
+    },
+  });
+
+  const declineMutation = useMutation({
+    mutationFn: ({ invitationId }: InvitationActionVariables) =>
+      declineInvitation(invitationId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: organizationsKeys.invitations(variables.organizationSlug),
+      });
+      notificationService.success('Invitation declined', {
+        description: 'The invitation has been declined.',
+      });
+    },
+    onError: (error: Error, variables, context) => {
+      queryClient.setQueryData(
+        organizationsKeys.invitations(variables.organizationSlug),
+        context?.previous,
+      );
+      notificationService.error('Unable to decline invitation', {
+        description: error.message,
+      });
+    },
+    onMutate: async ({
+      invitationId,
+      organizationSlug,
+    }: InvitationActionVariables) => {
+      await queryClient.cancelQueries({
+        queryKey: organizationsKeys.invitations(organizationSlug),
+      });
+      const previous = queryClient.getQueryData(
+        organizationsKeys.invitations(organizationSlug),
+      );
+
+      queryClient.setQueryData(
+        organizationsKeys.invitations(organizationSlug),
+        (invitations: OrganizationInvitation[] = []) =>
+          invitations.filter((invitation) => invitation.id !== invitationId),
+      );
+
+      return { previous };
+    },
+  });
+
+  return {
+    acceptInvitation: acceptMutation.mutateAsync,
+    declineInvitation: declineMutation.mutateAsync,
+    isAccepting: acceptMutation.isPending,
+    isDeclining: declineMutation.isPending,
+  };
+};
+
+export const useRevokeInvitation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      organizationSlug,
+      invitationId,
+    }: InvitationActionVariables) =>
+      revokeInvitation(organizationSlug, invitationId),
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: organizationsKeys.invitations(variables.organizationSlug),
+      });
+      const previous = queryClient.getQueryData<OrganizationInvitation[]>(
+        organizationsKeys.invitations(variables.organizationSlug),
+      );
+
+      queryClient.setQueryData(
+        organizationsKeys.invitations(variables.organizationSlug),
+        (invitations: ApiResponse<OrganizationInvitation[]>) =>
+          invitations.data.filter(
+            (invitation) => invitation.id !== variables.invitationId,
+          ),
+      );
+
+      return { previous };
+    },
+
+    onError: (error: Error, variables, context) => {
+      queryClient.setQueryData(
+        organizationsKeys.invitations(variables.organizationSlug),
+        context?.previous,
+      );
+      notificationService.error('Unabl to revoke invitation', {
+        description: error.message,
+      });
+    },
+    onSuccess: () => {
+      notificationService.success('Invitation revoked', {
+        description: 'The invitation has been revoked successfully.',
+      });
+    },
+    onSettled: (_, __, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: organizationsKeys.invitations(variables.organizationSlug),
+      });
+    },
+  });
 };

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+
 import { FirebaseService } from '@/firebase/firebase.service';
 
 import { OrganizationMembershipInvitation } from '../entities';
@@ -50,5 +51,26 @@ export class OrganizationMembershipInvitationRepository {
     }
 
     return snapshot.docs[0].data();
+  }
+
+  async findByOrganization(
+    organizationId: string,
+    status?: OrganizationMembershipInvitationStatus,
+  ): Promise<OrganizationMembershipInvitation[]> {
+    let query = this.collection().where('organizationId', '==', organizationId);
+
+    if (status) {
+      query = query.where('status', '==', status);
+    }
+
+    query = query.orderBy('createdAt', 'desc');
+
+    const snapshot = await query.get();
+
+    if (snapshot.empty) {
+      return [];
+    }
+
+    return snapshot.docs.map((doc) => doc.data());
   }
 }

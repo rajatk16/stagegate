@@ -8,6 +8,7 @@ import {
 import { AuthenticatedUser } from '@/auth/interfaces';
 import { FirebaseService } from '@/firebase/firebase.service';
 
+import { createMembershipFactory } from '../factories';
 import { OrganizationMembershipInvitation } from '../entities';
 import {
   MembershipStatus,
@@ -17,7 +18,6 @@ import {
   OrganizationMembershipRepository,
   OrganizationMembershipInvitationRepository,
 } from '../repositories';
-import { createMembershipFactory } from '../factories';
 
 @Injectable()
 export class OrganizationMembershipInvitationService {
@@ -47,6 +47,16 @@ export class OrganizationMembershipInvitationService {
 
   async findById(id: string) {
     return this.organizationMembershipInvitationRepository.findById(id);
+  }
+
+  async getInvitations(
+    organizationId: string,
+    status?: OrganizationMembershipInvitationStatus,
+  ) {
+    return this.organizationMembershipInvitationRepository.findByOrganization(
+      organizationId,
+      status,
+    );
   }
 
   async acceptInvitation(user: AuthenticatedUser, id: string) {

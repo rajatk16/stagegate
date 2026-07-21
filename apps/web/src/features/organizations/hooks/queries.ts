@@ -6,13 +6,16 @@ import {
   get,
   list,
   getMembers,
+  getInvitations,
   getCurrentMember,
   organizationsKeys,
 } from '../api';
-import type {
-  OrganizationMember,
-  OrganizationDetails,
-  OrganizationSummary,
+import {
+  type OrganizationMember,
+  type OrganizationDetails,
+  type OrganizationSummary,
+  type OrganizationInvitation,
+  OrganizationInvitationStatus,
 } from '../types';
 
 export const useCurrentOrganizationMember = (
@@ -45,5 +48,17 @@ export const useOrganizations = () =>
   useQuery<ApiResponse<OrganizationSummary[]>, Error, OrganizationSummary[]>({
     queryKey: organizationsKeys.list(),
     queryFn: list,
+    select: (response) => response.data,
+  });
+
+export const usePendingInvitations = (organizationSlug: string) =>
+  useQuery<
+    ApiResponse<OrganizationInvitation[]>,
+    Error,
+    OrganizationInvitation[]
+  >({
+    queryKey: organizationsKeys.invitations(organizationSlug),
+    queryFn: () =>
+      getInvitations(organizationSlug, OrganizationInvitationStatus.PENDING),
     select: (response) => response.data,
   });

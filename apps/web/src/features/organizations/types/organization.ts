@@ -14,8 +14,8 @@ export interface OrganizationDetails extends OrganizationSummary {
   description?: string | null;
   websiteUrl?: string | null;
   status: OrganizationStatus;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
   createdBy: string;
 }
 

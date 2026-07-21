@@ -7,12 +7,15 @@ import { Page, PageHeader } from '@/components/page';
 import type { OrganizationMember } from '../../types';
 import {
   MembersTable,
+  InviteMemberDialog,
   RemoveMemberDialog,
   InviteMembersButton,
   EditMemberRoleDialog,
+  PendingInvitationsCard,
 } from '../../components';
 import {
   useRemoveMember,
+  useInviteMember,
   useUpdateMemberRole,
   useOrganizationMembers,
   useCurrentOrganization,
@@ -21,6 +24,7 @@ import {
 } from '../../hooks';
 
 export const OrganizationMembersPage = () => {
+  const [inviteDialogOpen, setInviteDialogOpen] = useState<boolean>(false);
   const [selectedMember, setSelectedMember] =
     useState<OrganizationMember | null>(null);
   const [memberToRemove, setMemberToRemove] =
@@ -32,6 +36,7 @@ export const OrganizationMembersPage = () => {
   const permissions = useOrganizationPermissions(organization!.slug);
   const { data: currentMember, isLoading: isLoadingCurrentMember } =
     useCurrentOrganizationMember(organization!.slug);
+  const { inviteMember, isPending: isInviting } = useInviteMember();
 
   const {
     error,
@@ -54,11 +59,28 @@ export const OrganizationMembersPage = () => {
       <PageHeader
         title="Members"
         description="Manage the members of your organizations"
+        actions={
+          permissions.canManageMembers && (
+            <InviteMembersButton onClick={() => setInviteDialogOpen(true)} />
+          )
+        }
       />
 
-      <div className="mb-4 flex justify-end">
-        <InviteMembersButton onClick={() => {}} disabled />
-      </div>
+      <InviteMemberDialog
+        open={inviteDialogOpen}
+        isSubmitting={isInviting}
+        onOpenChange={setInviteDialogOpen}
+        onSubmit={async (values) => {
+          await inviteMember({
+            organizationSlug: organization.slug,
+            payload: {
+              email: values.email,
+              roles: [values.role],
+            },
+          });
+          setInviteDialogOpen(false);
+        }}
+      />
 
       <EditMemberRoleDialog
         currentMemberId={currentMember!.id}
@@ -114,6 +136,8 @@ export const OrganizationMembersPage = () => {
           />
         </CardContent>
       </Card>
+
+      <PendingInvitationsCard organizationSlug={organization.slug} />
     </Page>
   );
 };
