@@ -1,13 +1,4 @@
-import {
-  AlertDialog,
-  AlertDialogTitle,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogDescription,
-} from '@/components/ui';
+import { ConfirmationDialog } from '@/components/dialogs';
 
 import type { OrganizationMember } from '../../types';
 
@@ -24,39 +15,26 @@ export const RemoveMemberDialog = (props: RemoveMemberDialogProps) => {
   if (props.member === null) return null;
 
   return (
-    <AlertDialog
+    <ConfirmationDialog
       open={props.open}
+      title="Remove Member?"
+      description={
+        <>
+          Remove <strong>{props.member.displayName}</strong> from this
+          organization?
+          <br />
+          <br />
+          They will immediately lose access to this organization.
+        </>
+      }
+      confirmLabel="Remove Member"
+      loading={props.isRemoving}
+      onConfirm={props.onConfirm}
       onOpenChange={(open) => {
         if (!open) {
           props.onClose();
         }
       }}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Remove Member?</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will remove <strong>{props.member.displayName}</strong> from
-            the organization.
-            <br />
-            <br />
-            This action cannot be undone. You will need to add them back to the
-            organization.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={props.isRemoving}>
-            Cancel
-          </AlertDialogCancel>
-          <AlertDialogAction
-            disabled={props.isRemoving}
-            onClick={props.onConfirm}
-          >
-            {props.isRemoving ? 'Removing...' : 'Remove'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    />
   );
 };

@@ -138,9 +138,48 @@ export const useLeaveOrganization = () => {
   return useMutation({
     mutationFn: ({ organizationSlug }: { organizationSlug: string }) =>
       leaveOrganization(organizationSlug),
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: organizationsKeys.all,
+      });
+      const previousOrganizations = queryClient.getQueryData<
+        ApiResponse<OrganizationSummary[]>
+      >(organizationsKeys.list());
+
+      queryClient.setQueryData(
+        organizationsKeys.list(),
+        (organizations: ApiResponse<OrganizationSummary[]>) =>
+          organizations.data.filter(
+            (organization) => organization.slug !== variables.organizationSlug,
+          ),
+      );
+
+      return { previousOrganizations };
+    },
+    onError: (error: Error, _, context) => {
+      if (context?.previousOrganizations) {
+        queryClient.setQueryData(
+          organizationsKeys.list(),
+          context.previousOrganizations,
+        );
+      }
+
+      notificationService.error('Unable to leave organization', {
+        description: error.message,
+      });
+    },
     onSuccess: () => {
+      notificationService.success('Organization left', {
+        description: 'You have successfully left the organization.',
+      });
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({
-        queryKey: organizationsKeys.lists(),
+        queryKey: organizationsKeys.all,
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['auth', 'me'],
       });
     },
   });
