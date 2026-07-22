@@ -36,7 +36,7 @@ export const OrganizationSettingsPage = () => {
     currentOrganization?.slug ?? '',
   );
 
-  if (isLoading) {
+  if (isLoading || isLoadingMembers) {
     return <FullPageLoader title="Loading organization settings..." />;
   }
 
@@ -100,9 +100,9 @@ export const OrganizationSettingsPage = () => {
       />
 
       <OrganizationDangerZoneCard
-        members={members}
+        members={members!}
         organization={organization}
-        currentOwner={currentOwner}
+        currentOwner={currentOwner!}
         isLoadingMembers={isLoadingMembers}
         canArchiveOrganization={permissions.canArchiveOrganization}
         canTransferOwnership={permissions.canTransferOwnership}
