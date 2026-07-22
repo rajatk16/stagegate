@@ -1,19 +1,19 @@
 import { notificationService } from '@/lib';
-
 import { ErrorState } from '@/components/states';
 import { FullPageLoader } from '@/components/feedback';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui';
 
-import { OrganizationStatus } from '../../types';
+import { OrganizationRole, OrganizationStatus } from '../../types';
 import {
   OrganizationForm,
-  ArchiveOrganizationCard,
   RestoreOrganizationBanner,
+  OrganizationDangerZoneCard,
 } from '../../components';
 import {
   useOrganization,
   useUpdateOrganization,
   useCurrentOrganization,
+  useOrganizationMembers,
   useRestoreOrganization,
   useOrganizationPermissions,
 } from '../../hooks';
@@ -24,12 +24,19 @@ export const OrganizationSettingsPage = () => {
   const { restoreOrganization, isPending: isRestoring } =
     useRestoreOrganization();
   const permissions = useOrganizationPermissions(currentOrganization!.slug);
+  const { data: members, isLoading: isLoadingMembers } = useOrganizationMembers(
+    currentOrganization!.slug,
+  );
+
+  const currentOwner = members?.find((member) =>
+    member.roles.includes(OrganizationRole.OWNER),
+  );
 
   const { data: organization, isLoading } = useOrganization(
     currentOrganization?.slug ?? '',
   );
 
-  if (isLoading) {
+  if (isLoading || isLoadingMembers) {
     return <FullPageLoader title="Loading organization settings..." />;
   }
 
@@ -92,13 +99,14 @@ export const OrganizationSettingsPage = () => {
         }}
       />
 
-      {organization.status === OrganizationStatus.ACTIVE &&
-        permissions.canArchiveOrganization && (
-          <ArchiveOrganizationCard
-            organizationName={currentOrganization.name}
-            organizationSlug={currentOrganization.slug}
-          />
-        )}
+      <OrganizationDangerZoneCard
+        members={members!}
+        organization={organization}
+        currentOwner={currentOwner!}
+        isLoadingMembers={isLoadingMembers}
+        canArchiveOrganization={permissions.canArchiveOrganization}
+        canTransferOwnership={permissions.canTransferOwnership}
+      />
     </div>
   );
 };
