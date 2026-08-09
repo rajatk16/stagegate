@@ -1,10 +1,10 @@
-import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 
 import { OrganizationRole } from '@/authorization/enums';
 
 import { MembershipStatus } from '../enums';
 import { OrganizationMembership } from '../entities';
+import { createOrganizationMembershipId } from '../utils';
 
 export const createMembershipFactory = (
   organizationId: string,
@@ -15,12 +15,14 @@ export const createMembershipFactory = (
   const now = Timestamp.now();
 
   return {
-    id: randomUUID(),
+    id: createOrganizationMembershipId(organizationId, userId),
     organizationId,
     userId,
-    roles: roles,
+    roles: [...new Set(roles)],
     status: status,
     joinedAt: now,
+    removedAt: null,
+    removedBy: null,
     createdAt: now,
     updatedAt: now,
   };

@@ -1,24 +1,14 @@
 import {
-  Timestamp,
   DocumentData,
   QueryDocumentSnapshot,
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
+import { toDate } from '@/common/utils';
 import { OrganizationRole } from '@/authorization/enums';
 
 import { OrganizationMembershipInvitation } from '../entities';
 import { OrganizationMembershipInvitationStatus } from '../enums';
-
-const toDate = (value: unknown): Timestamp => {
-  if (value instanceof Timestamp) {
-    return value;
-  }
-  if (value instanceof Date) {
-    return Timestamp.fromDate(value);
-  }
-  throw new Error('Expected Firestore Timestamp');
-};
 
 export const organizationMembershipInvitationConverter: FirestoreDataConverter<OrganizationMembershipInvitation> =
   {

@@ -1,14 +1,13 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 
+import { ErrorCode } from '@/common/enums';
 import { AuthenticatedUser } from '@/auth/interfaces';
+import { ApplicationException } from '@/common/utils';
 import { FirebaseService } from '@/firebase/firebase.service';
 
 import { createMembershipFactory } from '../factories';
+import { createOrganizationMembershipId } from '../utils';
 import { OrganizationMembershipInvitation } from '../entities';
 import {
   MembershipStatus,
@@ -35,9 +34,24 @@ export class OrganizationMembershipInvitationService {
       );
 
     if (invitation) {
-      throw new BadRequestException(
-        'A pending invitation already exists for this email.',
-      );
+      if (invitation.expiresAt.toMillis() <= Date.now()) {
+        invitation.status = OrganizationMembershipInvitationStatus.EXPIRED;
+        invitation.updatedAt = Timestamp.now();
+
+        await this.organizationMembershipInvitationRepository.save(invitation);
+
+        return;
+      }
+
+      if (
+        invitation.status === OrganizationMembershipInvitationStatus.PENDING
+      ) {
+        throw new ApplicationException(
+          ErrorCode.VALIDATION_ERROR,
+          HttpStatus.BAD_REQUEST,
+          'A pending invitation already exists for this email.',
+        );
+      }
     }
   }
 
@@ -59,64 +73,112 @@ export class OrganizationMembershipInvitationService {
     );
   }
 
-  async acceptInvitation(user: AuthenticatedUser, id: string) {
-    const invitation =
-      await this.organizationMembershipInvitationRepository.findById(id);
-
-    if (!invitation) {
-      throw new NotFoundException('Invitation not found');
-    }
-
-    if (invitation.email !== user.email) {
-      throw new BadRequestException(
-        'Invitation email does not match the user email',
-      );
-    }
-
-    if (invitation.status !== OrganizationMembershipInvitationStatus.PENDING) {
-      throw new BadRequestException('Invitation is no longer pending');
-    }
-
-    if (invitation.expiresAt.toDate().getTime() < Date.now()) {
-      throw new BadRequestException('Invitation has expired');
-    }
-
-    const membership = createMembershipFactory(
-      invitation.organizationId,
-      user.userId,
-      invitation.roles,
-      MembershipStatus.ACTIVE,
-    );
-
-    invitation.status = OrganizationMembershipInvitationStatus.ACCEPTED;
-    invitation.acceptedAt = Timestamp.now();
-    invitation.acceptedBy = user.userId;
-    invitation.updatedAt = Timestamp.now();
-
+  async acceptInvitation(
+    user: AuthenticatedUser,
+    invitationId: string,
+  ): Promise<void> {
     const firestore = this.firebaseService.getFirestore();
 
-    await firestore.runTransaction(async (transaction) => {
-      transaction.set(
-        this.organizationMembershipRepository.getDocumentReference(
-          membership.id,
-        ),
-        membership,
-      );
-
-      transaction.update(
+    const result = await firestore.runTransaction(async (transaction) => {
+      const invitationRef =
         this.organizationMembershipInvitationRepository.getDocumentReference(
-          invitation.id,
-        ),
-        {
-          status: invitation.status,
-          acceptedAt: invitation.acceptedAt,
-          acceptedBy: invitation.acceptedBy,
-          updatedAt: invitation.updatedAt,
-        },
+          invitationId,
+        );
+
+      const invitationSnapshot = await transaction.get(invitationRef);
+
+      if (!invitationSnapshot.exists) {
+        throw new ApplicationException(
+          ErrorCode.RESOURCE_NOT_FOUND,
+          HttpStatus.NOT_FOUND,
+          'Invitation not found',
+        );
+      }
+
+      const invitation = invitationSnapshot.data()!;
+      const normalizedEmail = user.email.trim().toLowerCase();
+
+      if (invitation.email !== normalizedEmail) {
+        throw new ApplicationException(
+          ErrorCode.VALIDATION_ERROR,
+          HttpStatus.BAD_REQUEST,
+          'Invitation email does not match the user email',
+        );
+      }
+
+      if (
+        invitation.status !== OrganizationMembershipInvitationStatus.PENDING
+      ) {
+        throw new ApplicationException(
+          ErrorCode.VALIDATION_ERROR,
+          HttpStatus.BAD_REQUEST,
+          'Invitation is no longer pending',
+        );
+      }
+
+      if (invitation.expiresAt.toMillis() <= Date.now()) {
+        transaction.update(invitationRef, {
+          status: OrganizationMembershipInvitationStatus.EXPIRED,
+          updatedAt: Timestamp.now(),
+        });
+
+        return {
+          accepted: false,
+          reason: 'EXPIRED',
+        };
+      }
+
+      const membership = createOrganizationMembershipId(
+        invitation.organizationId,
+        user.userId,
       );
 
-      await Promise.resolve();
+      const membershipRef =
+        this.organizationMembershipRepository.getDocumentReference(membership);
+
+      const membershipSnapshot = await transaction.get(membershipRef);
+      const now = Timestamp.now();
+
+      if (!membershipSnapshot.exists) {
+        const membership = createMembershipFactory(
+          invitation.organizationId,
+          user.userId,
+          invitation.roles,
+          MembershipStatus.ACTIVE,
+        );
+
+        transaction.create(membershipRef, membership);
+      } else {
+        const membership = membershipSnapshot.data()!;
+
+        if (membership.status !== MembershipStatus.ACTIVE) {
+          transaction.update(membershipRef, {
+            status: MembershipStatus.ACTIVE,
+            roles: [...new Set(invitation.roles)],
+            joinedAt: now,
+            removedAt: null,
+            removedBy: null,
+            updatedAt: now,
+          });
+        }
+      }
+
+      transaction.update(invitationRef, {
+        status: OrganizationMembershipInvitationStatus.ACCEPTED,
+        acceptedAt: now,
+        acceptedBy: user.userId,
+        userId: user.userId,
+        updatedAt: now,
+      });
     });
+
+    if (result?.reason === 'EXPIRED') {
+      throw new ApplicationException(
+        ErrorCode.INVITATION_EXPIRED,
+        HttpStatus.BAD_REQUEST,
+        'Invitation has expired',
+      );
+    }
   }
 
   async declineInvitation(user: AuthenticatedUser, id: string) {
@@ -124,17 +186,27 @@ export class OrganizationMembershipInvitationService {
       await this.organizationMembershipInvitationRepository.findById(id);
 
     if (!invitation) {
-      throw new NotFoundException('Invitation not found');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Invitation not found',
+      );
     }
 
     if (invitation.email !== user.email) {
-      throw new BadRequestException(
+      throw new ApplicationException(
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         'Invitation email does not match the user email',
       );
     }
 
     if (invitation.status !== OrganizationMembershipInvitationStatus.PENDING) {
-      throw new BadRequestException('Invitation is no longer pending');
+      throw new ApplicationException(
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
+        'Invitation is no longer pending',
+      );
     }
 
     invitation.status = OrganizationMembershipInvitationStatus.DECLINED;

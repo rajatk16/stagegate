@@ -1,17 +1,9 @@
-import { FirestoreDataConverter, Timestamp } from 'firebase-admin/firestore';
+import { FirestoreDataConverter } from 'firebase-admin/firestore';
+
+import { toDate } from '@/common/utils';
 
 import { Organization } from '../entities';
 import { OrganizationStatus } from '../enums';
-
-const toDate = (value: unknown): Timestamp => {
-  if (value instanceof Timestamp) {
-    return value;
-  }
-  if (value instanceof Date) {
-    return Timestamp.fromDate(value);
-  }
-  throw new Error('Expected Firestore Timestamp');
-};
 
 export const organizationConverter: FirestoreDataConverter<Organization> = {
   toFirestore: (organization: Organization) => ({

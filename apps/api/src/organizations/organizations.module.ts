@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 
 import { UsersModule } from '@/users/users.module';
 
-import { OrganizationContextGuard } from './guards';
+import { OrganizationContextGuard, OrganizationWritableGuard } from './guards';
 import {
   OrganizationsController,
   OrganizationInvitationsController,
@@ -20,6 +20,8 @@ import {
   OrganizationContextService,
   OrganizationMembershipService,
   OrganizationApplicationService,
+  OrganizationLifecyclePolicyService,
+  OrganizationAuthorizationPolicyService,
   OrganizationMembershipInvitationService,
 } from './services';
 
@@ -30,11 +32,15 @@ import {
     OrganizationService,
     OrganizationRepository,
     OrganizationContextGuard,
+    OrganizationWritableGuard,
     OrganizationContextService,
     OrganizationSlugRepository,
     OrganizationMembershipService,
     OrganizationApplicationService,
+    OrganizationLifecyclePolicyService,
+    OrganizationAuthorizationPolicyService,
     OrganizationMembershipInvitationService,
+    OrganizationMembershipInvitationRepository,
   ],
   providers: [
     OrganizationService,
@@ -42,11 +48,14 @@ import {
     OrganizationRepository,
     OrganizationContextGuard,
     OrganizationDomainService,
+    OrganizationWritableGuard,
     OrganizationSlugRepository,
     OrganizationContextService,
     OrganizationMembershipService,
     OrganizationApplicationService,
     OrganizationMembershipRepository,
+    OrganizationLifecyclePolicyService,
+    OrganizationAuthorizationPolicyService,
     OrganizationMembershipInvitationService,
     OrganizationMembershipInvitationRepository,
   ],

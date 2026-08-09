@@ -24,9 +24,13 @@ import {
   CurrentUser,
   CurrentOrganization,
   CurrentOrganizationMembership,
+  RequireRecentAuthentication,
 } from '@/auth/decorators';
 
-import { OrganizationContext } from '../decorators';
+import {
+  OrganizationContext,
+  AllowArchivedOrganizationMutation,
+} from '../decorators';
 import { OrganizationMembershipInvitationStatus } from '../enums';
 import { Organization, OrganizationMembership } from '../entities';
 import {
@@ -152,6 +156,7 @@ export class OrganizationsController {
   })
   @Patch(':organizationSlug/restore')
   @OrganizationContext('organizationSlug')
+  @AllowArchivedOrganizationMutation()
   @Permissions(OrganizationPermission.ORGANIZATION_RESTORE)
   async restoreOrganization(
     @CurrentOrganization() organization: Organization,
@@ -306,10 +311,7 @@ export class OrganizationsController {
     @CurrentOrganization() organization: Organization,
     @CurrentOrganizationMembership() membership: OrganizationMembership,
   ): Promise<void> {
-    return this.organizationApplicationService.leaveOrganization(
-      organization,
-      membership,
-    );
+    return this.organizationApplicationService.leaveOrganization(membership);
   }
 
   @ApiOperation({
@@ -318,9 +320,10 @@ export class OrganizationsController {
   @ApiOkResponse({
     type: OrganizationMemberDto,
   })
+  @RequireRecentAuthentication()
   @Patch(':organizationSlug/ownership/transfer')
   @OrganizationContext('organizationSlug')
-  @Permissions(OrganizationPermission.MEMBER_UPDATE)
+  @Permissions(OrganizationPermission.ORGANIZATION_TRANSFER_OWNERSHIP)
   async transferOwnership(
     @CurrentOrganization() organization: Organization,
     @CurrentOrganizationMembership() membership: OrganizationMembership,

@@ -1,14 +1,16 @@
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import {
+  HttpStatus,
   Injectable,
   CanActivate,
   ExecutionContext,
-  UnauthorizedException,
 } from '@nestjs/common';
 
+import { ErrorCode } from '@/common/enums';
 import { AuthService } from '../auth.service';
-import { IS_PUBLIC_KEY } from '../decorators';
+import { ApplicationException } from '@/common/utils';
+import { IS_PUBLIC_KEY, REQUIRE_RECENT_AUTH_KEY } from '../decorators';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
@@ -22,6 +24,11 @@ export class FirebaseAuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+    const reauthRequirement = this.reflector.getAllAndOverride<
+      boolean | number
+    >(REQUIRE_RECENT_AUTH_KEY, [context.getHandler(), context.getClass()]);
+
+    const requiresRecentAuth = Boolean(reauthRequirement);
 
     if (isPublic) {
       return true;
@@ -32,16 +39,43 @@ export class FirebaseAuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {
-      throw new UnauthorizedException();
+      throw new ApplicationException(
+        ErrorCode.UNAUTHENTICATED,
+        HttpStatus.UNAUTHORIZED,
+        'Unauthorized',
+      );
     }
 
     const [type, token] = authHeader.split(' ');
 
     if (type !== 'Bearer' || !token) {
-      throw new UnauthorizedException();
+      throw new ApplicationException(
+        ErrorCode.UNAUTHENTICATED,
+        HttpStatus.UNAUTHORIZED,
+        'Unauthorized',
+      );
     }
 
-    const decoded = await this.authService.verifyToken(token);
+    const decoded = await this.authService.verifyToken(token, {
+      checkRevoked: requiresRecentAuth,
+    });
+
+    if (requiresRecentAuth) {
+      const maxAgeSeconds =
+        typeof reauthRequirement === 'number'
+          ? reauthRequirement
+          : this.authService.sensitiveReauthMaxAgeSeconds;
+
+      const authTime = decoded.auth_time;
+
+      if (!authTime || Date.now() / 1000 - authTime > maxAgeSeconds) {
+        throw new ApplicationException(
+          ErrorCode.UNAUTHENTICATED,
+          HttpStatus.UNAUTHORIZED,
+          'Recent authentication required for this action',
+        );
+      }
+    }
 
     const appUser = await this.authService.getOrCreateUser(decoded);
 

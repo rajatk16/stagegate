@@ -1,13 +1,15 @@
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import {
+  HttpStatus,
   Injectable,
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
 } from '@nestjs/common';
 
+import { ErrorCode } from '@/common/enums';
 import { RequestContext } from '@/auth/interfaces';
+import { ApplicationException } from '@/common/utils';
 
 import { Permission } from '../types';
 import { PERMISSIONS_KEY } from '../decorators';
@@ -32,7 +34,11 @@ export class AuthorizationGuard implements CanActivate {
     const requestContext = request.context;
 
     if (!requestContext) {
-      throw new ForbiddenException('Request context not found');
+      throw new ApplicationException(
+        ErrorCode.FORBIDDEN,
+        HttpStatus.FORBIDDEN,
+        'Request context not found',
+      );
     }
 
     const permissions = this.resolvePermissions(requestContext);
@@ -42,7 +48,11 @@ export class AuthorizationGuard implements CanActivate {
     );
 
     if (!hasAllPermissions) {
-      throw new ForbiddenException('Insufficient permissions');
+      throw new ApplicationException(
+        ErrorCode.FORBIDDEN,
+        HttpStatus.FORBIDDEN,
+        'Insufficient permissions',
+      );
     }
 
     return true;

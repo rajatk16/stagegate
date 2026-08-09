@@ -22,6 +22,12 @@ export class OrganizationMembershipService {
     );
   }
 
+  async findActiveUserMemberships(
+    userId: string,
+  ): Promise<OrganizationMembership[]> {
+    return this.organizationMembershipRepository.findActiveByUser(userId);
+  }
+
   async findMembershipById(id: string) {
     return this.organizationMembershipRepository.findById(id);
   }
@@ -79,9 +85,10 @@ export class OrganizationMembershipService {
     targetMembership: OrganizationMembership,
   ): Promise<void> {
     await this.firebaseService.firestore.runTransaction(async (transaction) => {
-      currentMembership.roles = currentMembership.roles.filter(
-        (role) => role !== OrganizationRole.OWNER,
-      );
+      currentMembership.roles = [
+        ...currentMembership.roles,
+        OrganizationRole.ADMIN,
+      ];
 
       currentMembership.updatedAt = Timestamp.now();
 

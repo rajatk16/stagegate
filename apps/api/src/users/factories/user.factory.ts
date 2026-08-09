@@ -17,5 +17,12 @@ export const createUserFactory = (dto: CreateUserDto): User => {
     status: UserStatus.ACTIVE,
     createdAt: now,
     updatedAt: now,
+    lastAuthenticatedAt: now,
+    suspendedAt: null,
+    suspendedReason: null,
+    deactivatedAt: null,
+    deletionRequestedAt: null,
+    deletionScheduledFor: null,
+    anonymizedAt: null,
   };
 };

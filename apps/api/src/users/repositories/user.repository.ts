@@ -84,7 +84,8 @@ export class UserRepository {
 
   async deactivate(id: string): Promise<void> {
     await this.update(id, {
-      status: UserStatus.INACTIVE,
+      status: UserStatus.DEACTIVATED,
+      deactivatedAt: Timestamp.now(),
     });
   }
 }

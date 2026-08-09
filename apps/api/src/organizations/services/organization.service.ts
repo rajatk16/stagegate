@@ -1,4 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
+
+import { ErrorCode } from '@/common/enums';
+import { ApplicationException } from '@/common/utils';
 
 import { Organization } from '../entities';
 import { OrganizationRepository } from '../repositories';
@@ -14,7 +17,11 @@ export class OrganizationService {
       await this.organizationRepository.findById(organizationId);
 
     if (!organization) {
-      throw new NotFoundException('Organization not found');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Organization not found',
+      );
     }
 
     return organization;
@@ -28,7 +35,11 @@ export class OrganizationService {
     const organization = await this.organizationRepository.findBySlug(slug);
 
     if (!organization) {
-      throw new NotFoundException('Organization not found');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Organization not found',
+      );
     }
 
     return organization;
