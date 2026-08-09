@@ -1,7 +1,9 @@
-import { Controller, Get, NotFoundException } from '@nestjs/common';
+import { Controller, Get, HttpStatus } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+import { ErrorCode } from '@/common/enums';
 import { Authorized } from '@/swagger/decorators';
+import { ApplicationException } from '@/common/utils';
 import { UserRepository } from '@/users/repositories';
 
 import { MeResponseDto } from './dto';
@@ -25,7 +27,11 @@ export class AuthController {
     const profile = await this.userRepository.findById(user.userId);
 
     if (!profile) {
-      throw new NotFoundException('User not found');
+      throw new ApplicationException(
+        ErrorCode.USER_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'User not found',
+      );
     }
 
     return {

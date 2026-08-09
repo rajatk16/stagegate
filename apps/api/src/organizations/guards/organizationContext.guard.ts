@@ -1,11 +1,14 @@
 import { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import {
+  HttpStatus,
   Injectable,
   CanActivate,
   ExecutionContext,
-  UnauthorizedException,
 } from '@nestjs/common';
+
+import { ErrorCode } from '@/common/enums';
+import { ApplicationException } from '@/common/utils';
 
 import { OrganizationContextService } from '../services';
 import { ORGANIZATION_CONTEXT_PARAM } from '../decorators';
@@ -38,7 +41,11 @@ export class OrganizationContextGuard implements CanActivate {
     const requestContext = request.context;
 
     if (!requestContext) {
-      throw new UnauthorizedException('Request context not found');
+      throw new ApplicationException(
+        ErrorCode.UNAUTHENTICATED,
+        HttpStatus.UNAUTHORIZED,
+        'Request context not found',
+      );
     }
 
     const { organization, organizationMembership } =

@@ -6,6 +6,7 @@ import { FirebaseService } from '@/firebase/firebase.service';
 
 import { MembershipStatus } from '../enums';
 import { OrganizationMembership } from '../entities';
+import { createOrganizationMembershipId } from '../utils';
 import { organizationMembershipConverter } from '../converters';
 import { ORGANIZATION_MEMBERSHIPS_COLLECTION } from '../constants';
 
@@ -35,17 +36,9 @@ export class OrganizationMembershipRepository {
     userId: string,
     organizationId: string,
   ): Promise<OrganizationMembership | null> {
-    const snapshot = await this.collection()
-      .where('userId', '==', userId)
-      .where('organizationId', '==', organizationId)
-      .limit(1)
-      .get();
+    const membershipId = createOrganizationMembershipId(organizationId, userId);
 
-    if (snapshot.empty) {
-      return null;
-    }
-
-    return snapshot.docs[0].data();
+    return this.findById(membershipId);
   }
 
   async findById(id: string): Promise<OrganizationMembership | null> {
@@ -91,18 +84,16 @@ export class OrganizationMembershipRepository {
     userId: string,
     organizationId: string,
   ): Promise<OrganizationMembership | null> {
-    const snapshot = await this.collection()
-      .where('userId', '==', userId)
-      .where('organizationId', '==', organizationId)
-      .where('status', '==', MembershipStatus.ACTIVE)
-      .limit(1)
-      .get();
+    const membership = await this.findByUserAndOrganization(
+      userId,
+      organizationId,
+    );
 
-    if (snapshot.empty) {
+    if (!membership || membership.status !== MembershipStatus.ACTIVE) {
       return null;
     }
 
-    return snapshot.docs[0].data();
+    return membership;
   }
 
   async findRemovedMembership(
@@ -124,13 +115,21 @@ export class OrganizationMembershipRepository {
   }
 
   async exists(userId: string, organizationId: string): Promise<boolean> {
+    const membership = await this.findByUserAndOrganization(
+      userId,
+      organizationId,
+    );
+
+    return membership !== null;
+  }
+
+  async findActiveByUser(userId: string): Promise<OrganizationMembership[]> {
     const snapshot = await this.collection()
       .where('userId', '==', userId)
-      .where('organizationId', '==', organizationId)
-      .limit(1)
+      .where('status', '==', MembershipStatus.ACTIVE)
       .get();
 
-    return !snapshot.empty;
+    return snapshot.docs.map((doc) => doc.data());
   }
 
   async update(

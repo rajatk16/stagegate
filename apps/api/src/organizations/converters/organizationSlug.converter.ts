@@ -1,21 +1,12 @@
 import {
-  Timestamp,
   DocumentData,
   QueryDocumentSnapshot,
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { OrganizationSlug } from '../entities';
+import { toDate } from '@/common/utils';
 
-const toDate = (value: unknown): Timestamp => {
-  if (value instanceof Timestamp) {
-    return value;
-  }
-  if (value instanceof Date) {
-    return Timestamp.fromDate(value);
-  }
-  throw new Error('Expected Firestore Timestamp');
-};
+import { OrganizationSlug } from '../entities';
 
 export const organizationSlugConverter: FirestoreDataConverter<OrganizationSlug> =
   {

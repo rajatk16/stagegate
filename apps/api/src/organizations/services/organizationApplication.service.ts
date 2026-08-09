@@ -1,25 +1,21 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-  ForbiddenException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 
-import { normalizeSlug } from '@/common/utils';
+import { ErrorCode } from '@/common/enums';
 import { UsersService } from '@/users/services';
 import { AuthenticatedUser } from '@/auth/interfaces';
 import { OrganizationRole } from '@/authorization/enums';
 import { FirebaseService } from '@/firebase/firebase.service';
+import { ApplicationException, normalizeSlug } from '@/common/utils';
 
 import { OrganizationService } from './organization.service';
 import { Organization, OrganizationMembership } from '../entities';
 import { OrganizationDomainService } from './organizationDomain.service';
 import { OrganizationMembershipService } from './organizationMembership.service';
+import { OrganizationAuthorizationPolicyService } from './organizationAuthorizationPolicy.service';
 import { OrganizationMembershipInvitationService } from './organizationMembershipInvitation.service';
 import {
-  OrganizationStatus,
+  MembershipStatus,
   OrganizationMembershipInvitationStatus,
 } from '../enums';
 import {
@@ -54,25 +50,28 @@ export class OrganizationApplicationService {
     private readonly organizationDomainService: OrganizationDomainService,
     private readonly organizationSlugRepository: OrganizationSlugRepository,
     private readonly organizationMembershipService: OrganizationMembershipService,
+    private readonly organizationAuthorizationPolicyService: OrganizationAuthorizationPolicyService,
     private readonly organizationMembershipInvitationService: OrganizationMembershipInvitationService,
   ) {}
 
   async getOrganizationsForUser(userId: string) {
     const memberships =
-      await this.organizationMembershipService.findUserMemberships(userId);
-
-    if (!memberships || memberships.length === 0) {
-      return [];
-    } else {
-      const organizationIds = memberships.map(
-        (membership) => membership.organizationId,
+      await this.organizationMembershipService.findActiveUserMemberships(
+        userId,
       );
 
-      const organizations =
-        await this.organizationService.findByIds(organizationIds);
-
-      return organizations.map(OrganizationMapper.toSummaryDto);
+    if (memberships.length === 0) {
+      return [];
     }
+
+    const organizationIds = memberships.map(
+      (membership) => membership.organizationId,
+    );
+
+    const organizations =
+      await this.organizationService.findByIds(organizationIds);
+
+    return organizations.map(OrganizationMapper.toSummaryDto);
   }
 
   getOrganization(organization: Organization) {
@@ -117,7 +116,11 @@ export class OrganizationApplicationService {
         const existingSlug = await transaction.get(newSlugRef);
 
         if (existingSlug.exists) {
-          throw new ConflictException('Organization Slug already in use');
+          throw new ApplicationException(
+            ErrorCode.CONFLICT,
+            HttpStatus.CONFLICT,
+            'Organization Slug already in use',
+          );
         }
 
         const oldSlugRef = this.organizationSlugRepository.getDocumentReference(
@@ -181,7 +184,11 @@ export class OrganizationApplicationService {
     const user = await this.usersService.findById(membership.userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new ApplicationException(
+        ErrorCode.USER_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'User not found',
+      );
     }
     return OrganizationMemberMapper.toDto(user, membership);
   }
@@ -209,18 +216,28 @@ export class OrganizationApplicationService {
       await this.organizationMembershipInvitationService.findById(invitationId);
 
     if (!invitation) {
-      throw new NotFoundException('Invitation not found');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Invitation not found',
+      );
     }
 
     if (invitation.organizationId !== organization.id) {
-      throw new NotFoundException('Invitation not found');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Invitation not found',
+      );
     }
 
     if (
       invitation.status !== OrganizationMembershipInvitationStatus.PENDING &&
       invitation.status !== OrganizationMembershipInvitationStatus.EXPIRED
     ) {
-      throw new BadRequestException(
+      throw new ApplicationException(
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         'Only pending or expired invitations can be revoked.',
       );
     }
@@ -247,14 +264,17 @@ export class OrganizationApplicationService {
     const existingUser = await this.usersService.findByEmail(normalizedEmail);
 
     if (existingUser) {
-      const isMember = await this.organizationMembershipService.isActiveMember(
-        organization.id,
-        existingUser.id,
-      );
+      const membership =
+        await this.organizationMembershipService.findMembership(
+          existingUser.id,
+          organization.id,
+        );
 
-      if (isMember) {
-        throw new BadRequestException(
-          'User is already a member of the organization',
+      if (membership?.status === MembershipStatus.ACTIVE) {
+        throw new ApplicationException(
+          ErrorCode.VALIDATION_ERROR,
+          HttpStatus.BAD_REQUEST,
+          'User is already an active member of the organization',
         );
       }
     }
@@ -297,14 +317,10 @@ export class OrganizationApplicationService {
     targetUserId: string,
     dto: UpdateOrganizationMemberDto,
   ): Promise<OrganizationMemberDto> {
-    if (organization.status === OrganizationStatus.ARCHIVED) {
-      throw new BadRequestException(
-        'Archived organizations cannot be modified.',
-      );
-    }
-
     if (dto.roles.includes(OrganizationRole.OWNER)) {
-      throw new BadRequestException(
+      throw new ApplicationException(
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         'The OWNER role cannot be modified through this endpoint. Use the transfer ownership endpoint.',
       );
     }
@@ -316,16 +332,25 @@ export class OrganizationApplicationService {
       );
 
     if (!targetMembership) {
-      throw new NotFoundException('Member not found');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Member not found',
+      );
     }
 
     if (targetMembership.organizationId !== organization.id) {
-      throw new NotFoundException('Member not found');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Member not found',
+      );
     }
 
-    if (currentMembership.id === targetMembership.id) {
-      throw new BadRequestException('You cannot modify your own roles');
-    }
+    this.organizationAuthorizationPolicyService.assertCanManageMember(
+      currentMembership,
+      targetMembership,
+    );
 
     await this.organizationMembershipService.updateRoles(
       targetMembership,
@@ -335,7 +360,11 @@ export class OrganizationApplicationService {
     const user = await this.usersService.findById(targetMembership.userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new ApplicationException(
+        ErrorCode.USER_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'User not found',
+      );
     }
 
     return OrganizationMemberMapper.toDto(user, targetMembership);
@@ -346,12 +375,6 @@ export class OrganizationApplicationService {
     actingMembership: OrganizationMembership,
     targetUserId: string,
   ): Promise<OrganizationMemberDto> {
-    if (organization.status === OrganizationStatus.ARCHIVED) {
-      throw new BadRequestException(
-        'Archived organizations cannot be modified.',
-      );
-    }
-
     const targetMembership =
       await this.organizationMembershipService.findActiveMembership(
         targetUserId,
@@ -359,28 +382,25 @@ export class OrganizationApplicationService {
       );
 
     if (!targetMembership) {
-      throw new NotFoundException('Member not found');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Member not found',
+      );
     }
 
     if (targetMembership.organizationId !== organization.id) {
-      throw new NotFoundException('Member not found');
-    }
-
-    if (actingMembership.userId === targetMembership.userId) {
-      throw new BadRequestException(
-        'You cannot remove yourself. Use the leave organization endpoint instead.',
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Member not found',
       );
     }
 
-    const targetIsOwner = targetMembership.roles.includes(
-      OrganizationRole.OWNER,
+    this.organizationAuthorizationPolicyService.assertCanManageMember(
+      actingMembership,
+      targetMembership,
     );
-
-    if (targetIsOwner) {
-      throw new ForbiddenException(
-        'Cannot remove owners from the organization',
-      );
-    }
 
     await this.organizationMembershipService.remove(
       targetMembership,
@@ -390,24 +410,23 @@ export class OrganizationApplicationService {
     const user = await this.usersService.findById(targetMembership.userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new ApplicationException(
+        ErrorCode.USER_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'User not found',
+      );
     }
 
     return OrganizationMemberMapper.toDto(user, targetMembership);
   }
 
   async leaveOrganization(
-    organization: Organization,
     currentMembership: OrganizationMembership,
   ): Promise<void> {
-    if (organization.status === OrganizationStatus.ARCHIVED) {
-      throw new BadRequestException(
-        'Archived organizations cannot be modified.',
-      );
-    }
-
     if (currentMembership.roles.includes(OrganizationRole.OWNER)) {
-      throw new ForbiddenException(
+      throw new ApplicationException(
+        ErrorCode.FORBIDDEN,
+        HttpStatus.FORBIDDEN,
         'Cannot leave the organization as an owner. Use transfer ownership endpoint instead.',
       );
     }
@@ -423,12 +442,6 @@ export class OrganizationApplicationService {
     currentMembership: OrganizationMembership,
     targetUserId: string,
   ): Promise<OrganizationMemberDto> {
-    if (!currentMembership.roles.includes(OrganizationRole.OWNER)) {
-      throw new ForbiddenException(
-        'Only the organization owner can transfer ownership.',
-      );
-    }
-
     const targetMembership =
       await this.organizationMembershipService.findActiveMembership(
         targetUserId,
@@ -436,16 +449,17 @@ export class OrganizationApplicationService {
       );
 
     if (!targetMembership) {
-      throw new NotFoundException('Member not found.');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Member not found.',
+      );
     }
 
-    if (targetMembership.userId === currentMembership.userId) {
-      throw new BadRequestException('You already own this organization.');
-    }
-
-    if (targetMembership.roles.includes(OrganizationRole.OWNER)) {
-      throw new BadRequestException('Target member is already the owner.');
-    }
+    this.organizationAuthorizationPolicyService.assertCanTransferOwnership(
+      currentMembership,
+      targetMembership,
+    );
 
     await this.organizationMembershipService.transferOwnership(
       currentMembership,
@@ -455,7 +469,11 @@ export class OrganizationApplicationService {
     const user = await this.usersService.findById(targetMembership.userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new ApplicationException(
+        ErrorCode.USER_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'User not found',
+      );
     }
 
     return OrganizationMemberMapper.toDto(user, targetMembership);

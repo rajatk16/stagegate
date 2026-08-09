@@ -1,8 +1,7 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
+
+import { ErrorCode } from '@/common/enums';
+import { ApplicationException } from '@/common/utils';
 
 import { MembershipStatus } from '../enums';
 import { OrganizationService } from './organization.service';
@@ -33,11 +32,17 @@ export class OrganizationContextService {
       );
 
     if (!organizationMembership) {
-      throw new NotFoundException('Organization not found');
+      throw new ApplicationException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        'Organization not found',
+      );
     }
 
     if (organizationMembership.status !== MembershipStatus.ACTIVE) {
-      throw new ForbiddenException(
+      throw new ApplicationException(
+        ErrorCode.FORBIDDEN,
+        HttpStatus.FORBIDDEN,
         'You are not an active member of this organization',
       );
     }

@@ -18,4 +18,16 @@ export class User {
   createdAt: Timestamp;
 
   updatedAt: Timestamp;
+
+  lastAuthenticatedAt: Timestamp;
+
+  suspendedAt?: Timestamp | null;
+  suspendedReason?: string | null;
+
+  deactivatedAt?: Timestamp | null;
+
+  deletionRequestedAt?: Timestamp | null;
+  deletionScheduledFor?: Timestamp | null;
+
+  anonymizedAt?: Timestamp | null;
 }

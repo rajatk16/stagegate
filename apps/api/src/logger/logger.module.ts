@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
 
 import { LoggerService } from './logger.service';
@@ -6,6 +6,7 @@ import { LoggerService } from './logger.service';
 @Module({
   imports: [
     PinoLoggerModule.forRoot({
+      forRoutes: [{ path: '{*path}', method: RequestMethod.ALL }],
       pinoHttp: {
         genReqId: (req) => req.headers['x-request-id'] || crypto.randomUUID(),
         customProps: (req) => ({
@@ -23,7 +24,14 @@ import { LoggerService } from './logger.service';
               }
             : undefined,
         redact: {
-          paths: ['req.headers.authorization', 'req.headers.cookie'],
+          paths: [
+            'req.headers.authorization',
+            'req.headers.cookie',
+            'req.body',
+            'req.query',
+            'req.raw.headers.authorization',
+            'req.raw.headers.cookie',
+          ],
           censor: '[REDACTED]',
         },
       },

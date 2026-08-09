@@ -1,6 +1,8 @@
 import { Transaction } from 'firebase-admin/firestore';
-import { ConflictException, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 
+import { ErrorCode } from '@/common/enums';
+import { ApplicationException } from '@/common/utils';
 import { OrganizationRole } from '@/authorization/enums';
 import { FirebaseService } from '@/firebase/firebase.service';
 
@@ -51,7 +53,9 @@ export class OrganizationsService {
       const slugDocument = await transaction.get(slugRef);
 
       if (slugDocument.exists) {
-        throw new ConflictException(
+        throw new ApplicationException(
+          ErrorCode.CONFLICT,
+          HttpStatus.CONFLICT,
           'Organization with this slug already exists',
         );
       }

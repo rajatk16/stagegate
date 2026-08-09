@@ -1,5 +1,8 @@
 import { Timestamp } from 'firebase-admin/firestore';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
+
+import { ErrorCode } from '@/common/enums';
+import { ApplicationException } from '@/common/utils';
 
 import { Organization } from '../entities';
 import { OrganizationStatus } from '../enums';
@@ -8,7 +11,11 @@ import { OrganizationStatus } from '../enums';
 export class OrganizationDomainService {
   archive(organization: Organization): void {
     if (organization.status === OrganizationStatus.ARCHIVED) {
-      throw new BadRequestException('Organization is already archived');
+      throw new ApplicationException(
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
+        'Organization is already archived',
+      );
     }
 
     organization.status = OrganizationStatus.ARCHIVED;
@@ -18,7 +25,11 @@ export class OrganizationDomainService {
 
   restore(organization: Organization): void {
     if (organization.status === OrganizationStatus.ACTIVE) {
-      throw new BadRequestException('Organization is already active');
+      throw new ApplicationException(
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
+        'Organization is already active',
+      );
     }
 
     organization.status = OrganizationStatus.ACTIVE;
