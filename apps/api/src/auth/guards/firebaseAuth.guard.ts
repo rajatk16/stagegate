@@ -7,9 +7,9 @@ import {
   ExecutionContext,
 } from '@nestjs/common';
 
-import { ErrorCode } from '@/common/enums';
-import { AuthService } from '../auth.service';
-import { ApplicationException } from '@/common/utils';
+import { ErrorCode, ApplicationException } from '@/common';
+
+import { AuthService } from '../services/auth.service';
 import { IS_PUBLIC_KEY, REQUIRE_RECENT_AUTH_KEY } from '../decorators';
 
 @Injectable()

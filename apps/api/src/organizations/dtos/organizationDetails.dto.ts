@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Timestamp } from 'firebase-admin/firestore';
 import {
   IsUrl,
   IsEnum,
@@ -61,10 +60,10 @@ export class OrganizationDetailsDto {
   status: OrganizationStatus;
 
   @ApiProperty()
-  createdAt: Timestamp;
+  createdAt: string;
 
   @ApiProperty()
-  updatedAt: Timestamp;
+  updatedAt: string;
 
   @ApiProperty()
   @IsString()

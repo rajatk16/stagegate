@@ -1,3 +1,5 @@
+import { toIso } from '@/common';
+
 import { Organization } from '../entities';
 import { OrganizationDetailsDto, OrganizationSummaryDto } from '../dtos';
 
@@ -25,8 +27,8 @@ export class OrganizationMapper {
       logoUrl: organization.logoUrl,
       status: organization.status,
       createdBy: organization.createdBy,
-      createdAt: organization.createdAt,
-      updatedAt: organization.updatedAt,
+      createdAt: toIso(organization.createdAt)!,
+      updatedAt: toIso(organization.updatedAt)!,
     };
   };
 }

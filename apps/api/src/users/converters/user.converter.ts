@@ -1,6 +1,6 @@
 import { FirestoreDataConverter } from 'firebase-admin/firestore';
 
-import { toDate } from '@/common/utils';
+import { toDate, toNullableDate } from '@/common';
 
 import { User } from '../entities';
 import { UserStatus } from '../enums';
@@ -23,12 +23,12 @@ export const userConverter: FirestoreDataConverter<User> = {
       createdAt: toDate(data.createdAt),
       updatedAt: toDate(data.updatedAt),
       lastAuthenticatedAt: toDate(data.lastAuthenticatedAt),
-      suspendedAt: toDate(data.suspendedAt) ?? null,
+      suspendedAt: toNullableDate(data.suspendedAt),
       suspendedReason: (data.suspendedReason as string) ?? null,
-      deactivatedAt: toDate(data.deactivatedAt) ?? null,
-      deletionRequestedAt: toDate(data.deletionRequestedAt) ?? null,
-      deletionScheduledFor: toDate(data.deletionScheduledFor) ?? null,
-      anonymizedAt: toDate(data.anonymizedAt) ?? null,
+      deactivatedAt: toNullableDate(data.deactivatedAt),
+      deletionRequestedAt: toNullableDate(data.deletionRequestedAt),
+      deletionScheduledFor: toNullableDate(data.deletionScheduledFor),
+      anonymizedAt: toNullableDate(data.anonymizedAt),
     };
   },
 };

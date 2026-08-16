@@ -16,27 +16,27 @@ import {
   ApiNoContentResponse,
 } from '@nestjs/swagger';
 
-import { Authorized } from '@/swagger/decorators';
-import { Permissions } from '@/authorization/decorators';
-import type { AuthenticatedUser } from '@/auth/interfaces';
-import { OrganizationPermission } from '@/authorization/enums';
+import { Authorized } from '@/swagger';
 import {
   CurrentUser,
+  Permissions,
   CurrentOrganization,
-  CurrentOrganizationMembership,
+  type AuthenticatedUser,
+  OrganizationPermission,
   RequireRecentAuthentication,
-} from '@/auth/decorators';
+  CurrentOrganizationMembership,
+} from '@/auth';
 
-import {
-  OrganizationContext,
-  AllowArchivedOrganizationMutation,
-} from '../decorators';
 import { OrganizationMembershipInvitationStatus } from '../enums';
 import { Organization, OrganizationMembership } from '../entities';
 import {
   OrganizationsService,
   OrganizationApplicationService,
 } from '../services';
+import {
+  OrganizationContext,
+  AllowArchivedOrganizationMutation,
+} from '../decorators';
 import {
   CreateOrganizationDto,
   OrganizationMemberDto,

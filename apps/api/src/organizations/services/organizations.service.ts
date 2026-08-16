@@ -1,10 +1,9 @@
 import { Transaction } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { ErrorCode } from '@/common/enums';
-import { ApplicationException } from '@/common/utils';
-import { OrganizationRole } from '@/authorization/enums';
-import { FirebaseService } from '@/firebase/firebase.service';
+import { OrganizationRole } from '@/auth';
+import { FirebaseService } from '@/firebase';
+import { ErrorCode, ApplicationException } from '@/common';
 
 import { MembershipStatus } from '../enums';
 import { CreateOrganizationDto } from '../dtos';

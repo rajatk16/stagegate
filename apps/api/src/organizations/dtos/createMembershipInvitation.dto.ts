@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ArrayNotEmpty, IsArray, IsEmail, IsEnum } from 'class-validator';
 
-import { OrganizationRole } from '@/authorization/enums';
+import { OrganizationRole } from '@/auth';
 
 export class CreateMembershipInvitationDto {
   @ApiProperty()

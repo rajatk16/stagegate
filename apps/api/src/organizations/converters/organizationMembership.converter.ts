@@ -1,7 +1,7 @@
 import { FirestoreDataConverter } from 'firebase-admin/firestore';
 
-import { toDate } from '@/common/utils';
-import { OrganizationRole } from '@/authorization/enums';
+import { OrganizationRole } from '@/auth';
+import { toDate, toNullableDate } from '@/common';
 
 import { MembershipStatus } from '../enums';
 import { OrganizationMembership } from '../entities';
@@ -23,6 +23,8 @@ export const organizationMembershipConverter: FirestoreDataConverter<Organizatio
         joinedAt: toDate(data.joinedAt),
         createdAt: toDate(data.createdAt),
         updatedAt: toDate(data.updatedAt),
+        removedAt: toNullableDate(data.removedAt),
+        removedBy: data.removedBy as string | null,
       };
     },
   };

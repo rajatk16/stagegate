@@ -1,3 +1,5 @@
+import { toIso } from '@/common';
+
 import { OrganizationMembershipInvitation } from '../entities';
 
 export class OrganizationMembershipInvitationMapper {
@@ -8,9 +10,9 @@ export class OrganizationMembershipInvitationMapper {
       roles: invitation.roles,
       status: invitation.status,
       userId: invitation.userId ?? null,
-      expiresAt: invitation.expiresAt,
+      expiresAt: toIso(invitation.expiresAt)!,
       invitedBy: invitation.invitedBy,
-      createdAt: invitation.createdAt,
+      createdAt: toIso(invitation.createdAt)!,
     };
   }
 }

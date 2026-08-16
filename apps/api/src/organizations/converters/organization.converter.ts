@@ -1,6 +1,6 @@
 import { FirestoreDataConverter } from 'firebase-admin/firestore';
 
-import { toDate } from '@/common/utils';
+import { toDate } from '@/common';
 
 import { Organization } from '../entities';
 import { OrganizationStatus } from '../enums';

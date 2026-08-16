@@ -1,6 +1,6 @@
 import { BeforeApplicationShutdown, Injectable, Logger } from '@nestjs/common';
 
-import { FirebaseService } from '@/firebase/firebase.service';
+import { FirebaseService } from '@/firebase';
 
 @Injectable()
 export class HealthService implements BeforeApplicationShutdown {

@@ -1,25 +1,25 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
-import appConfig from '@/config/app.config';
-import { AuthModule } from '@/auth/auth.module';
-import { UsersModule } from '@/users/users.module';
-import { LoggerModule } from '@/logger/logger.module';
-import { HealthModule } from '@/health/health.module';
-import { CommonModule } from '@/common/common.module';
-import firebaseConfig from '@/config/firebase.config';
-import { FirebaseModule } from '@/firebase/firebase.module';
-import { validateEnvironment } from '@/config/env.validation';
-import { FirebaseAuthGuard } from '@/auth/guards/firebaseAuth.guard';
-import { AuthorizationModule } from '@/authorization/authorization.module';
-import { OrganizationsModule } from '@/organizations/organizations.module';
-import { AuthorizationGuard } from '@/authorization/guards/authorization.guard';
+import { CfpsModule } from '@/cfps';
+import { UsersModule } from '@/users';
+import { EventsModule } from '@/events';
+import { HealthModule } from '@/health';
+import { LoggerModule } from '@/logger';
+import { PublicModule } from '@/public';
+import { FirebaseModule } from '@/firebase';
+import { SubmissionsModule } from '@/submissions';
+import { CommonModule, ThrottlerBehindProxyGuard } from '@/common';
+import { EventContextGuard, EventWritableGuard } from './events/guards';
+import { appConfig, firebaseConfig, validateEnvironment } from '@/config';
+import { AuthModule, FirebaseAuthGuard, AuthorizationGuard } from '@/auth';
 import {
+  OrganizationsModule,
   OrganizationContextGuard,
   OrganizationWritableGuard,
-} from '@/organizations/guards';
+} from '@/organizations';
 
 @Module({
   imports: [
@@ -42,13 +42,16 @@ import {
         errorMessage: 'Too many requests. Please try again later.',
       }),
     }),
-    LoggerModule,
-    CommonModule,
-    FirebaseModule,
-    HealthModule,
-    UsersModule,
     AuthModule,
-    AuthorizationModule,
+    CfpsModule,
+    UsersModule,
+    CommonModule,
+    EventsModule,
+    HealthModule,
+    LoggerModule,
+    PublicModule,
+    FirebaseModule,
+    SubmissionsModule,
     OrganizationsModule,
   ],
   providers: [
@@ -66,7 +69,15 @@ import {
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: EventContextGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: EventWritableGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerBehindProxyGuard,
     },
     {
       provide: APP_GUARD,

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Timestamp } from 'firebase-admin/firestore';
-import { FirebaseService } from '@/firebase/firebase.service';
+
+import { FirebaseService } from '@/firebase';
 
 import { User } from '../entities';
 import { UserStatus } from '../enums';

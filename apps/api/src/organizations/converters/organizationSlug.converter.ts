@@ -4,7 +4,7 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { toDate } from '@/common/utils';
+import { toDate } from '@/common';
 
 import { OrganizationSlug } from '../entities';
 

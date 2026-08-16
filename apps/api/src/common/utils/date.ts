@@ -9,3 +9,15 @@ export const toDate = (value: unknown): Timestamp => {
   }
   throw new Error('Expected Firestore Timestamp');
 };
+
+export const toNullableDate = (value: unknown): Timestamp | null => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  return toDate(value);
+};
+
+export const toIso = (
+  value: FirebaseFirestore.Timestamp | null | undefined,
+): string | null => (value ? value.toDate().toISOString() : null);

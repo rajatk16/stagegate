@@ -1,8 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { ErrorCode } from '@/common/enums';
-import { ApplicationException } from '@/common/utils';
-import { OrganizationRole } from '@/authorization/enums';
+import { OrganizationRole } from '@/auth';
+import { ErrorCode, ApplicationException } from '@/common';
 
 import { MembershipStatus } from '../enums';
 import { OrganizationMembership } from '../entities';

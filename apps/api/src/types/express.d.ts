@@ -1,4 +1,4 @@
-import { RequestContext } from '@/auth/interfaces';
+import { RequestContext } from '@/auth';
 
 declare global {
   namespace Express {

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { FirebaseModule } from '@/firebase/firebase.module';
+import { FirebaseModule } from '@/firebase';
 
 import { HealthService } from './services';
 import { HealthController } from './controllers';

@@ -1,9 +1,8 @@
 import { Controller, Param, Post } from '@nestjs/common';
 import { ApiNoContentResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
-import { CurrentUser } from '@/auth/decorators';
-import { Authorized } from '@/swagger/decorators';
-import type { AuthenticatedUser } from '@/auth/interfaces';
+import { Authorized } from '@/swagger';
+import { CurrentUser, type AuthenticatedUser } from '@/auth';
 
 import { OrganizationApplicationService } from '../services';
 

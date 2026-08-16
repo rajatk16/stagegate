@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { FirebaseService } from '@/firebase/firebase.service';
+import { FirebaseService } from '@/firebase';
 
 import { OrganizationSlug } from '../entities';
 import { organizationSlugConverter } from '../converters';
