@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { OrganizationRole } from '@/authorization/enums';
-import { FirebaseService } from '@/firebase/firebase.service';
+import { OrganizationRole } from '@/auth';
+import { FirebaseService } from '@/firebase';
 
 import { MembershipStatus } from '../enums';
 import { OrganizationMembership } from '../entities';

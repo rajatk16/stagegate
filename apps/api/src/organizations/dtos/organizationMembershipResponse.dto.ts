@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { ArrayNotEmpty, IsArray, IsEnum, IsUUID } from 'class-validator';
 
-import { OrganizationRole } from '@/authorization/enums';
+import { OrganizationRole } from '@/auth';
 
 import { MembershipStatus } from '../enums';
 

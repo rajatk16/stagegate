@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { OrganizationRole } from '@/authorization/enums';
+import { OrganizationRole } from '@/auth';
 
 import { OrganizationMembershipInvitation } from '../entities';
 import { OrganizationMembershipInvitationStatus } from '../enums';

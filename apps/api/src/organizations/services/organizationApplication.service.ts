@@ -1,12 +1,10 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { Injectable, HttpStatus } from '@nestjs/common';
 
-import { ErrorCode } from '@/common/enums';
-import { UsersService } from '@/users/services';
-import { AuthenticatedUser } from '@/auth/interfaces';
-import { OrganizationRole } from '@/authorization/enums';
-import { FirebaseService } from '@/firebase/firebase.service';
-import { ApplicationException, normalizeSlug } from '@/common/utils';
+import { UsersService } from '@/users';
+import { FirebaseService } from '@/firebase';
+import { AuthenticatedUser, OrganizationRole } from '@/auth';
+import { ErrorCode, ApplicationException, normalizeSlug } from '@/common';
 
 import { OrganizationService } from './organization.service';
 import { Organization, OrganizationMembership } from '../entities';

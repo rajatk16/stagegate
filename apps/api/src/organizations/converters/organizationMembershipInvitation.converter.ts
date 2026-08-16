@@ -4,8 +4,8 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { toDate } from '@/common/utils';
-import { OrganizationRole } from '@/authorization/enums';
+import { OrganizationRole } from '@/auth';
+import { toDate, toNullableDate } from '@/common';
 
 import { OrganizationMembershipInvitation } from '../entities';
 import { OrganizationMembershipInvitationStatus } from '../enums';
@@ -32,7 +32,7 @@ export const organizationMembershipInvitationConverter: FirestoreDataConverter<O
         invitedBy: data.invitedBy as string,
         status: data.status as OrganizationMembershipInvitationStatus,
         expiresAt: toDate(data.expiresAt),
-        acceptedAt: data.acceptedAt ? toDate(data.acceptedAt) : null,
+        acceptedAt: toNullableDate(data.acceptedAt),
         acceptedBy: (data.acceptedBy as string | null) ?? null,
         createdAt: toDate(data.createdAt),
         updatedAt: toDate(data.updatedAt),

@@ -1,9 +1,8 @@
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Get, HttpCode, Controller, HttpStatus } from '@nestjs/common';
 
-import { Public } from '@/auth/decorators';
-import { ErrorCode } from '@/common/enums';
-import { ApplicationException } from '@/common/utils';
+import { Public } from '@/auth';
+import { ApplicationException, ErrorCode } from '@/common';
 
 import { HealthService } from '../services';
 

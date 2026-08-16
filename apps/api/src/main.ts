@@ -9,10 +9,12 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { CustomOrigin } from '@nestjs/common/interfaces/external/cors-options.interface';
 
 import { AppModule } from '@/app.module';
-import { ValidationException } from '@/common/utils';
-import { setupSwagger } from '@/swagger/swagger.config';
-import { GlobalExceptionFilter } from '@/common/filters';
-import { ResponseInterceptor } from '@/common/interceptors';
+import { setupSwagger } from '@/swagger';
+import {
+  ResponseInterceptor,
+  ValidationException,
+  GlobalExceptionFilter,
+} from '@/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

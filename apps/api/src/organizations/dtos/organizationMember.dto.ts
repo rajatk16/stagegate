@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Timestamp } from 'firebase-admin/firestore';
 import {
   IsUrl,
   IsEnum,
@@ -11,7 +10,7 @@ import {
   ArrayNotEmpty,
 } from 'class-validator';
 
-import { OrganizationRole } from '@/authorization/enums';
+import { OrganizationRole } from '@/auth';
 
 import { MembershipStatus } from '../enums';
 
@@ -53,10 +52,10 @@ export class OrganizationMemberDto {
   roles: OrganizationRole[];
 
   @ApiProperty()
-  joinedAt: Timestamp;
+  joinedAt: string;
 
   @ApiProperty({
     nullable: true,
   })
-  removedAt?: Timestamp | null;
+  removedAt?: string | null;
 }

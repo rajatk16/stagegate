@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { normalizeSlug } from '@/common/utils';
+import { normalizeSlug } from '@/common';
 
 import { Organization } from '../entities';
 import { OrganizationStatus } from '../enums';

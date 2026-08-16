@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { OrganizationRole } from '@/authorization/enums';
+import { OrganizationRole } from '@/auth';
 
 import { MembershipStatus } from '../enums';
 

@@ -1,5 +1,0 @@
-export enum EventRole {
-  PROGRAM_CHAIR = 'PROGRAM_CHAIR',
-  REVIEWER = 'REVIEWER',
-  PARTICIPANT = 'PARTICIPANT',
-}
