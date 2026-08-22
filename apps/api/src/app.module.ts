@@ -9,6 +9,7 @@ import { EventsModule } from '@/events';
 import { HealthModule } from '@/health';
 import { LoggerModule } from '@/logger';
 import { PublicModule } from '@/public';
+import { ReviewsModule } from '@/reviews';
 import { FirebaseModule } from '@/firebase';
 import { SubmissionsModule } from '@/submissions';
 import { CommonModule, ThrottlerBehindProxyGuard } from '@/common';
@@ -50,6 +51,7 @@ import {
     HealthModule,
     LoggerModule,
     PublicModule,
+    ReviewsModule,
     FirebaseModule,
     SubmissionsModule,
     OrganizationsModule,
