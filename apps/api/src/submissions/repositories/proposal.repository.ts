@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { FieldPath } from 'firebase-admin/firestore';
+
 import { FirebaseService } from '@/firebase';
 
 import { Proposal } from '../entities';
-import { PROPOSALS_COLLECTION } from '../constants';
 import { proposalConverter } from '../converters';
+import { PROPOSALS_COLLECTION } from '../constants';
 
 @Injectable()
 export class ProposalRepository {
@@ -43,5 +45,27 @@ export class ProposalRepository {
       .where('eventId', '==', eventId)
       .where('ownerUserId', '==', ownerUserId)
       .count();
+  }
+
+  async findByIds(proposalIds: string[]): Promise<Proposal[]> {
+    const uniqueIds = [...new Set(proposalIds)];
+
+    if (uniqueIds.length === 0) return [];
+
+    const chunks: string[][] = [];
+
+    for (let index = 0; index < uniqueIds.length; index += 30) {
+      chunks.push(uniqueIds.slice(index, index + 30));
+    }
+
+    const snapshots = await Promise.all(
+      chunks.map((ids) =>
+        this.collection().where(FieldPath.documentId(), 'in', ids).get(),
+      ),
+    );
+
+    return snapshots.flatMap((snapshot) =>
+      snapshot.docs.map((document) => document.data()),
+    );
   }
 }
