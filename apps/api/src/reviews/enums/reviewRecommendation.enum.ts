@@ -1,0 +1,7 @@
+export enum ReviewRecommendation {
+  STRONG_ACCEPT = 'STRONG_ACCEPT',
+  ACCEPT = 'ACCEPT',
+  NEUTRAL = 'NEUTRAL',
+  REJECT = 'REJECT',
+  STRONG_REJECT = 'STRONG_REJECT',
+}

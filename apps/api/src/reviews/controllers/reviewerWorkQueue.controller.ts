@@ -1,5 +1,11 @@
-import { Controller, Get, Query } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Get,
+  Param,
+  Query,
+  Controller,
+  BadRequestException,
+} from '@nestjs/common';
 
 import { Authorized } from '@/swagger';
 import { OrganizationContext } from '@/organizations';
@@ -11,10 +17,14 @@ import {
   type AuthenticatedUser,
 } from '@/auth';
 
-import { ReviewerWorkQueueService } from '../services';
+import {
+  ReviewerWorkQueueService,
+  ReviewerProposalViewService,
+} from '../services';
 import {
   ReviewerWorkQueueQueryDto,
   ReviewerWorkQueueResponseDto,
+  ReviewerProposalViewResponseDto,
 } from '../dtos';
 
 @Authorized()
@@ -25,6 +35,7 @@ import {
 export class ReviewerWorkQueueController {
   constructor(
     private readonly reviewerWorkQueueService: ReviewerWorkQueueService,
+    private readonly reviewerProposalViewService: ReviewerProposalViewService,
   ) {}
 
   @Get('work-queue')
@@ -44,6 +55,31 @@ export class ReviewerWorkQueueController {
       event,
       user.userId,
       query,
+    );
+  }
+
+  @Get('assignments/:assignmentId/proposal')
+  @Permissions(EventPermission.REVIEW_SUBMIT)
+  @ApiOperation({
+    summary:
+      'Get an anonymized proposal for the authenticated reviewer assignment',
+  })
+  @ApiResponse({
+    type: ReviewerProposalViewResponseDto,
+  })
+  async getAssignedProposal(
+    @CurrentEvent() event: Event,
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('assignmentId') assignmentId: string,
+  ): Promise<ReviewerProposalViewResponseDto> {
+    if (!/^[a-f0-9]{64}$/i.test(assignmentId)) {
+      throw new BadRequestException('Invalid assignment ID');
+    }
+
+    return this.reviewerProposalViewService.getAssignmedProposalView(
+      event,
+      user.userId,
+      assignmentId,
     );
   }
 }

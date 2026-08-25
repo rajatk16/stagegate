@@ -1,4 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
+
 import { ReviewAssignmentStatus } from '../enums';
 
 export class ReviewAssignment {

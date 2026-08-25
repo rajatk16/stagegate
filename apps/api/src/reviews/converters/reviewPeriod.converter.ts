@@ -27,6 +27,8 @@ export const reviewPeriodConverter: FirestoreDataConverter<ReviewPeriod> = {
       updatedAt: toDate(data.updatedAt),
       openedAt: toNullableDate(data.openedAt),
       closedAt: toNullableDate(data.closedAt),
+      allowSubmittedReviewRevisions:
+        data.allowSubmittedReviewRevisions as boolean,
     };
   },
 };
