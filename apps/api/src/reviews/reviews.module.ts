@@ -5,18 +5,27 @@ import { EventsModule } from '@/events';
 import { SubmissionsModule } from '@/submissions';
 import { OrganizationsModule } from '@/organizations';
 
-import { ReviewsController, ReviewerWorkQueueController } from './controllers';
 import {
+  ReviewsController,
+  ReviewerReviewsController,
+  ReviewerWorkQueueController,
+} from './controllers';
+import {
+  ReviewRepository,
   ReviewPeriodRepository,
   ReviewRubricRepository,
   ReviewConflictRepository,
   ReviewAssignmentRepository,
   ReviewerEligibilityRepository,
+  ReviewSubmissionRevisionRepository,
 } from './repositories';
 import {
+  ReviewDomainService,
+  ReviewApplicationService,
   ReviewerWorkQueueService,
   ReviewPeriodDomainService,
   ReviewRubricDomainService,
+  ReviewerProposalViewService,
   ReviewConflictApplicationService,
   ReviewAssignmentApplicationService,
   ReviewConfigurationApplicationService,
@@ -25,33 +34,48 @@ import {
 
 @Module({
   imports: [CfpsModule, EventsModule, SubmissionsModule, OrganizationsModule],
-  controllers: [ReviewerWorkQueueController, ReviewsController],
+  controllers: [
+    ReviewsController,
+    ReviewerReviewsController,
+    ReviewerWorkQueueController,
+  ],
   exports: [
+    ReviewRepository,
+    ReviewDomainService,
     ReviewPeriodRepository,
     ReviewRubricRepository,
     ReviewConflictRepository,
     ReviewerWorkQueueService,
+    ReviewApplicationService,
+    ReviewPeriodDomainService,
     ReviewRubricDomainService,
     ReviewAssignmentRepository,
+    ReviewerProposalViewService,
     ReviewerEligibilityRepository,
     ReviewConflictApplicationService,
     ReviewAssignmentApplicationService,
+    ReviewSubmissionRevisionRepository,
     ReviewConfigurationApplicationService,
     ReviewerEligibilityApplicationService,
   ],
   providers: [
+    ReviewRepository,
+    ReviewDomainService,
     ReviewPeriodRepository,
     ReviewRubricRepository,
     ReviewConflictRepository,
+    ReviewerWorkQueueService,
+    ReviewApplicationService,
     ReviewPeriodDomainService,
     ReviewRubricDomainService,
     ReviewAssignmentRepository,
+    ReviewerProposalViewService,
     ReviewerEligibilityRepository,
     ReviewConflictApplicationService,
     ReviewAssignmentApplicationService,
+    ReviewSubmissionRevisionRepository,
     ReviewConfigurationApplicationService,
     ReviewerEligibilityApplicationService,
-    ReviewerWorkQueueService,
   ],
 })
 export class ReviewsModule {}

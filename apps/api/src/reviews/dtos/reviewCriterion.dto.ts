@@ -1,13 +1,13 @@
 import {
-  IsBoolean,
+  Max,
+  Min,
   IsInt,
-  IsOptional,
-  IsString,
   IsUUID,
   Length,
-  Max,
+  IsString,
+  IsBoolean,
   MaxLength,
-  Min,
+  IsOptional,
 } from 'class-validator';
 
 export class ReviewCriterionDto {

@@ -1,6 +1,8 @@
 import { FirestoreDataConverter } from 'firebase-admin/firestore';
-import { ReviewCriterion, ReviewRubric } from '../entities';
+
 import { toDate } from '@/common';
+
+import { ReviewCriterion, ReviewRubric } from '../entities';
 
 export const reviewRubricConverter: FirestoreDataConverter<ReviewRubric> = {
   toFirestore: (reviewRubric: ReviewRubric) => ({

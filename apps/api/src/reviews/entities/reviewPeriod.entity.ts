@@ -15,6 +15,7 @@ export class ReviewPeriod {
 
   rubricVersion: number;
   rubricSnapshot: ReviewCriterion[];
+  allowSubmittedReviewRevisions: boolean;
 
   createdBy: string;
   createdAt: Timestamp;

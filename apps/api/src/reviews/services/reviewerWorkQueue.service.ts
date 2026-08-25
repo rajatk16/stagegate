@@ -54,7 +54,6 @@ export class ReviewerWorkQueueService {
           assignedAt: toIso(assignment.assignedAt)!,
           dueAt: toIso(assignment.dueAt),
           proposal: {
-            id: proposal.id,
             title: proposal.title,
             abstract: proposal.abstract,
             description: proposal.description,

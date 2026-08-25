@@ -6,9 +6,6 @@ import { ReviewAssignmentStatus } from '../enums';
 
 export class ReviewerQueueProposalDto {
   @ApiProperty()
-  id: string;
-
-  @ApiProperty()
   title: string;
 
   @ApiProperty()

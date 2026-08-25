@@ -17,3 +17,8 @@ export const createReviewAssignmentId = (
   createHash('sha256')
     .update(`${reviewPeriodId}:${proposalId}:${reviewerUserId}`)
     .digest('hex');
+
+export const createReviewSubmissionRevisionId = (
+  assignmentId: string,
+  revisionNumber: number,
+): string => `${assignmentId}_${revisionNumber}`;

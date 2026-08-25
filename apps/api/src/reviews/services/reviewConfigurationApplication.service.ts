@@ -12,9 +12,9 @@ import {
 } from '@/organizations';
 
 import { ReviewPeriodStatus } from '../enums';
-import { ReviewCriterion, ReviewPeriod, ReviewRubric } from '../entities';
 import { ReviewPeriodDomainService } from './reviewPeriodDomain.service';
 import { ReviewRubricDomainService } from './reviewRubricDomain.service';
+import { ReviewCriterion, ReviewPeriod, ReviewRubric } from '../entities';
 import {
   ReviewPeriodRepository,
   ReviewRubricRepository,
@@ -210,6 +210,7 @@ export class ReviewConfigurationApplicationService {
           rubricVersion: 0,
           rubricSnapshot: [],
           createdBy: actorUserId,
+          allowSubmittedReviewRevisions: false,
           createdAt: now,
           updatedAt: now,
           openedAt: null,

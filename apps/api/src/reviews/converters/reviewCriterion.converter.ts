@@ -1,4 +1,5 @@
 import { FirestoreDataConverter } from 'firebase-admin/firestore';
+
 import { ReviewCriterion } from '../entities';
 
 export const reviewCriterionConverter: FirestoreDataConverter<ReviewCriterion> =
