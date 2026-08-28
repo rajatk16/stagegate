@@ -1,13 +1,13 @@
 import { randomUUID } from 'crypto';
-import { FirebaseService } from '@/firebase';
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
+import { Event } from '@/events';
 import { Cfp, CfpRepository } from '@/cfps';
-import { Event, EventRepository } from '@/events';
+import { FirebaseService } from '@/firebase';
+import { Organization } from '@/organizations';
 import { PublicVisibilityPolicyService } from '@/public';
 import { ApplicationException, ErrorCode } from '@/common';
-import { Organization, OrganizationRepository } from '@/organizations';
 
 import { Proposal } from '../entities';
 import { ProposalStatus } from '../enums';
@@ -28,11 +28,9 @@ import {
 export class ProposalApplicationService {
   constructor(
     private readonly cfpRepository: CfpRepository,
-    private readonly eventRepository: EventRepository,
     private readonly firebaseService: FirebaseService,
     private readonly proposalRepository: ProposalRepository,
     private readonly proposalDomainService: ProposalDomainService,
-    private readonly organizationRepository: OrganizationRepository,
     private readonly speakerProfileRepository: SpeakerProfileRepository,
     private readonly publicVisibilityPolicyService: PublicVisibilityPolicyService,
     private readonly speakerContextResolverService: SpeakerContextResolverService,
@@ -47,6 +45,8 @@ export class ProposalApplicationService {
       await this.speakerContextResolverService.resolveOpenCfp(eventPublicId);
 
     this.proposalDomainService.assertDraftCreationAllowed(cfp);
+
+    this.proposalDomainService.assertTrackSelection(cfp, dto.trackId, false);
 
     const proposalId = randomUUID();
 
@@ -199,7 +199,14 @@ export class ProposalApplicationService {
               ? proposal.language
               : dto.language?.trim().toLowerCase(),
           updatedAt: Timestamp.now(),
+          trackId: dto.trackId === undefined ? proposal.trackId : dto.trackId,
         };
+
+        this.proposalDomainService.assertTrackSelection(
+          cfp,
+          updatedProposal.trackId,
+          true,
+        );
 
         transaction.set(proposalRef, updatedProposal);
 
@@ -284,6 +291,12 @@ export class ProposalApplicationService {
           userId,
           currentCfp,
           dto,
+        );
+
+        this.proposalDomainService.assertTrackSelection(
+          currentCfp,
+          proposal.trackId,
+          true,
         );
 
         this.proposalDomainService.assertCompleteForSubmission(proposal);

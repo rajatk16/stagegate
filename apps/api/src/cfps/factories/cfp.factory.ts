@@ -1,11 +1,19 @@
+import { createHash, randomUUID } from 'crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 
 import { Event } from '@/events';
 
-import { Cfp } from '../entities';
 import { CfpStatus } from '../enums';
-import { CreateCfpDto } from '../dtos';
-import { createHash } from 'crypto';
+import { Cfp, CfpTrack } from '../entities';
+import { CfpTrackDto, CreateCfpDto } from '../dtos';
+
+export const normalizeCfpTracks = (tracks: CfpTrackDto[]): CfpTrack[] =>
+  (tracks ?? []).map((track) => ({
+    id: track.id ?? randomUUID(),
+    label: track.label.trim(),
+    displayOrder: track.displayOrder,
+    active: track.active,
+  }));
 
 export const createCfpFactory = (
   event: Event,
@@ -42,5 +50,6 @@ export const createCfpFactory = (
     updatedAt: now,
     openedAt: null,
     closedAt: null,
+    tracks: normalizeCfpTracks(dto.tracks ?? []),
   };
 };

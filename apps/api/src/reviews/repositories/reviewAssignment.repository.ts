@@ -1,3 +1,4 @@
+import { Timestamp } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { FirebaseService } from '@/firebase';
@@ -147,5 +148,34 @@ export class ReviewAssignmentRepository {
       nextCursor:
         snapshot.docs.length > pageSize ? (items.at(-1)?.id ?? null) : null,
     };
+  }
+
+  getByReviewPeriodAndProposalQuery(
+    reviewPeriodId: string,
+    proposalId: string,
+  ) {
+    return this.collection()
+      .where('reviewPeriodId', '==', reviewPeriodId)
+      .where('proposalId', '==', proposalId);
+  }
+
+  getByReviewPeriodAndReviewerQuery(
+    reviewPeriodId: string,
+    reviewerUserId: string,
+  ) {
+    return this.collection()
+      .where('reviewPeriodId', '==', reviewPeriodId)
+      .where('reviewerUserId', '==', reviewerUserId);
+  }
+
+  getOverdueByReviewPeriodQuery(reviewPeriodId: string, now: Timestamp) {
+    return this.collection()
+      .where('reviewPeriodId', '==', reviewPeriodId)
+      .where('status', 'in', [
+        ReviewAssignmentStatus.ASSIGNED,
+        ReviewAssignmentStatus.IN_PROGRESS,
+      ])
+      .where('dueAt', '<', now)
+      .orderBy('dueAt', 'asc');
   }
 }

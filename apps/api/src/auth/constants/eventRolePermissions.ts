@@ -14,6 +14,12 @@ export const EVENT_ROLE_PERMISSIONS: Record<EventRole, EventPermission[]> = {
     EventPermission.REVIEW_ASSIGN,
     EventPermission.REVIEW_READ_ALL,
     EventPermission.CONFLICT_MANAGE,
+    EventPermission.REVIEW_SCORECARD_READ,
+    EventPermission.REVIEW_COVERAGE_READ,
+    EventPermission.PROPOSAL_IDENTITY_READ,
+    EventPermission.DECISION_ROUND_MANAGE,
+    EventPermission.PROPOSAL_DECISION_MANAGE,
+    EventPermission.DECISION_READ,
   ],
   [EventRole.REVIEWER]: [
     EventPermission.EVENT_READ,

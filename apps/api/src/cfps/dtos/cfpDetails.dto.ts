@@ -1,5 +1,5 @@
 import { CfpStatus } from '../enums';
-import { CfpConsentDefinition } from '../entities';
+import { CfpConsentDefinition, CfpTrack } from '../entities';
 
 export class CfpDetailsDto {
   eventId: string;
@@ -19,4 +19,5 @@ export class CfpDetailsDto {
   closedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  tracks: CfpTrack[];
 }

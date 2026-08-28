@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
@@ -11,11 +12,10 @@ import {
 
 import { Cfp } from '../entities';
 import { CfpMapper } from '../mappers';
-import { createCfpFactory } from '../factories';
 import { CfpRepository } from '../repositories';
 import { CfpDomainService } from './cfpDomain.service';
 import { CfpDetailsDto, CreateCfpDto, UpdateCfpDto } from '../dtos';
-import { createHash } from 'crypto';
+import { createCfpFactory, normalizeCfpTracks } from '../factories';
 
 @Injectable()
 export class CfpApplicationService {
@@ -134,6 +134,10 @@ export class CfpApplicationService {
                   }
                 : null,
           updatedAt: Timestamp.now(),
+          tracks:
+            dto.tracks === undefined
+              ? cfpData.tracks
+              : normalizeCfpTracks(dto.tracks),
         };
 
         this.cfpDomainService.assertValidConfiguration(updatedCfp);

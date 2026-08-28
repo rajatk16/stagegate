@@ -3,6 +3,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
   Length,
   Max,
   MaxLength,
@@ -39,4 +40,8 @@ export class CreateProposalDraftDto {
   @IsString()
   @Length(2, 16)
   language: string;
+
+  @IsString()
+  @IsUUID()
+  trackId: string;
 }

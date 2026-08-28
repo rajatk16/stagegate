@@ -13,8 +13,8 @@ import {
   Event,
   EventRepository,
   EventsDomainService,
-  EventMembershipRepository,
   EventMembershipStatus,
+  EventMembershipRepository,
 } from '@/events';
 
 import { ReviewAssignment, ReviewConflict } from '../entities';
@@ -155,14 +155,24 @@ export class ReviewConflictApplicationService {
 
         transaction.set(conflictRef, conflict);
 
-        this.revokeActiveAssignments(
-          transaction,
+        const revokedAssignments = this.revokeActiveAssignments(
           activeAssignments,
           periodStatusById,
           reviewerUserId,
           now,
           'Reviewer declared a conflict of interest',
         );
+
+        for (const assignment of revokedAssignments) {
+          transaction.update(
+            this.reviewAssignmentRepository.getDocumentReferenceById(
+              assignment.id,
+            ),
+            {
+              ...assignment,
+            },
+          );
+        }
 
         return conflict;
       },
@@ -291,16 +301,25 @@ export class ReviewConflictApplicationService {
         transaction.set(conflictRef, updatedConflict);
 
         if (dto.status === ConflictStatus.CONFIRMED) {
-          this.revokeActiveAssignments(
-            transaction,
+          const revokedAssignments = this.revokeActiveAssignments(
             activeAssignments,
             periodStatusById,
             actorUserId,
             now,
             'Conflict of interest was confirmed by a program chair',
           );
-        }
 
+          for (const assignment of revokedAssignments) {
+            transaction.update(
+              this.reviewAssignmentRepository.getDocumentReferenceById(
+                assignment.id,
+              ),
+              {
+                ...assignment,
+              },
+            );
+          }
+        }
         return updatedConflict;
       },
     );
@@ -356,37 +375,33 @@ export class ReviewConflictApplicationService {
   }
 
   private revokeActiveAssignments(
-    transaction: FirebaseFirestore.Transaction,
     assignments: ReviewAssignment[],
     periodStatusById: Map<string, ReviewPeriodStatus>,
     actorUserId: string,
     now: Timestamp,
     reason: string,
-  ): void {
-    for (const assignment of assignments) {
+  ): ReviewAssignment[] {
+    return assignments.flatMap((assignment) => {
       const periodStatus = periodStatusById.get(assignment.reviewPeriodId);
 
-      if (periodStatus === ReviewPeriodStatus.LOCKED) {
-        continue;
-      }
-
       if (
-        assignment.status !== ReviewAssignmentStatus.ASSIGNED &&
-        assignment.status !== ReviewAssignmentStatus.IN_PROGRESS
+        periodStatus === ReviewPeriodStatus.LOCKED ||
+        (assignment.status !== ReviewAssignmentStatus.ASSIGNED &&
+          assignment.status !== ReviewAssignmentStatus.IN_PROGRESS)
       ) {
-        continue;
+        return [];
       }
 
-      transaction.update(
-        this.reviewAssignmentRepository.getDocumentReferenceById(assignment.id),
+      return [
         {
+          ...assignment,
           status: ReviewAssignmentStatus.REVOKED,
           revokedAt: now,
           revokedBy: actorUserId,
           revokeReason: reason,
           updatedAt: now,
         },
-      );
-    }
+      ];
+    });
   }
 }

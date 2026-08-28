@@ -25,14 +25,9 @@ import {
   exports: [
     EventsService,
     EventRepository,
-    EventContextGuard,
-    EventWritableGuard,
     EventsDomainService,
-    EventSlugRepository,
     EventMembershipService,
-    EventApplicationService,
     EventMembershipRepository,
-    EventMembershipPolicyService,
   ],
   providers: [
     EventsService,

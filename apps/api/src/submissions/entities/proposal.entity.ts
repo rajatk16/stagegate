@@ -25,6 +25,8 @@ export class Proposal {
   submittedAt: Timestamp | null;
   withdrawnAt: Timestamp | null;
 
+  trackId: string | null;
+
   primarySpeakerSnapshot: {
     displayName: string;
     biography: string | null;

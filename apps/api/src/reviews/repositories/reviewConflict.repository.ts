@@ -30,4 +30,8 @@ export class ReviewConflictRepository {
 
     return snapshot.exists ? snapshot.data()! : null;
   }
+
+  getByProposalQuery(proposalId: string) {
+    return this.collection().where('proposalId', '==', proposalId);
+  }
 }

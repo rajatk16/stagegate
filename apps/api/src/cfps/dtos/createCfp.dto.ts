@@ -11,9 +11,12 @@ import {
   IsOptional,
   IsTimeZone,
   ValidateNested,
+  IsArray,
+  ArrayMaxSize,
 } from 'class-validator';
 
 import { CfpConsentDefinitionDto } from './cfpConsentDefinition.dto';
+import { CfpTrackDto } from './cfpTrack.dto';
 
 export class CreateCfpDto {
   @IsString()
@@ -61,4 +64,11 @@ export class CreateCfpDto {
   @ValidateNested()
   @Type(() => CfpConsentDefinitionDto)
   requiredConsent?: CfpConsentDefinitionDto | null;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(20)
+  @ValidateNested({ each: true })
+  @Type(() => CfpTrackDto)
+  tracks?: CfpTrackDto[];
 }

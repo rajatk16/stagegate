@@ -38,4 +38,13 @@ export class ReviewSubmissionRevisionRepository {
       revision.revisionNumber,
     ).create(revision);
   }
+
+  getByReviewPeriodAndProposalQuery(
+    reviewPeriodId: string,
+    proposalId: string,
+  ) {
+    return this.collection()
+      .where('reviewPeriodId', '==', reviewPeriodId)
+      .where('proposalId', '==', proposalId);
+  }
 }

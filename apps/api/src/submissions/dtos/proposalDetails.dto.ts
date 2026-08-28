@@ -62,4 +62,9 @@ export class ProposalDetailsDto {
     version: string;
     acceptedAt: string;
   } | null;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  trackId: string | null;
 }
