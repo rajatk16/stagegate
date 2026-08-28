@@ -24,6 +24,7 @@ export class ProposalMapper {
             acceptedAt: toIso(proposal.consent.acceptedAt)!,
           }
         : null,
+      trackId: proposal.trackId,
     };
   }
   static toSummaryDto(proposal: Proposal): ProposalSummaryDto {
@@ -35,6 +36,7 @@ export class ProposalMapper {
       durationMinutes: proposal.durationMinutes,
       format: proposal.format,
       language: proposal.language,
+      trackId: proposal.trackId,
     };
   }
 }

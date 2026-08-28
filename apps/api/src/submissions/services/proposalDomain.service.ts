@@ -3,9 +3,9 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { Cfp } from '@/cfps';
 import { ApplicationException, ErrorCode } from '@/common';
 
-import { Proposal, SpeakerProfile } from '../entities';
 import { ProposalStatus } from '../enums';
 import { SubmitProposalDto } from '../dtos';
+import { Proposal, SpeakerProfile } from '../entities';
 
 @Injectable()
 export class ProposalDomainService {
@@ -182,6 +182,48 @@ export class ProposalDomainService {
         ErrorCode.PROPOSAL_NOT_SUBMITTABLE,
         HttpStatus.BAD_REQUEST,
         'Speaker display name is required',
+      );
+    }
+  }
+
+  assertTrackSelection(
+    cfp: Cfp,
+    trackId: string | null,
+    required: boolean,
+  ): void {
+    const activeTracks = cfp.tracks.filter((track) => track.active);
+
+    if (activeTracks.length === 0) {
+      if (trackId !== null) {
+        throw new ApplicationException(
+          ErrorCode.CFP_TRACK_INVALID,
+          HttpStatus.UNPROCESSABLE_ENTITY,
+          'ThisCFP does not accept track selection',
+        );
+      }
+
+      return;
+    }
+
+    if (!trackId) {
+      if (!required) {
+        return;
+      }
+
+      throw new ApplicationException(
+        ErrorCode.PROPOSAL_TRACK_REQUIRED,
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        'Select a track before submitting this proposal',
+      );
+    }
+
+    const selectedTrack = activeTracks.find((track) => track.id === trackId);
+
+    if (!selectedTrack) {
+      throw new ApplicationException(
+        ErrorCode.CFP_TRACK_INVALID,
+        HttpStatus.UNPROCESSABLE_ENTITY,
+        'The selected CFP track is not unavailable',
       );
     }
   }

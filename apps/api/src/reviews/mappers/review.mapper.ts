@@ -3,6 +3,7 @@ import { toIso } from '@/common';
 import {
   ReviewPeriodResponseDto,
   ReviewRubricResponseDto,
+  ChairScorecardResponseDto,
   ReviewConflictResponseDto,
   ReviewCriterionResponseDto,
   ReviewAssignmentResponseDto,
@@ -15,6 +16,7 @@ import {
   ReviewCriterion,
   ReviewAssignment,
   ReviewerEligibility,
+  ProposalReviewScorecard,
 } from '../entities';
 
 export class ReviewMapper {
@@ -111,6 +113,40 @@ export class ReviewMapper {
       revokedAt: toIso(assignment.revokedAt),
       revokedBy: assignment.revokedBy,
       revokeReason: assignment.revokeReason,
+    };
+  }
+
+  static toChairScorecardDto(
+    scorecard: ProposalReviewScorecard,
+  ): ChairScorecardResponseDto {
+    return {
+      proposalId: scorecard.proposalId,
+      proposalTitle: scorecard.proposalTitle,
+      trackId: scorecard.trackId,
+      proposalFormat: scorecard.proposalFormat,
+      proposalStatus: scorecard.proposalStatus,
+
+      requiredReviewCount: scorecard.requiredReviewCount,
+      assignedReviewCount: scorecard.assignedReviewCount,
+      inProgressReviewCount: scorecard.inProgressReviewCount,
+      submittedReviewCount: scorecard.submittedReviewCount,
+      overdueAssignmentCount: scorecard.overdueAssignmentCount,
+      coverageStatus: scorecard.coverageStatus,
+
+      scoredReviewCount: scorecard.scoredReviewCount,
+      weightedAverageScore:
+        scorecard.weightedAverageScore === null
+          ? null
+          : Number(scorecard.weightedAverageScore.toFixed(2)),
+
+      recommendationDistribution: scorecard.recommendationDistribution,
+
+      declaredConflictCount: scorecard.declaredConflictCount,
+      confirmedConflictCount: scorecard.confirmedConflictCount,
+      conflictState: scorecard.conflictState,
+
+      decisionStatus: scorecard.decisionStatus,
+      updatedAt: toIso(scorecard.updatedAt)!,
     };
   }
 }

@@ -210,11 +210,13 @@ export class ReviewConfigurationApplicationService {
           rubricVersion: 0,
           rubricSnapshot: [],
           createdBy: actorUserId,
-          allowSubmittedReviewRevisions: false,
+          allowSubmittedReviewRevisions:
+            dto.allowSubmittedReviewRevisions ?? false,
           createdAt: now,
           updatedAt: now,
           openedAt: null,
           closedAt: null,
+          requiredReviewsPerProposal: dto.requiredReviewsPerProposal,
         };
 
         transaction.create(
@@ -302,6 +304,14 @@ export class ReviewConfigurationApplicationService {
           opensAt,
           closesAt,
           updatedAt: Timestamp.now(),
+          requiredReviewsPerProposal:
+            dto.requiredReviewsPerProposal === undefined
+              ? currentPeriod.requiredReviewsPerProposal
+              : dto.requiredReviewsPerProposal,
+          allowSubmittedReviewRevisions:
+            dto.allowSubmittedReviewRevisions === undefined
+              ? currentPeriod.allowSubmittedReviewRevisions
+              : dto.allowSubmittedReviewRevisions,
         };
 
         transaction.set(periodRef, updatedPeriod);
@@ -384,7 +394,7 @@ export class ReviewConfigurationApplicationService {
 
         const period = periodSnapshot.data()!;
 
-        if (period.eventId !== event.id || period.cfpId !== event.id) {
+        if (period.eventId !== event.id) {
           throw new ApplicationException(
             ErrorCode.REVIEW_PERIOD_NOT_FOUND,
             HttpStatus.NOT_FOUND,
@@ -460,7 +470,7 @@ export class ReviewConfigurationApplicationService {
 
         const period = periodSnapshot.data()!;
 
-        if (period.eventId !== event.id || period.cfpId !== event.id) {
+        if (period.eventId !== event.id) {
           throw new ApplicationException(
             ErrorCode.REVIEW_PERIOD_NOT_FOUND,
             HttpStatus.NOT_FOUND,

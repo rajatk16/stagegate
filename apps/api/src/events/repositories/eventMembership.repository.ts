@@ -76,4 +76,14 @@ export class EventMembershipRepository {
       .where('status', '==', EventMembershipStatus.ACTIVE)
       .where('role', '==', EventRole.PROGRAM_CHAIR);
   }
+
+  async findActiveReviewersByEvent(eventId: string) {
+    const snapshot = await this.collection()
+      .where('eventId', '==', eventId)
+      .where('status', '==', EventMembershipStatus.ACTIVE)
+      .where('role', '==', EventRole.REVIEWER)
+      .get();
+
+    return snapshot.docs.map((document) => document.data());
+  }
 }

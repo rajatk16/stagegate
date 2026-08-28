@@ -45,6 +45,8 @@ export class CfpDomainService {
         'At least one speaker per submission must be permitted',
       );
     }
+
+    this.assertValidTracks(cfp);
   }
 
   assertEditable(cfp: Cfp): void {
@@ -125,5 +127,67 @@ export class CfpDomainService {
     cfp.status = CfpStatus.CLOSED;
     cfp.closedAt = now;
     cfp.updatedAt = now;
+  }
+
+  private assertValidTracks(cfp: Cfp): void {
+    if (cfp.tracks.length > 20) {
+      throw new ApplicationException(
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
+        'A CFP cannot contain more than 20 tracks',
+      );
+    }
+
+    const labels = new Set<string>();
+    const displayOrders = new Set<number>();
+    const ids = new Set<string>();
+
+    for (const track of cfp.tracks) {
+      const normalizedLabel = track.label.trim().toLocaleLowerCase();
+
+      if (!track.id || !normalizedLabel) {
+        throw new ApplicationException(
+          ErrorCode.VALIDATION_ERROR,
+          HttpStatus.BAD_REQUEST,
+          'Each CFP track must have an ID and label',
+        );
+      }
+
+      if (ids.has(track.id)) {
+        throw new ApplicationException(
+          ErrorCode.VALIDATION_ERROR,
+          HttpStatus.BAD_REQUEST,
+          'Each CFP track must have a unique ID',
+        );
+      }
+
+      if (labels.has(normalizedLabel)) {
+        throw new ApplicationException(
+          ErrorCode.VALIDATION_ERROR,
+          HttpStatus.BAD_REQUEST,
+          'CFP track labels must be unique',
+        );
+      }
+
+      if (!Number.isInteger(track.displayOrder) || track.displayOrder < 1) {
+        throw new ApplicationException(
+          ErrorCode.VALIDATION_ERROR,
+          HttpStatus.BAD_REQUEST,
+          'CFP track display orders must be positive integers',
+        );
+      }
+
+      if (displayOrders.has(track.displayOrder)) {
+        throw new ApplicationException(
+          ErrorCode.VALIDATION_ERROR,
+          HttpStatus.BAD_REQUEST,
+          'CFP track display orders must be unique',
+        );
+      }
+
+      ids.has(track.id);
+      labels.add(normalizedLabel);
+      displayOrders.add(track.displayOrder);
+    }
   }
 }

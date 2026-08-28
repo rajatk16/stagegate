@@ -2,6 +2,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 
 import { CfpStatus } from '../enums';
 import { CfpConsentDefinition } from './cfpConsentDefinition.entity';
+import { CfpTrack } from './cfpTrack.entity';
 
 export class Cfp {
   id: string;
@@ -30,4 +31,5 @@ export class Cfp {
   updatedAt: Timestamp;
   openedAt: Timestamp | null;
   closedAt: Timestamp | null;
+  tracks: CfpTrack[];
 }

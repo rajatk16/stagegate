@@ -1,22 +1,33 @@
-import { IsUUID, IsISO8601, IsOptional, IsString } from 'class-validator';
+import {
+  Max,
+  Min,
+  IsInt,
+  Length,
+  IsString,
+  IsBoolean,
+  IsISO8601,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateReviewPeriodDto {
-  @IsUUID()
-  proposalId: string;
-
-  @IsUUID()
-  reviewerUserId: string;
+  @IsString()
+  @Length(1, 120)
+  name: string;
 
   @IsOptional()
   @IsISO8601({ strict: true })
-  dueAt?: string | null;
+  opensAt?: string | null;
 
-  @IsString()
-  name: string;
-
+  @IsOptional()
   @IsISO8601({ strict: true })
-  opensAt: string;
+  closesAt?: string | null;
 
-  @IsISO8601({ strict: true })
-  closesAt: string;
+  @IsInt()
+  @Min(1)
+  @Max(20)
+  requiredReviewsPerProposal: number;
+
+  @IsOptional()
+  @IsBoolean()
+  allowSubmittedReviewRevisions?: boolean;
 }

@@ -8,9 +8,9 @@ import { CfpRepository } from './repositories';
 import { CfpDomainService, CfpApplicationService } from './services';
 
 @Module({
+  exports: [CfpRepository],
   controllers: [CfpsController],
   imports: [EventsModule, OrganizationsModule],
-  exports: [CfpDomainService, CfpRepository, CfpApplicationService],
   providers: [CfpDomainService, CfpRepository, CfpApplicationService],
 })
 export class CfpsModule {}

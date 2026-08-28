@@ -40,6 +40,7 @@ export const proposalConverter: FirestoreDataConverter<Proposal> = {
         websiteUrl: string | null;
         pronouns: string | null;
       } | null,
+      trackId: data.trackId as string | null,
     };
   },
 };

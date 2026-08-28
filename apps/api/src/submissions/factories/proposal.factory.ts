@@ -32,5 +32,6 @@ export const createProposalFactory = (
     updatedAt: now,
     withdrawnAt: null,
     primarySpeakerSnapshot: null,
+    trackId: dto.trackId ?? null,
   };
 };

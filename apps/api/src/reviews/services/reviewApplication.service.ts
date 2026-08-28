@@ -18,6 +18,8 @@ import {
 } from '@/events';
 
 import { SubmitReviewDto, UpdateReviewDraftDto } from '../dtos';
+import { ReviewerWorkloadProjectionService } from './reviewerWorkloadProjection.service';
+import { ProposalReviewScorecardProjectionService } from './proposalReviewScorecardProjection.service';
 import {
   ReviewDomainService,
   ValidatedReviewSubmission,
@@ -69,7 +71,9 @@ export class ReviewApplicationService {
     private readonly reviewAssignmentRepository: ReviewAssignmentRepository,
     private readonly reviewerEligibilityRepository: ReviewerEligibilityRepository,
     private readonly reviewSubmissionRepository: ReviewSubmissionRevisionRepository,
+    private readonly reviewerWorkloadProjectionService: ReviewerWorkloadProjectionService,
     private readonly organizationLifecyclePolicyService: OrganizationLifecyclePolicyService,
+    private readonly proposalReviewScorecardProjectionService: ProposalReviewScorecardProjectionService,
   ) {}
 
   async getOwnReview(
@@ -186,7 +190,51 @@ export class ReviewApplicationService {
           updatedAt: now,
         };
 
+        const proposal = await this.proposalRepository.findById(
+          context.assignment.proposalId,
+        );
+
+        if (!proposal) {
+          throw new ApplicationException(
+            ErrorCode.PROPOSAL_NOT_FOUND,
+            HttpStatus.NOT_FOUND,
+            'Proposal not found',
+          );
+        }
+
+        const scorecard =
+          await this.proposalReviewScorecardProjectionService.buildInTransaction(
+            {
+              transaction,
+              proposal,
+              reviewPeriod: context.reviewPeriod,
+              now,
+              overrides: {
+                assignments: [updatedAssignment],
+              },
+            },
+          );
+
+        const workload =
+          await this.reviewerWorkloadProjectionService.buildInTransaction({
+            transaction,
+            reviewPeriodId: context.reviewPeriod.id,
+            reviewerUserId: updatedAssignment.reviewerUserId,
+            now,
+            assignmentOverrides: [updatedAssignment],
+          });
+
         transaction.create(reviewRef, review);
+
+        this.proposalReviewScorecardProjectionService.saveInTransaction(
+          transaction,
+          scorecard,
+        );
+
+        this.reviewerWorkloadProjectionService.saveInTransaction(
+          transaction,
+          workload,
+        );
 
         transaction.set(
           this.reviewAssignmentRepository.getDocumentReferenceById(
@@ -362,9 +410,54 @@ export class ReviewApplicationService {
           updatedAt: now,
         };
 
+        const proposal = await this.proposalRepository.findById(
+          context.assignment.proposalId,
+        );
+
+        if (!proposal) {
+          throw new ApplicationException(
+            ErrorCode.PROPOSAL_NOT_FOUND,
+            HttpStatus.NOT_FOUND,
+            'Proposal not found',
+          );
+        }
+
+        const scorecard =
+          await this.proposalReviewScorecardProjectionService.buildInTransaction(
+            {
+              transaction,
+              proposal,
+              reviewPeriod: context.reviewPeriod,
+              now,
+              overrides: {
+                assignments: [completedAssignment],
+                submittedRevisions: [revision],
+              },
+            },
+          );
+
+        const workload =
+          await this.reviewerWorkloadProjectionService.buildInTransaction({
+            transaction,
+            reviewPeriodId: context.reviewPeriod.id,
+            reviewerUserId: completedAssignment.reviewerUserId,
+            now,
+            assignmentOverrides: [completedAssignment],
+          });
+
         transaction.set(reviewRef, submittedReview);
 
         transaction.create(revisionRef, revision);
+
+        this.proposalReviewScorecardProjectionService.saveInTransaction(
+          transaction,
+          scorecard,
+        );
+
+        this.reviewerWorkloadProjectionService.saveInTransaction(
+          transaction,
+          workload,
+        );
 
         transaction.set(
           this.reviewAssignmentRepository.getDocumentReferenceById(
@@ -439,7 +532,52 @@ export class ReviewApplicationService {
           updatedAt: now,
         };
 
+        const proposal = await this.proposalRepository.findById(
+          context.assignment.proposalId,
+        );
+
+        if (!proposal) {
+          throw new ApplicationException(
+            ErrorCode.PROPOSAL_NOT_FOUND,
+            HttpStatus.NOT_FOUND,
+            'Proposal not found',
+          );
+        }
+
+        const scorecard =
+          await this.proposalReviewScorecardProjectionService.buildInTransaction(
+            {
+              transaction,
+              proposal,
+              reviewPeriod: context.reviewPeriod,
+              now,
+              overrides: {
+                assignments: [reopenedAssignment],
+              },
+            },
+          );
+
+        const workload =
+          await this.reviewerWorkloadProjectionService.buildInTransaction({
+            transaction,
+            reviewPeriodId: context.reviewPeriod.id,
+            reviewerUserId: reopenedAssignment.reviewerUserId,
+            now,
+            assignmentOverrides: [reopenedAssignment],
+          });
+
         transaction.set(reviewRef, reopenedReview);
+
+        this.proposalReviewScorecardProjectionService.saveInTransaction(
+          transaction,
+          scorecard,
+        );
+
+        this.reviewerWorkloadProjectionService.saveInTransaction(
+          transaction,
+          workload,
+        );
+
         transaction.set(
           this.reviewAssignmentRepository.getDocumentReferenceById(
             assignmentId,

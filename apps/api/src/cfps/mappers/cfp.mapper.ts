@@ -22,5 +22,6 @@ export class CfpMapper {
     timezone: cfp.timezone,
     title: cfp.title,
     updatedAt: toIso(cfp.updatedAt)!,
+    tracks: cfp.tracks,
   });
 }

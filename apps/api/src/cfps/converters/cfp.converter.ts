@@ -3,7 +3,7 @@ import { FirestoreDataConverter } from 'firebase-admin/firestore';
 import { toDate, toNullableDate } from '@/common';
 
 import { CfpStatus } from '../enums';
-import { Cfp, CfpConsentDefinition } from '../entities';
+import { Cfp, CfpConsentDefinition, CfpTrack } from '../entities';
 
 export const cfpConverter: FirestoreDataConverter<Cfp> = {
   toFirestore: (cfp: Cfp) => ({
@@ -33,6 +33,7 @@ export const cfpConverter: FirestoreDataConverter<Cfp> = {
       timezone: data.timezone as string,
       title: data.title as string,
       updatedAt: toDate(data.updatedAt),
+      tracks: (data.tracks ?? []) as CfpTrack[],
     };
   },
 };

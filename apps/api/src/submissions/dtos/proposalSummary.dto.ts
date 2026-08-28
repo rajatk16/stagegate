@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsNumber, IsString, IsUUID } from 'class-validator';
+import {
+  IsEnum,
+  IsUUID,
+  IsNumber,
+  IsString,
+  IsOptional,
+} from 'class-validator';
 
 import { ProposalFormat, ProposalStatus } from '../enums';
 
@@ -31,4 +37,9 @@ export class ProposalSummaryDto {
   @ApiProperty()
   @IsString()
   language: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsUUID()
+  trackId: string | null;
 }
