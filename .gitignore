@@ -40,3 +40,6 @@ yarn-error.log*
 *.pem
 
 docs/
+
+# TypeScript incremental output
+*.tsbuildinfo

@@ -8,7 +8,7 @@ import { AppModule } from './app.module';
 const logger = new Logger('Bootstrap');
 
 function resolvePort(defaultPort: number): number {
-  const configuredPort = process.env.PORT;
+  const configuredPort = process.env['PORT'];
 
   if (configuredPort === undefined) {
     return defaultPort;

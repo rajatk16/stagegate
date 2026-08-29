@@ -8,7 +8,7 @@ import { WorkerModule } from './worker.module';
 const logger = new Logger('Bootstrap');
 
 function resolvePort(defaultPort: number): number {
-  const configuredPort = process.env.PORT;
+  const configuredPort = process.env['PORT'];
 
   if (configuredPort === undefined) {
     return defaultPort;
@@ -32,10 +32,10 @@ async function bootstrap(): Promise<void> {
   const port = resolvePort(3001);
 
   await app.listen(port, '0.0.0.0');
-  logger.log(`API listening on port ${port}`);
+  logger.log(`Worker listening on port ${port}`);
 }
 
 bootstrap().catch(() => {
-  logger.error('API failed to start.');
+  logger.error('Worker failed to start.');
   process.exitCode = 1;
 });
