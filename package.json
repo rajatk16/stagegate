@@ -7,31 +7,15 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "typecheck": "turbo run typecheck",
-    "test": "turbo run test",
-    "prepare": "husky"
+    "test": "turbo run test"
   },
-  "devDependencies": {
-    "husky": "^9.1.7",
-    "lint-staged": "^17.0.7",
-    "prettier": "^3.9.4",
-    "turbo": "^2.10.0",
-    "typescript": "5.9.2"
-  },
+  "devDependencies": {},
   "engines": {
-    "node": ">=18"
+    "node": ">=24 <25"
   },
-  "packageManager": "npm@10.8.2",
+  "packageManager": "npm@11.19.0",
   "workspaces": [
     "apps/*",
     "packages/*"
-  ],
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ]
-  }
+  ]
 }
