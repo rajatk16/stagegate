@@ -1,7 +1,0 @@
-export enum ReviewAssignmentStatus {
-  ASSIGNED = 'ASSIGNED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  DECLINED = 'DECLINED',
-  REVOKED = 'REVOKED',
-}
