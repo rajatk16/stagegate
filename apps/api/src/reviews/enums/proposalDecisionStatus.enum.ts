@@ -1,6 +1,0 @@
-export enum ProposalDecisionStatus {
-  UNDECIDED = 'UNDECIDED',
-  ACCEPTED = 'ACCEPTED',
-  WAITLISTED = 'WAITLISTED',
-  REJECTED = 'REJECTED',
-}

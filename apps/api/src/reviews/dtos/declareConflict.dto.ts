@@ -1,8 +1,0 @@
-import { IsString, MaxLength, MinLength } from 'class-validator';
-
-export class DeclareConflictDto {
-  @IsString()
-  @MinLength(3)
-  @MaxLength(2_000)
-  reason: string | null;
-}
