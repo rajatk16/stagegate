@@ -1,0 +1,6 @@
+{
+  "apps/api/**/*.{ts,mts,cts}": ["eslint --fix --max-warnings=0", "prettier --write"],
+  "apps/worker/**/*.{ts,mts,cts}": ["eslint --fix --max-warnings=0", "prettier --write"],
+  "packages/eslint-config/**/*.{js,mjs,cjs}": ["prettier --write"],
+  "*.{json,md,yml,yaml}": ["prettier --write"]
+}

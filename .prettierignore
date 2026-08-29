@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+.turbo
+.firebase
+.next
+build
+out
+package-lock.json
+*.tsbuildinfo
