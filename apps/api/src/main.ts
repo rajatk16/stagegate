@@ -1,7 +1,10 @@
 import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { RuntimeConfigService, ConfigurationValidationError } from '@stagegate/backend-platform';
+import {
+  RuntimeConfigService,
+  ConfigurationValidationError,
+} from '@stagegate/backend-platform';
 
 import { AppModule } from './app.module';
 
