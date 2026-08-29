@@ -27,5 +27,8 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "lint-staged": {
+    "*.{js,cjs,mjs,ts,tsx,json,css,md,html,yml,yaml}": "prettier --write"
+  }
 }

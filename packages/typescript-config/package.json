@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "exports": {
-    "./nest.json": "./nest.json"
+    "./nest.json": "./nest.json",
+    "./react.json": "./react.json",
+    "./vite.json": "./vite.json"
   }
 }
