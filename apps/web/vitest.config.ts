@@ -1,7 +1,7 @@
 import { mergeConfig } from 'vite';
 import { defineConfig } from 'vitest/config';
 
-import viteConfig from './vite.config';
+import viteConfig from './vite.config.ts';
 
 export default mergeConfig(
   viteConfig,
@@ -18,7 +18,7 @@ export default mergeConfig(
         provider: 'v8',
         reportsDirectory: './coverage',
         reporter: ['text', 'json-summary', 'html', 'lcov'],
-        include: ['src/**/*.{ts, tsx}'],
+        include: ['src/**/*.{ts,tsx}'],
         exclude: ['src/**/*.d.ts', 'src/main.tsx', 'src/config/environment.ts', 'src/test/**'],
       },
     },

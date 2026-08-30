@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const isCi = process.env['CI'] !== undefined;
-const baseUrl = 'http://127.0.0.1:5173';
+const baseUrl = isCi ? 'http://127.0.0.1:4173' : 'http://127.0.0.1:5173';
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -47,7 +47,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1',
+    command: isCi ? 'npm run preview -- --host 127.0.0.1' : 'npm run dev -- --host 127.0.0.1',
     url: baseUrl,
     reuseExistingServer: !isCi,
     timeout: 120_000,

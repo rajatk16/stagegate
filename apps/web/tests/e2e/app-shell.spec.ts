@@ -92,3 +92,19 @@ test('supports keyboard access to the skip link', async ({ browserName, page }) 
 
   await expect(page.locator('#main-content')).toBeFocused();
 });
+
+test('supports direct navigation and reloads on nested routes', async ({ page }) => {
+  await page.goto('/settings');
+
+  const heading = page.getByRole('heading', {
+    level: 1,
+    name: 'Settings',
+  });
+
+  await expect(heading).toBeVisible();
+
+  await page.reload();
+
+  await expect(page).toHaveURL('/settings');
+  await expect(heading).toBeVisible();
+});
