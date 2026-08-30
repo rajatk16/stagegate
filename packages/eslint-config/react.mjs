@@ -10,7 +10,7 @@ export function createReactConfig(tsconfigRootDir) {
   return defineConfig([
     globalIgnores(['dist/**', 'coverage/**', 'node_modules/**']),
     {
-      files: ['src/**/*.{ts,tsx}', 'vite.config.ts'],
+      files: ['src/**/*.{ts,tsx}', 'tests/**/*.ts', '*.config.ts'],
       extends: [
         eslint.configs.recommended,
         tseslint.configs.strictTypeChecked,
@@ -42,6 +42,12 @@ export function createReactConfig(tsconfigRootDir) {
         '@typescript-eslint/switch-exhaustiveness-check': 'error',
         '@typescript-eslint/no-confusing-void-expression': 'off',
         '@typescript-eslint/no-non-null-assertion': 'off',
+      },
+    },
+    {
+      files: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}', 'tests/**/*.ts'],
+      rules: {
+        'react-refresh/only-export-components': 'off',
       },
     },
     eslintConfigPrettier,

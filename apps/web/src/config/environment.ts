@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const environmentSchema = z.object({
   VITE_APP_NAME: z.string().trim().min(1).default('StageGate'),
-  VITE_APP_ENV: z.enum(['local', 'development', 'staging', 'production']).default('local'),
+  VITE_APP_ENV: z.enum(['local', 'test', 'development', 'staging', 'production']).default('local'),
   VITE_API_BASE_URL: z
     .url('VITE_API_BASE_URL must be a valid URL')
     .transform((value) => value.replace(/\/+$/, '')),

@@ -43,3 +43,8 @@ docs/
 
 # TypeScript incremental output
 *.tsbuildinfo
+
+# Playwright
+playwright-report
+test-results
+blob-report
