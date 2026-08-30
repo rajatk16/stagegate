@@ -48,3 +48,10 @@ docs/
 playwright-report
 test-results
 blob-report
+
+# Firebase emulator logs and optional local exports
+firebase-debug.log*
+firestore-debug.log*
+storage-debug.log*
+ui-debug.log*
+.emulator-data/
