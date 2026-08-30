@@ -21,10 +21,14 @@
     "check:backend": "turbo run lint typecheck typecheck:test test build --filter=@stagegate/api --filter=@stagegate/worker --filter=@stagegate/backend-platform --filter=@stagegate/backend-testkit",
     "test:integration:backend": "turbo run test:integration --filter=@stagegate/api --filter=@stagegate/worker",
     "container:build:api": "docker build --file Dockerfile.backend --build-arg SERVICE=api --tag stagegate-api:local .",
-    "container:build:worker": "docker build --file Dockerfile.backend --build-arg SERVICE=worker --tag stagegate-worker:local ."
+    "container:build:worker": "docker build --file Dockerfile.backend --build-arg SERVICE=worker --tag stagegate-worker:local .",
+    "emulators:start": "firebase emulators:start --project demo-stagegate-local --only auth,firestore,storage",
+    "emulators:check": "node packages/backend-platform/scripts/checkEmulators.mjs",
+    "emulators:verify": "firebase emulators:exec --project demo-stagegate-local --only auth,firestore,storage \"npm run emulators:check\""
   },
   "devDependencies": {
     "eslint": "^10.0.1",
+    "firebase-tools": "15.28.2",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.7",
     "prettier": "^3.9.4",
