@@ -78,7 +78,7 @@ export function AppShell() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-screen-2xl md:grid md:grid-cols-[15rem_minmax(0,1fr)]">
+      <div className="mx-auto w-full md:grid md:grid-cols-[15rem_minmax(0,1fr)]">
         <aside className="border-b border-slate-200 bg-white px-4 py-3 md:min-h-[calc(100dvh-4rem)] md:border-r md:border-b-0 md:px-4 md:py-6">
           <Navigation />
         </aside>
