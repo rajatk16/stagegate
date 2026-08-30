@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const isCi = process.env['CI'] !== undefined;
-const baseUrl = 'http://127.0.0.1:5173';
+const baseUrl = isCi ? 'http://127.0.0.1:4173' : 'http://127.0.0.1:5173';
 
 export default defineConfig({
   testDir: './tests/e2e',
