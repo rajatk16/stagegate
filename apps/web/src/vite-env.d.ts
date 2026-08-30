@@ -6,7 +6,7 @@ interface ViteTypeOptions {
 
 interface ImportMetaEnv {
   readonly VITE_APP_NAME: string;
-  readonly VITE_APP_ENV: 'local' | 'development' | 'staging' | 'production';
+  readonly VITE_APP_ENV: 'local' | 'test' | 'development' | 'staging' | 'production';
   readonly VITE_API_BASE_URL: string;
 }
 
