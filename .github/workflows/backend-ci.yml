@@ -1,0 +1,206 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - 'apps/api/**'
+      - 'apps/worker/**'
+      - 'packages/backend-platform/**'
+      - 'packages/backend-testkit/**'
+      - 'packages/eslint-config/**'
+      - 'packages/typescript-config/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - '.npmrc'
+      - '.prettierrc'
+      - '.prettierignore'
+      - 'Dockerfile.backend'
+      - '.dockerignore'
+      - '.github/workflows/backend-ci.yml'
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/api/**'
+      - 'apps/worker/**'
+      - 'packages/backend-platform/**'
+      - 'packages/backend-testkit/**'
+      - 'packages/eslint-config/**'
+      - 'packages/typescript-config/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'turbo.json'
+      - '.npmrc'
+      - '.prettierrc'
+      - '.prettierignore'
+      - 'Dockerfile.backend'
+      - '.dockerignore'
+      - '.github/workflows/backend-ci.yml'
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend quality and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      CI: 'true'
+      HUSKY: '0'
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Use repository npm version
+        run: npm install --global npm@11.19.0
+
+      - name: Display tool versions
+        run: |
+          node --version
+          npm --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Lint backend
+        run: |
+          npm exec turbo run lint \
+            --filter=@stagegate/api \
+            --filter=@stagegate/worker \
+            --filter=@stagegate/backend-platform \
+            --filter=@stagegate/backend-testkit
+
+      - name: Typecheck production and test code
+        run: |
+          npm exec turbo run typecheck typecheck:test \
+            --filter=@stagegate/api \
+            --filter=@stagegate/worker \
+            --filter=@stagegate/backend-platform \
+            --filter=@stagegate/backend-testkit
+
+      - name: Run unit tests
+        run: |
+          npm exec turbo run test \
+            --filter=@stagegate/api \
+            --filter=@stagegate/worker \
+            --filter=@stagegate/backend-platform
+
+      - name: Run integration tests
+        run: |
+          npm exec turbo run test:integration \
+            --filter=@stagegate/api \
+            --filter=@stagegate/worker
+
+      - name: Build backend applications
+        run: |
+          npm exec turbo run build \
+            --filter=@stagegate/api \
+            --filter=@stagegate/worker
+
+  containers:
+    name: Container - ${{ matrix.service }}
+    needs: backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            endpoint: /api/v1
+          - service: worker
+            endpoint: /internal/v1
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build container
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ./Dockerfile.backend
+          build-args: |
+            SERVICE=${{ matrix.service }}
+            NODE_VERSION=24.20.0
+          tags: stagegate-${{ matrix.service }}:ci
+          load: true
+          push: false
+          provenance: false
+          cache-from: type=gha,scope=backend-${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=backend-${{ matrix.service }}
+
+      - name: Start container
+        id: container
+        shell: bash
+        run: |
+          container_id="$(
+            docker run --detach \
+              --name "stagegate-${{ matrix.service }}-${{ github.run_id }}" \
+              --publish 18080:8080 \
+              --read-only \
+              --tmpfs /tmp \
+              --cap-drop ALL \
+              --security-opt no-new-privileges \
+              --env NODE_ENV=test \
+              --env APP_ENV=test \
+              --env PORT=8080 \
+              --env FIREBASE_PROJECT_ID=stagegate-test \
+              --env FIREBASE_STORAGE_BUCKET=stagegate-test.firebasestorage.app \
+              --env FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
+              --env FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 \
+              --env FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199 \
+              "stagegate-${{ matrix.service }}:ci"
+          )"
+
+          echo "id=${container_id}" >> "${GITHUB_OUTPUT}"
+
+      - name: Smoke-test container
+        shell: bash
+        run: |
+          for attempt in {1..30}; do
+            if curl \
+              --fail \
+              --silent \
+              --show-error \
+              "http://127.0.0.1:18080${{ matrix.endpoint }}"; then
+              exit 0
+            fi
+
+            sleep 1
+          done
+
+          echo "Container did not become ready in time."
+          exit 1
+
+      - name: Show container logs
+        if: always() && steps.container.outputs.id != ''
+        run: docker logs "${{ steps.container.outputs.id }}"
+
+      - name: Remove container
+        if: always() && steps.container.outputs.id != ''
+        run: docker rm --force "${{ steps.container.outputs.id }}"
