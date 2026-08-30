@@ -10,6 +10,7 @@ export function createNestConfig(tsconfigRootDir) {
     },
     {
       files: ['src/**/*.ts'],
+      ignores: ['**/*.spec.ts'],
       extends: [eslint.configs.recommended, ...tseslint.configs.recommendedTypeChecked],
       languageOptions: {
         globals: globals.node,
@@ -42,6 +43,9 @@ export function createNestConfig(tsconfigRootDir) {
         globals: {
           ...globals.node,
           ...globals.jest,
+        },
+        parserOptions: {
+          tsconfigRootDir,
         },
       },
       rules: {
