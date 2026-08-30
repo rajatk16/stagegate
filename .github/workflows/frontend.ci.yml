@@ -1,0 +1,114 @@
+name: Frontend CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend quality, build and browser tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    env:
+      CI: 'true'
+      HUSKY: '0'
+
+      # Public, CI-only configuration baked into the test build.
+      VITE_APP_NAME: StageGate
+      VITE_APP_ENV: test
+      VITE_API_BASE_URL: http://localhost:3000/api/v1
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Use repository npm version
+        run: npm install --global npm@11.19.0
+
+      - name: Display tool versions
+        run: |
+          node --version
+          npm --version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check frontend and shared configuration formatting
+        run: |
+          npm exec -- prettier --check \
+            apps/web \
+            packages/eslint-config \
+            packages/typescript-config \
+            package.json \
+            turbo.json \
+            .github/workflows/frontend-ci.yml
+
+      - name: Lint frontend
+        run: npm run lint --workspace=@stagegate/web
+
+      - name: Typecheck application and test code
+        run: npm run typecheck --workspace=@stagegate/web
+
+      - name: Run unit and component tests with coverage
+        run: npm run test:coverage --workspace=@stagegate/web
+
+      - name: Build frontend
+        run: npm run build --workspace=@stagegate/web
+
+      - name: Verify build output
+        run: test -s apps/web/dist/index.html
+
+      - name: Install Playwright browsers and system dependencies
+        working-directory: apps/web
+        run: npm exec -- playwright install --with-deps
+
+      - name: Test compiled frontend in browsers
+        run: npm run test:e2e --workspace=@stagegate/web
+
+      - name: Upload verified frontend build
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-ci-build-${{ github.sha }}
+          path: apps/web/dist/
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload coverage reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-coverage-${{ github.sha }}
+          path: apps/web/coverage/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload browser test reports
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-playwright-${{ github.sha }}
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          if-no-files-found: warn
+          retention-days: 7
