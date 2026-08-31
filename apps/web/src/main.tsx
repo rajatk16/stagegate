@@ -6,6 +6,7 @@ import './lib/firebaseClient';
 import { router } from './app/router';
 
 import './index.css';
+import { AuthProvider } from './app/providers';
 
 const rootElement = document.getElementById('root');
 
@@ -15,6 +16,8 @@ if (rootElement === null) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>,
 );
