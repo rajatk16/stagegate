@@ -20,6 +20,7 @@
     "build:worker": "turbo run build --filter=@stagegate/worker",
     "check:backend": "turbo run lint typecheck typecheck:test test build --filter=@stagegate/api --filter=@stagegate/worker --filter=@stagegate/backend-platform --filter=@stagegate/backend-testkit",
     "test:integration:backend": "turbo run test:integration --filter=@stagegate/api --filter=@stagegate/worker",
+    "test:integration:backend:emulators": "firebase emulators:exec --project stagegate-test --only auth,firestore,storage \"npm run test:integration:backend\"",
     "container:build:api": "docker build --file Dockerfile.backend --build-arg SERVICE=api --tag stagegate-api:local .",
     "container:build:worker": "docker build --file Dockerfile.backend --build-arg SERVICE=worker --tag stagegate-worker:local .",
     "emulators:start": "firebase emulators:start --project demo-stagegate-local --only auth,firestore,storage",

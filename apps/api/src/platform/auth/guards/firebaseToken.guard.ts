@@ -1,17 +1,12 @@
 import { Reflector } from '@nestjs/core';
 import { Auth, DecodedIdToken } from 'firebase-admin/auth';
-import {
-  CanActivate,
-  ExecutionContext,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable, Logger } from '@nestjs/common';
 
 import { FIREBASE_AUTH } from '@stagegate/backend-platform';
 
+import { AuthenticationError } from '../utils';
+import { AuthenticatedRequest } from '../types';
 import { PUBLIC_ROUTE_KEY } from '../decorators';
-import { AuthenticatedRequest, AuthenticationError } from '../types';
 
 const INVALID_TOKEN_CODES = new Set([
   'auth/argument-error',
@@ -35,10 +30,10 @@ export class FirebaseTokenGuard implements CanActivate {
 
     delete request.actor;
 
-    const isPublic = this.reflector.getAllAndOverride<boolean>(
-      PUBLIC_ROUTE_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const isPublic = this.reflector.getAllAndOverride<boolean>(PUBLIC_ROUTE_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (isPublic) {
       return true;
@@ -80,8 +75,7 @@ export class FirebaseTokenGuard implements CanActivate {
 
   private extractBearerToken(request: AuthenticatedRequest): string {
     const authorizationCount = request.rawHeaders.filter(
-      (value, index) =>
-        index % 2 === 0 && value.toLowerCase() === 'authorization',
+      (value, index) => index % 2 === 0 && value.toLowerCase() === 'authorization',
     ).length;
 
     if (authorizationCount === 0) {
@@ -93,8 +87,7 @@ export class FirebaseTokenGuard implements CanActivate {
     }
 
     const header = request.headers.authorization;
-    const match =
-      header === undefined ? null : /^Bearer +([^\s,]+)$/i.exec(header);
+    const match = header === undefined ? null : /^Bearer +([^\s,]+)$/i.exec(header);
 
     const token = match?.[1];
 

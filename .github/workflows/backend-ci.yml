@@ -18,6 +18,10 @@ on:
       - 'Dockerfile.backend'
       - '.dockerignore'
       - '.github/workflows/backend-ci.yml'
+      - 'firebase.json'
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'storage.rules'
 
   push:
     branches:
@@ -38,6 +42,10 @@ on:
       - 'Dockerfile.backend'
       - '.dockerignore'
       - '.github/workflows/backend-ci.yml'
+      - 'firebase.json'
+      - 'firestore.rules'
+      - 'firestore.indexes.json'
+      - 'storage.rules'
 
   workflow_dispatch:
 
@@ -106,11 +114,14 @@ jobs:
             --filter=@stagegate/worker \
             --filter=@stagegate/backend-platform
 
-      - name: Run integration tests
-        run: |
-          npm exec turbo run test:integration \
-            --filter=@stagegate/api \
-            --filter=@stagegate/worker
+      - name: Set up Java for Firebase emulators
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Run integration tests with Firebase emulators
+        run: npm run test:integration:backend:emulators
 
       - name: Build backend applications
         run: |
