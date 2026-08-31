@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
-export type AuthenticationErrorCode = 'AUTH_REQUIRED' | 'AUTH_INVALID_TOKEN' | 'AUTH_UNAVAILABLE';
+export type AuthenticationErrorCode =
+  'AUTH_REQUIRED' | 'AUTH_INVALID_TOKEN' | 'AUTH_UNAVAILABLE';
 
 export class AuthenticationError extends HttpException {
   constructor(readonly code: AuthenticationErrorCode) {

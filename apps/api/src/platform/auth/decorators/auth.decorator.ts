@@ -1,10 +1,19 @@
-import { createParamDecorator, type ExecutionContext, SetMetadata } from '@nestjs/common';
+import {
+  createParamDecorator,
+  type ExecutionContext,
+  SetMetadata,
+} from '@nestjs/common';
 
-import { AuthenticationError, type AuthenticatedUser, type AuthenticatedRequest } from '../types';
+import {
+  AuthenticationError,
+  type AuthenticatedUser,
+  type AuthenticatedRequest,
+} from '../types';
 
 export const PUBLIC_ROUTE_KEY = Symbol('PUBLIC_ROUTE');
 
-export const Public = (): ReturnType<typeof SetMetadata> => SetMetadata(PUBLIC_ROUTE_KEY, true);
+export const Public = (): ReturnType<typeof SetMetadata> =>
+  SetMetadata(PUBLIC_ROUTE_KEY, true);
 
 export const CurrentActor = createParamDecorator(
   (_data: unknown, context: ExecutionContext): AuthenticatedUser => {

@@ -20,7 +20,9 @@ export class AuthenticationExceptionFilter implements ExceptionFilter<Authentica
     if (status === 401) {
       response.setHeader(
         'WWW-Authenticate',
-        exception.code === 'AUTH_INVALID_TOKEN' ? 'Bearer error="invalid_token"' : 'Bearer ',
+        exception.code === 'AUTH_INVALID_TOKEN'
+          ? 'Bearer error="invalid_token"'
+          : 'Bearer ',
       );
     }
 
@@ -29,7 +31,10 @@ export class AuthenticationExceptionFilter implements ExceptionFilter<Authentica
       .type('application/problem+json')
       .json({
         type: `https://stagegate.dev/problems/${exception.code.toLowerCase().replace('_', '-')}`,
-        title: status === 401 ? 'Authentication required' : 'Authentication unavailable',
+        title:
+          status === 401
+            ? 'Authentication required'
+            : 'Authentication unavailable',
         status,
         code: exception.code,
         detail: exception.message,

@@ -27,7 +27,9 @@ class Controller {}
 
 function createRequest(
   authorization?: string,
-  rawHeaders: string[] = authorization === undefined ? [] : ['Authorization', authorization],
+  rawHeaders: string[] = authorization === undefined
+    ? []
+    : ['Authorization', authorization],
 ): AuthenticatedRequest {
   return {
     headers: authorization === undefined ? {} : { authorization },
@@ -35,7 +37,9 @@ function createRequest(
   } as AuthenticatedRequest;
 }
 
-function createExecutionContext(request: AuthenticatedRequest): ExecutionContext {
+function createExecutionContext(
+  request: AuthenticatedRequest,
+): ExecutionContext {
   return {
     getClass: () => Controller,
     getHandler: () => handler,
@@ -77,7 +81,9 @@ describe('FirebaseTokenGuard', () => {
 
     getAllAndOverride.mockReturnValue(true);
 
-    await expect(guard.canActivate(createExecutionContext(request))).resolves.toBe(true);
+    await expect(
+      guard.canActivate(createExecutionContext(request)),
+    ).resolves.toBe(true);
 
     expect(request.actor).toBeUndefined();
     expect(verifyIdToken).not.toHaveBeenCalled();
@@ -87,26 +93,32 @@ describe('FirebaseTokenGuard', () => {
     const { guard, verifyIdToken } = createGuard();
     const request = createRequest();
 
-    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
+    await expect(
+      guard.canActivate(createExecutionContext(request)),
+    ).rejects.toMatchObject({
       code: 'AUTH_REQUIRED',
     } satisfies Partial<AuthenticationError>);
 
     expect(verifyIdToken).not.toHaveBeenCalled();
   });
 
-  it.each(['Basic credentials', 'Bearer', 'Bearer token extra', 'Bearer first,Bearer second'])(
-    'rejects malformed authorization header: %s',
-    async (authorization) => {
-      const { guard, verifyIdToken } = createGuard();
-      const request = createRequest(authorization);
+  it.each([
+    'Basic credentials',
+    'Bearer',
+    'Bearer token extra',
+    'Bearer first,Bearer second',
+  ])('rejects malformed authorization header: %s', async (authorization) => {
+    const { guard, verifyIdToken } = createGuard();
+    const request = createRequest(authorization);
 
-      await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
-        code: 'AUTH_INVALID_TOKEN',
-      } satisfies Partial<AuthenticationError>);
+    await expect(
+      guard.canActivate(createExecutionContext(request)),
+    ).rejects.toMatchObject({
+      code: 'AUTH_INVALID_TOKEN',
+    } satisfies Partial<AuthenticationError>);
 
-      expect(verifyIdToken).not.toHaveBeenCalled();
-    },
-  );
+    expect(verifyIdToken).not.toHaveBeenCalled();
+  });
 
   it('rejects duplicate authorization headers', async () => {
     const { guard, verifyIdToken } = createGuard();
@@ -117,7 +129,9 @@ describe('FirebaseTokenGuard', () => {
       'Bearer second',
     ]);
 
-    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
+    await expect(
+      guard.canActivate(createExecutionContext(request)),
+    ).rejects.toMatchObject({
       code: 'AUTH_INVALID_TOKEN',
     } satisfies Partial<AuthenticationError>);
 
@@ -130,7 +144,9 @@ describe('FirebaseTokenGuard', () => {
 
     verifyIdToken.mockResolvedValue(decodedToken);
 
-    await expect(guard.canActivate(createExecutionContext(request))).resolves.toBe(true);
+    await expect(
+      guard.canActivate(createExecutionContext(request)),
+    ).resolves.toBe(true);
 
     expect(verifyIdToken).toHaveBeenCalledWith('test-token');
     expect(request.actor).toEqual({
@@ -155,7 +171,9 @@ describe('FirebaseTokenGuard', () => {
       message: 'Sensitive upstream error details',
     });
 
-    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
+    await expect(
+      guard.canActivate(createExecutionContext(request)),
+    ).rejects.toMatchObject({
       code: 'AUTH_INVALID_TOKEN',
     } satisfies Partial<AuthenticationError>);
   });
@@ -163,18 +181,24 @@ describe('FirebaseTokenGuard', () => {
   it('fails closed when Firebase token verification fails unexpectedly', async () => {
     const { guard, verifyIdToken } = createGuard();
     const request = createRequest('Bearer test-token');
-    const loggerError = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    const loggerError = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
 
     verifyIdToken.mockRejectedValue({
       code: 'auth/internal-error',
       message: 'Sensitive upstream error details',
     });
 
-    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
+    await expect(
+      guard.canActivate(createExecutionContext(request)),
+    ).rejects.toMatchObject({
       code: 'AUTH_UNAVAILABLE',
     } satisfies Partial<AuthenticationError>);
 
     expect(request.actor).toBeUndefined();
-    expect(loggerError).toHaveBeenCalledWith('Firebase token verification failed unexpectedly.');
+    expect(loggerError).toHaveBeenCalledWith(
+      'Firebase token verification failed unexpectedly.',
+    );
   });
 });

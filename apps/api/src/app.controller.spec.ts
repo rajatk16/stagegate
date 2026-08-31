@@ -14,7 +14,9 @@ describe('AppController', () => {
   });
 
   it('marks the API identity route as public', () => {
-    expect(Reflect.getMetadata(PUBLIC_ROUTE_KEY, AppController.prototype.getRoot)).toBe(true);
+    expect(
+      Reflect.getMetadata(PUBLIC_ROUTE_KEY, AppController.prototype.getRoot),
+    ).toBe(true);
   });
 
   it('returns the authenticated session actor', () => {
