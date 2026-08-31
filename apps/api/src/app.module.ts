@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
-import {
-  FirebaseAdminModule,
-  RuntimeConfigModule,
-} from '@stagegate/backend-platform';
+import { FirebaseAdminModule, RuntimeConfigModule } from '@stagegate/backend-platform';
 
+import { AuthModule } from './platform/auth';
 import { AppController } from './app.controller';
 
 @Module({
@@ -14,6 +12,7 @@ import { AppController } from './app.controller';
       envFilePaths: ['.env.local', '.env'],
     }),
     FirebaseAdminModule,
+    AuthModule,
   ],
   controllers: [AppController],
 })
