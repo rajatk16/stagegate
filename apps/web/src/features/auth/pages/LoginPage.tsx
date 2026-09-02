@@ -1,14 +1,17 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import { AuthLayout } from '../components';
 import { routes } from '../../../app/routes';
+import { getAuthErrorMessage } from '../errors';
 import { signInWithPassword } from '../services';
 import { loginSchema, type LoginValues } from '../schemas';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const didResetPassword = searchParams.get('passwordReset') === 'success';
 
   const {
     register,
@@ -27,9 +30,9 @@ export function LoginPage() {
     try {
       await signInWithPassword(values.email, values.password);
       await navigate(routes.dashboard, { replace: true });
-    } catch {
+    } catch (error: unknown) {
       setError('root', {
-        message: 'We could not sign you in. Check your details and try again.',
+        message: getAuthErrorMessage(error, 'login'),
       });
     }
   };
@@ -54,6 +57,14 @@ export function LoginPage() {
           void handleSubmit(handleLogin)(event);
         }}
       >
+        {didResetPassword ? (
+          <div
+            className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800"
+            role="status"
+          >
+            Your password was reset. Sign in with your new password.
+          </div>
+        ) : null}
         {errors.root?.message !== undefined ? (
           <div
             className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"
@@ -106,6 +117,15 @@ export function LoginPage() {
               {errors.password.message}
             </p>
           ) : null}
+        </div>
+
+        <div className="flex justify-end">
+          <Link
+            className="text-brand-700 font-semibold hover:underline text-sm"
+            to={routes.forgotPassword}
+          >
+            Forgot your password?
+          </Link>
         </div>
 
         <button

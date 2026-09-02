@@ -108,7 +108,7 @@ describe('SignUpPage', () => {
       );
     });
 
-    expect(router.state.location.pathname).toBe('/');
+    expect(router.state.location.pathname).toBe('/sign-up');
   });
 });
 

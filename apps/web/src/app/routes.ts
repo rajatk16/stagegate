@@ -4,4 +4,7 @@ export const routes = {
   settings: '/settings',
   login: '/login',
   signUp: '/sign-up',
+  verifyEmail: '/verify-email',
+  forgotPassword: '/forgot-password',
+  emailAction: '/auth/action',
 };

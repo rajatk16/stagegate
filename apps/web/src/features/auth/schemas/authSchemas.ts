@@ -37,3 +37,21 @@ export const signUpSchema = z
   });
 
 export type SignUpValues = z.infer<typeof signUpSchema>;
+
+export const forgotPasswordSchema = z.object({
+  email: emailSchema,
+});
+
+export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
+
+export const resetPasswordSchema = z
+  .object({
+    password: newPasswordSchema,
+    confirmPassword: z.string().min(1, 'Confirm your password.'),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    path: ['confirmPassword'],
+    message: 'Passwords do not match.',
+  });
+
+export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
