@@ -12,7 +12,9 @@ export class AuthenticationExceptionFilter implements ExceptionFilter<Authentica
     const response = http.getResponse<Response>();
 
     const status = exception.getStatus();
-    const requestId = randomUUID();
+    const existingRequestId = response.getHeader('X-Request-Id');
+    const requestId =
+      typeof existingRequestId === 'string' ? existingRequestId : randomUUID();
 
     response.setHeader('X-Request-Id', requestId);
     response.setHeader('Cache-Control', 'no-store');
@@ -26,15 +28,19 @@ export class AuthenticationExceptionFilter implements ExceptionFilter<Authentica
       );
     }
 
+    const title =
+      exception.code === 'EMAIL_VERIFICATION_REQUIRED'
+        ? 'Email verification required'
+        : exception.code === 'AUTH_UNAVAILABLE'
+          ? 'Authentication unavailable'
+          : 'Authentication required';
+
     response
       .status(status)
       .type('application/problem+json')
       .json({
-        type: `https://stagegate.dev/problems/${exception.code.toLowerCase().replace('_', '-')}`,
-        title:
-          status === 401
-            ? 'Authentication required'
-            : 'Authentication unavailable',
+        type: `https://stagegate.dev/problems/${exception.code.toLowerCase().replaceAll('_', '-')}`,
+        title,
         status,
         code: exception.code,
         detail: exception.message,

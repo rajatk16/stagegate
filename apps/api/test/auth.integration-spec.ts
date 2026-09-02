@@ -177,4 +177,32 @@ describe('API authentication', () => {
     });
     expect(JSON.stringify(response.body)).not.toContain('Sensitive');
   });
+
+  it('returns a sanitized 403 for an unverified protected mutation', async () => {
+    verifyIdToken.mockResolvedValue(decodedToken);
+
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Authorization', 'Bearer unverified-token')
+      .send({
+        expectedVersion: 1,
+        displayName: 'Blocked update',
+      })
+      .expect(403)
+      .expect('Content-Type', /application\/problem\+json/);
+
+    expect(response.headers['www-authenticate']).toBeUndefined();
+
+    expect(response.body).toMatchObject({
+      type: 'https://stagegate.dev/problems/email-verification-required',
+      title: 'Email verification required',
+      status: 403,
+      code: 'EMAIL_VERIFICATION_REQUIRED',
+      detail: 'Verify your email address before performing this action.',
+      instance: '/api/v1/users/me',
+      requestId: expect.any(String),
+    });
+
+    expect(JSON.stringify(response.body)).not.toContain('person@example.test');
+  });
 });

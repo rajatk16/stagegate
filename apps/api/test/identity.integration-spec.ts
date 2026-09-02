@@ -74,14 +74,23 @@ describe('User profiles with Firestore', () => {
 
     verifyIdToken.mockReset();
     verifyIdToken.mockImplementation((token) => {
-      const uid =
-        token === 'actor-a' ? userA : token === 'actor-b' ? userB : undefined;
+      const usesUserA = new Set([
+        'actor-a',
+        'unverified-a',
+        'verified-without-email',
+      ]).has(token);
+
+      const uid = usesUserA ? userA : token === 'actor-b' ? userB : undefined;
 
       if (uid === undefined) {
-        return Promise.reject({ code: 'auth/invalid-id-token' });
+        return Promise.reject({
+          code: 'auth/invalid-id-token',
+        });
       }
 
       const now = Math.floor(Date.now() / 1_000);
+      const hasEmail = token !== 'verified-without-email';
+      const emailVerified = token !== 'unverified-a';
 
       return Promise.resolve({
         uid,
@@ -91,8 +100,8 @@ describe('User profiles with Firestore', () => {
         auth_time: now,
         iat: now,
         exp: now + 3_600,
-        email: `${uid}@example.test`,
-        email_verified: false,
+        ...(hasEmail ? { email: `${uid}@example.test` } : {}),
+        email_verified: emailVerified,
         firebase: {
           identities: {},
           sign_in_provider: 'password',
@@ -156,7 +165,7 @@ describe('User profiles with Firestore', () => {
         userId: userA,
         displayName: null,
         bio: null,
-        emailVerified: false,
+        emailVerified: true,
         version: 1,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -310,5 +319,66 @@ describe('User profiles with Firestore', () => {
 
     expect(response.body.code).toBe('PROFILE_DATA_INVALID');
     expect(JSON.stringify(response.body)).not.toContain('corrupt-value');
+  });
+
+  it('allows account recovery reads but blocks mutations until verification', async () => {
+    const bootstrapResponse = await bootstrap('unverified-a').expect(201);
+
+    expect(bootstrapResponse.body.emailVerified).toBe(false);
+
+    const readableProfile = await api()
+      .get('/api/v1/users/me')
+      .set('Authorization', 'Bearer unverified-a')
+      .expect(200);
+
+    expect(readableProfile.body).toMatchObject({
+      userId: userA,
+      emailVerified: false,
+      version: 1,
+    });
+
+    const unverifiedResponse = await api()
+      .patch('/api/v1/users/me')
+      .set('Authorization', 'Bearer unverified-a')
+      .send({
+        expectedVersion: 1,
+        displayName: 'Blocked update',
+      })
+      .expect(403);
+
+    expect(unverifiedResponse.body.code).toBe('EMAIL_VERIFICATION_REQUIRED');
+    expect(unverifiedResponse.headers['www-authenticate']).toBeUndefined();
+
+    await api()
+      .patch('/api/v1/users/me')
+      .set('Authorization', 'Bearer verified-without-email')
+      .send({
+        expectedVersion: 1,
+        displayName: 'Also blocked',
+      })
+      .expect(403);
+
+    const unchanged = await firestore.collection('users').doc(userA).get();
+
+    expect(unchanged.get('version')).toBe(1);
+    expect(unchanged.get('displayName')).toBeNull();
+    expect((await auditEntries(userA)).size).toBe(1);
+
+    const verifiedResponse = await api()
+      .patch('/api/v1/users/me')
+      .set('Authorization', 'Bearer actor-a')
+      .send({
+        expectedVersion: 1,
+        displayName: 'Allowed update',
+      })
+      .expect(200);
+
+    expect(verifiedResponse.body).toMatchObject({
+      displayName: 'Allowed update',
+      emailVerified: true,
+      version: 2,
+    });
+
+    expect((await auditEntries(userA)).size).toBe(2);
   });
 });
