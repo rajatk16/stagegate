@@ -59,7 +59,10 @@ describe('IdentityService', () => {
       },
     });
 
-    expect(repository.bootstrap).toHaveBeenCalledWith('user-123', 'request-123');
+    expect(repository.bootstrap).toHaveBeenCalledWith(
+      'user-123',
+      'request-123',
+    );
   });
 
   it('returns the current actor profile', async () => {
@@ -108,13 +111,19 @@ describe('IdentityService', () => {
 
     const service = new IdentityService(repository);
 
-    await expect(service.updateProfile(actor, patch, 'request-456')).resolves.toMatchObject({
+    await expect(
+      service.updateProfile(actor, patch, 'request-456'),
+    ).resolves.toMatchObject({
       userId: 'user-123',
       displayName: 'Grace',
       version: 3,
       updatedAt: '2026-01-03T00:00:00.000Z',
     });
 
-    expect(repository.update).toHaveBeenCalledWith('user-123', patch, 'request-456');
+    expect(repository.update).toHaveBeenCalledWith(
+      'user-123',
+      patch,
+      'request-456',
+    );
   });
 });

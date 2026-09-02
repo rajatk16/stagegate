@@ -42,4 +42,5 @@ export const validateBootstrapBody = (body: unknown): void => {
   parse(bootstrapSchema, body === undefined ? {} : body);
 };
 
-export const parseProfilePatch = (body: unknown): ProfilePatch => parse(patchSchema, body);
+export const parseProfilePatch = (body: unknown): ProfilePatch =>
+  parse(patchSchema, body);

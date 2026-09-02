@@ -24,7 +24,10 @@ export class IdentityService {
     actor: AuthenticatedUser,
     requestId: string,
   ): Promise<{ created: boolean; profile: ProfileResponse }> {
-    const result = await this.identityRepository.bootstrap(actor.uid, requestId);
+    const result = await this.identityRepository.bootstrap(
+      actor.uid,
+      requestId,
+    );
 
     return {
       created: result.created,
@@ -47,12 +50,19 @@ export class IdentityService {
     patch: ProfilePatch,
     requestId: string,
   ): Promise<ProfileResponse> {
-    const profile = await this.identityRepository.update(actor.uid, patch, requestId);
+    const profile = await this.identityRepository.update(
+      actor.uid,
+      patch,
+      requestId,
+    );
 
     return this.toResponse(profile, actor);
   }
 
-  private toResponse(profile: UserProfile, actor: AuthenticatedUser): ProfileResponse {
+  private toResponse(
+    profile: UserProfile,
+    actor: AuthenticatedUser,
+  ): ProfileResponse {
     return {
       userId: profile.userId,
       email: actor.email,

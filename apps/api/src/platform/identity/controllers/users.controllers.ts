@@ -1,6 +1,14 @@
 import type { Response } from 'express';
 import { randomUUID } from 'node:crypto';
-import { Body, Controller, Get, Patch, Post, Res, UseFilters } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Res,
+  UseFilters,
+} from '@nestjs/common';
 
 import { IdentityExceptionFilter } from '../filters';
 import { type AuthenticatedUser, CurrentActor } from '../../auth';

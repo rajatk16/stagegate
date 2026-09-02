@@ -14,7 +14,9 @@ import { IdentityRepository } from './identity.repository';
 const createdAt = new Date('2026-01-01T00:00:00.000Z');
 const updatedAt = new Date('2026-01-02T00:00:00.000Z');
 
-function storedProfile(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+function storedProfile(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return {
     userId: 'user-123',
     displayName: 'Ada',
@@ -51,19 +53,31 @@ function createFirestore(
   profileReference: DocumentReference;
   auditReference: DocumentReference;
   transaction: {
-    create: jest.MockedFunction<(reference: DocumentReference, data: unknown) => Transaction>;
-    get: jest.MockedFunction<(reference: DocumentReference) => Promise<DocumentSnapshot>>;
-    update: jest.MockedFunction<(reference: DocumentReference, data: unknown) => Transaction>;
+    create: jest.MockedFunction<
+      (reference: DocumentReference, data: unknown) => Transaction
+    >;
+    get: jest.MockedFunction<
+      (reference: DocumentReference) => Promise<DocumentSnapshot>
+    >;
+    update: jest.MockedFunction<
+      (reference: DocumentReference, data: unknown) => Transaction
+    >;
   };
-  collection: jest.MockedFunction<(path: string) => { doc: (id?: string) => DocumentReference }>;
+  collection: jest.MockedFunction<
+    (path: string) => { doc: (id?: string) => DocumentReference }
+  >;
   runTransaction: jest.MockedFunction<
-    (updateFunction: (transaction: Transaction) => Promise<unknown>) => Promise<unknown>
+    (
+      updateFunction: (transaction: Transaction) => Promise<unknown>,
+    ) => Promise<unknown>
   >;
 } {
   const profileReference = {
     get: jest
       .fn<() => Promise<DocumentSnapshot>>()
-      .mockResolvedValue(options.readSnapshot ?? createSnapshot(storedProfile())),
+      .mockResolvedValue(
+        options.readSnapshot ?? createSnapshot(storedProfile()),
+      ),
   } as unknown as DocumentReference;
   const auditReference = {} as DocumentReference;
   const transaction = {
@@ -72,16 +86,22 @@ function createFirestore(
       .mockReturnValue({} as Transaction),
     get: jest
       .fn<(reference: DocumentReference) => Promise<DocumentSnapshot>>()
-      .mockResolvedValue(options.transactionSnapshot ?? createSnapshot(undefined)),
+      .mockResolvedValue(
+        options.transactionSnapshot ?? createSnapshot(undefined),
+      ),
     update: jest
       .fn<(reference: DocumentReference, data: unknown) => Transaction>()
       .mockReturnValue({} as Transaction),
   };
   const usersCollection = {
-    doc: jest.fn<(id?: string) => DocumentReference>().mockReturnValue(profileReference),
+    doc: jest
+      .fn<(id?: string) => DocumentReference>()
+      .mockReturnValue(profileReference),
   };
   const auditCollection = {
-    doc: jest.fn<(id?: string) => DocumentReference>().mockReturnValue(auditReference),
+    doc: jest
+      .fn<(id?: string) => DocumentReference>()
+      .mockReturnValue(auditReference),
   };
   const collection = jest.fn((path: string) => {
     if (options.collectionError !== undefined) {
@@ -107,7 +127,14 @@ function createFirestore(
     runTransaction,
   } as unknown as Firestore;
 
-  return { firestore, profileReference, auditReference, transaction, collection, runTransaction };
+  return {
+    firestore,
+    profileReference,
+    auditReference,
+    transaction,
+    collection,
+    runTransaction,
+  };
 }
 
 describe('IdentityRepository', () => {
@@ -149,7 +176,9 @@ describe('IdentityRepository', () => {
   );
 
   it('wraps unexpected storage errors without leaking details', async () => {
-    const loggerError = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    const loggerError = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
     const { firestore } = createFirestore({
       collectionError: new Error('permission denied for users/user-123'),
     });
@@ -159,14 +188,19 @@ describe('IdentityRepository', () => {
       code: 'PROFILE_UNAVAILABLE',
     } satisfies Partial<IdentityError>);
 
-    expect(loggerError).toHaveBeenCalledWith('User profile persistence failed.');
+    expect(loggerError).toHaveBeenCalledWith(
+      'User profile persistence failed.',
+    );
   });
 
   it('creates the profile and audit log when bootstrapping a new user', async () => {
-    const { auditReference, firestore, profileReference, transaction } = createFirestore();
+    const { auditReference, firestore, profileReference, transaction } =
+      createFirestore();
     const repository = new IdentityRepository(firestore);
 
-    await expect(repository.bootstrap('user-123', 'request-123')).resolves.toMatchObject({
+    await expect(
+      repository.bootstrap('user-123', 'request-123'),
+    ).resolves.toMatchObject({
       created: true,
       profile: {
         userId: 'user-123',
@@ -204,7 +238,9 @@ describe('IdentityRepository', () => {
     });
     const repository = new IdentityRepository(firestore);
 
-    await expect(repository.bootstrap('user-123', 'request-123')).resolves.toMatchObject({
+    await expect(
+      repository.bootstrap('user-123', 'request-123'),
+    ).resolves.toMatchObject({
       created: false,
       profile: {
         userId: 'user-123',
@@ -215,9 +251,10 @@ describe('IdentityRepository', () => {
   });
 
   it('updates changed fields and writes an audit log', async () => {
-    const { auditReference, firestore, profileReference, transaction } = createFirestore({
-      transactionSnapshot: createSnapshot(storedProfile()),
-    });
+    const { auditReference, firestore, profileReference, transaction } =
+      createFirestore({
+        transactionSnapshot: createSnapshot(storedProfile()),
+      });
     const repository = new IdentityRepository(firestore);
 
     await expect(
@@ -264,7 +301,11 @@ describe('IdentityRepository', () => {
     const repository = new IdentityRepository(firestore);
 
     await expect(
-      repository.update('user-123', { expectedVersion: 1, displayName: 'Grace' }, 'request-456'),
+      repository.update(
+        'user-123',
+        { expectedVersion: 1, displayName: 'Grace' },
+        'request-456',
+      ),
     ).rejects.toMatchObject({
       code: 'CONCURRENCY_CONFLICT',
     } satisfies Partial<IdentityError>);

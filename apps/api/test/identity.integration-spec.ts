@@ -6,9 +6,21 @@ import type { App as HttpApp } from 'supertest/types';
 import type { INestApplication } from '@nestjs/common';
 import type { Firestore } from 'firebase-admin/firestore';
 import { deleteApp, type App as FirebaseApp } from 'firebase-admin/app';
-import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 
-import { FIREBASE_APP, FIREBASE_AUTH, FIRESTORE } from '@stagegate/backend-platform';
+import {
+  FIREBASE_APP,
+  FIREBASE_AUTH,
+  FIRESTORE,
+} from '@stagegate/backend-platform';
 
 import { AppModule } from '../src/app.module';
 import { configureApplication } from '../src/configureApplication';
@@ -27,7 +39,10 @@ describe('User profiles with Firestore', () => {
   const api = () => request(app.getHttpServer());
 
   const bootstrap = (token = 'actor-a') =>
-    api().post('/api/v1/users/me/bootstrap').set('Authorization', `Bearer ${token}`).send({});
+    api()
+      .post('/api/v1/users/me/bootstrap')
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
 
   const auditEntries = (userId: string) =>
     firestore.collection('auditLogs').where('resourceId', '==', userId).get();
@@ -59,7 +74,8 @@ describe('User profiles with Firestore', () => {
 
     verifyIdToken.mockReset();
     verifyIdToken.mockImplementation((token) => {
-      const uid = token === 'actor-a' ? userA : token === 'actor-b' ? userB : undefined;
+      const uid =
+        token === 'actor-a' ? userA : token === 'actor-b' ? userB : undefined;
 
       if (uid === undefined) {
         return Promise.reject({ code: 'auth/invalid-id-token' });
@@ -116,7 +132,10 @@ describe('User profiles with Firestore', () => {
   });
 
   it('does not create a profile during GET', async () => {
-    await api().get('/api/v1/users/me').set('Authorization', 'Bearer actor-a').expect(404);
+    await api()
+      .get('/api/v1/users/me')
+      .set('Authorization', 'Bearer actor-a')
+      .expect(404);
 
     const snapshot = await firestore.collection('users').doc(userA).get();
     expect(snapshot.exists).toBe(false);
@@ -124,9 +143,13 @@ describe('User profiles with Firestore', () => {
   });
 
   it('creates once under concurrent bootstrap requests', async () => {
-    const responses = await Promise.all(Array.from({ length: 4 }, () => bootstrap()));
+    const responses = await Promise.all(
+      Array.from({ length: 4 }, () => bootstrap()),
+    );
 
-    expect(responses.map((response) => response.status).sort()).toEqual([200, 200, 200, 201]);
+    expect(responses.map((response) => response.status).sort()).toEqual([
+      200, 200, 200, 201,
+    ]);
 
     for (const response of responses) {
       expect(response.body).toMatchObject({
@@ -186,7 +209,9 @@ describe('User profiles with Firestore', () => {
       ),
     );
 
-    expect(responses.map((response) => response.status).sort()).toEqual([200, 409]);
+    expect(responses.map((response) => response.status).sort()).toEqual([
+      200, 409,
+    ]);
 
     const current = await api()
       .get('/api/v1/users/me')
@@ -243,7 +268,10 @@ describe('User profiles with Firestore', () => {
       })
       .expect(422);
 
-    await api().get(`/api/v1/users/${userA}`).set('Authorization', 'Bearer actor-b').expect(404);
+    await api()
+      .get(`/api/v1/users/${userA}`)
+      .set('Authorization', 'Bearer actor-b')
+      .expect(404);
 
     const ownProfile = await api()
       .get('/api/v1/users/me')
@@ -263,7 +291,9 @@ describe('User profiles with Firestore', () => {
       .send({ userId: userB })
       .expect(422);
 
-    expect((await firestore.collection('users').doc(userA).get()).exists).toBe(false);
+    expect((await firestore.collection('users').doc(userA).get()).exists).toBe(
+      false,
+    );
   });
 
   it('fails safely on malformed persisted data', async () => {

@@ -16,9 +16,16 @@ import { BootstrapResult, ProfilePatch, UserProfile } from '../types';
 export abstract class UserProfileRepository {
   abstract find(userId: string): Promise<UserProfile | null>;
 
-  abstract bootstrap(userId: string, requestId: string): Promise<BootstrapResult>;
+  abstract bootstrap(
+    userId: string,
+    requestId: string,
+  ): Promise<BootstrapResult>;
 
-  abstract update(userId: string, patch: ProfilePatch, requestId: string): Promise<UserProfile>;
+  abstract update(
+    userId: string,
+    patch: ProfilePatch,
+    requestId: string,
+  ): Promise<UserProfile>;
 }
 
 const storedProfileSchema = z
@@ -53,38 +60,43 @@ export class IdentityRepository extends UserProfileRepository {
     });
   }
 
-  override async bootstrap(userId: string, requestId: string): Promise<BootstrapResult> {
+  override async bootstrap(
+    userId: string,
+    requestId: string,
+  ): Promise<BootstrapResult> {
     return this.withStoreageErrors(async () => {
       const reference = this.profileRef(userId);
       const auditReference = this.firestore.collection('auditLogs').doc();
 
-      const created = await this.firestore.runTransaction(async (transaction) => {
-        const snapshot = await transaction.get(reference);
+      const created = await this.firestore.runTransaction(
+        async (transaction) => {
+          const snapshot = await transaction.get(reference);
 
-        if (snapshot.exists) {
-          this.decode(snapshot);
-          return false;
-        }
+          if (snapshot.exists) {
+            this.decode(snapshot);
+            return false;
+          }
 
-        transaction.create(reference, {
-          userId,
-          displayName: null,
-          bio: null,
-          version: 1,
-          schemaVersion: 1,
-          createdAt: FieldValue.serverTimestamp(),
-          updatedAt: FieldValue.serverTimestamp(),
-          createdBy: userId,
-          updatedBy: userId,
-        });
+          transaction.create(reference, {
+            userId,
+            displayName: null,
+            bio: null,
+            version: 1,
+            schemaVersion: 1,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+            createdBy: userId,
+            updatedBy: userId,
+          });
 
-        transaction.create(
-          auditReference,
-          this.auditData(userId, requestId, 'user.bootstrapped', 1, []),
-        );
+          transaction.create(
+            auditReference,
+            this.auditData(userId, requestId, 'user.bootstrapped', 1, []),
+          );
 
-        return true;
-      });
+          return true;
+        },
+      );
 
       return {
         created,
@@ -93,7 +105,11 @@ export class IdentityRepository extends UserProfileRepository {
     });
   }
 
-  override update(userId: string, patch: ProfilePatch, requestId: string): Promise<UserProfile> {
+  override update(
+    userId: string,
+    patch: ProfilePatch,
+    requestId: string,
+  ): Promise<UserProfile> {
     return this.withStoreageErrors(async () => {
       const reference = this.profileRef(userId);
       const auditReference = this.firestore.collection('auditLogs').doc();
@@ -112,7 +128,8 @@ export class IdentityRepository extends UserProfileRepository {
         }
 
         const changedFields = (['displayName', 'bio'] as const).filter(
-          (field) => patch[field] !== undefined && patch[field] !== current[field],
+          (field) =>
+            patch[field] !== undefined && patch[field] !== current[field],
         );
 
         if (changedFields.length === 0) {
@@ -135,7 +152,13 @@ export class IdentityRepository extends UserProfileRepository {
 
         transaction.create(
           auditReference,
-          this.auditData(userId, requestId, 'user.profile.updated', nextVersion, changedFields),
+          this.auditData(
+            userId,
+            requestId,
+            'user.profile.updated',
+            nextVersion,
+            changedFields,
+          ),
         );
       });
 
@@ -177,7 +200,9 @@ export class IdentityRepository extends UserProfileRepository {
     };
   }
 
-  private async readRequired(reference: DocumentReference): Promise<UserProfile> {
+  private async readRequired(
+    reference: DocumentReference,
+  ): Promise<UserProfile> {
     const snapshot = await reference.get();
 
     if (!snapshot.exists) {
