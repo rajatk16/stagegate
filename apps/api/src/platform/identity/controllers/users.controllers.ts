@@ -1,17 +1,9 @@
 import type { Response } from 'express';
 import { randomUUID } from 'node:crypto';
-import {
-  Body,
-  Controller,
-  Get,
-  Patch,
-  Post,
-  Res,
-  UseFilters,
-} from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Res, UseFilters } from '@nestjs/common';
 
 import { IdentityExceptionFilter } from '../filters';
-import { type AuthenticatedUser, CurrentActor } from '../../auth';
+import { type AuthenticatedUser, CurrentActor, RequireVerifiedEmail } from '../../auth';
 import { IdentityService, type ProfileResponse } from '../services';
 import { parseProfilePatch, validateBootstrapBody } from '../utils';
 
@@ -50,6 +42,7 @@ export class UsersController {
   }
 
   @Patch('me')
+  @RequireVerifiedEmail()
   updateProfile(
     @CurrentActor() actor: AuthenticatedUser,
     @Body() body: unknown,

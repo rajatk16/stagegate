@@ -1,12 +1,4 @@
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  jest,
-} from '@jest/globals';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { Auth, DecodedIdToken } from 'firebase-admin/auth';
@@ -85,19 +77,17 @@ describe('API authentication', () => {
     expect(verifyIdToken).not.toHaveBeenCalled();
   });
 
-  it.each([
-    'Basic credentials',
-    'Bearer',
-    'Bearer token extra',
-    'Bearer first,Bearer second',
-  ])('rejects malformed authorization: %s', async (header) => {
-    await request(app.getHttpServer())
-      .get('/api/v1/auth/session')
-      .set('Authorization', header)
-      .expect(401);
+  it.each(['Basic credentials', 'Bearer', 'Bearer token extra', 'Bearer first,Bearer second'])(
+    'rejects malformed authorization: %s',
+    async (header) => {
+      await request(app.getHttpServer())
+        .get('/api/v1/auth/session')
+        .set('Authorization', header)
+        .expect(401);
 
-    expect(verifyIdToken).not.toHaveBeenCalled();
-  });
+      expect(verifyIdToken).not.toHaveBeenCalled();
+    },
+  );
 
   it('rejects duplicate Authorization headers', async () => {
     await request(app.getHttpServer())
@@ -109,9 +99,7 @@ describe('API authentication', () => {
   });
 
   it('does not accept a token in the query string', async () => {
-    await request(app.getHttpServer())
-      .get('/api/v1/auth/session?token=not-a-header')
-      .expect(401);
+    await request(app.getHttpServer()).get('/api/v1/auth/session?token=not-a-header').expect(401);
 
     expect(verifyIdToken).not.toHaveBeenCalled();
   });
@@ -140,26 +128,23 @@ describe('API authentication', () => {
     'auth/invalid-argument',
     'auth/invalid-id-token',
     'auth/id-token-expired',
-  ])(
-    'rejects Firebase token error %s without leaking details',
-    async (code) => {
-      verifyIdToken.mockRejectedValue({
-        code,
-        message: 'Sensitive upstream error details',
-      });
+  ])('rejects Firebase token error %s without leaking details', async (code) => {
+    verifyIdToken.mockRejectedValue({
+      code,
+      message: 'Sensitive upstream error details',
+    });
 
-      const response = await request(app.getHttpServer())
-        .get('/api/v1/auth/session')
-        .set('Authorization', 'Bearer rejected-token')
-        .expect(401);
+    const response = await request(app.getHttpServer())
+      .get('/api/v1/auth/session')
+      .set('Authorization', 'Bearer rejected-token')
+      .expect(401);
 
-      expect(response.body).toMatchObject({
-        code: 'AUTH_INVALID_TOKEN',
-      });
-      expect(JSON.stringify(response.body)).not.toContain('Sensitive');
-      expect(JSON.stringify(response.body)).not.toContain('rejected-token');
-    },
-  );
+    expect(response.body).toMatchObject({
+      code: 'AUTH_INVALID_TOKEN',
+    });
+    expect(JSON.stringify(response.body)).not.toContain('Sensitive');
+    expect(JSON.stringify(response.body)).not.toContain('rejected-token');
+  });
 
   it('fails closed when verification fails unexpectedly', async () => {
     verifyIdToken.mockRejectedValue({
@@ -176,5 +161,33 @@ describe('API authentication', () => {
       code: 'AUTH_UNAVAILABLE',
     });
     expect(JSON.stringify(response.body)).not.toContain('Sensitive');
+  });
+
+  it('returns a sanitized 403 for an unverified protected mutation', async () => {
+    verifyIdToken.mockResolvedValue(decodedToken);
+
+    const response = await request(app.getHttpServer())
+      .patch('/api/v1/users/me')
+      .set('Authorization', 'Bearer unverified-token')
+      .send({
+        expectedVersion: 1,
+        displayName: 'Blocked update',
+      })
+      .expect(403)
+      .expect('Content-Type', /application\/problem\+json/);
+
+    expect(response.headers['www-authenticate']).toBeUndefined();
+
+    expect(response.body).toMatchObject({
+      type: 'https://stagegate.dev/problems/email-verification-required',
+      title: 'Email verification required',
+      status: 403,
+      code: 'EMAIL_VERIFICATION_REQUIRED',
+      detail: 'Verify your email address before performing this action.',
+      instance: '/api/v1/users/me',
+      requestId: expect.any(String),
+    });
+
+    expect(JSON.stringify(response.body)).not.toContain('person@example.test');
   });
 });
