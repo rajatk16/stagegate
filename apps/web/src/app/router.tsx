@@ -1,12 +1,18 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
 
 import { routes } from './routes';
+import { AppShell } from '../components/layout';
 import { EventsPage } from '../pages/EventsPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { DashboardPage } from '../pages/DashboardPage';
-import { AppShell } from '../components/layout/AppShell';
-import { LoginPage, SignUpPage } from '../features/auth/pages';
+import {
+  LoginPage,
+  SignUpPage,
+  EmailActionPage,
+  VerifyEmailPage,
+  ForgotPasswordPage,
+} from '../features/auth/pages';
 
 export const appRoutes: RouteObject[] = [
   {
@@ -16,6 +22,18 @@ export const appRoutes: RouteObject[] = [
   {
     path: routes.signUp,
     element: <SignUpPage />,
+  },
+  {
+    path: routes.verifyEmail,
+    element: <VerifyEmailPage />,
+  },
+  {
+    path: routes.forgotPassword,
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: routes.emailAction,
+    element: <EmailActionPage />,
   },
   {
     element: <AppShell />,

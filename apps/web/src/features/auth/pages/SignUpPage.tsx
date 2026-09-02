@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 
 import { AuthLayout } from '../components';
 import { routes } from '../../../app/routes';
+import { getAuthErrorMessage } from '../errors';
 import { createPasswordAccount } from '../services';
 import { signUpSchema, type SignUpValues } from '../schemas';
 
@@ -26,11 +27,18 @@ export const SignUpPage = () => {
 
   const handleSignUp = async (values: SignUpValues) => {
     try {
-      await createPasswordAccount(values.email, values.password);
-      await navigate(routes.dashboard, { replace: true });
-    } catch {
+      const result = await createPasswordAccount(values.email, values.password);
+
+      const query = new URLSearchParams({
+        sent: result.verificationEmailSent ? 'true' : 'false',
+      });
+
+      await navigate(`${routes.verifyEmail}?${query.toString()}`, {
+        replace: true,
+      });
+    } catch (error: unknown) {
       setError('root', {
-        message: 'We could not create your account. Check your details and try again.',
+        message: getAuthErrorMessage(error, 'sign-up'),
       });
     }
   };
