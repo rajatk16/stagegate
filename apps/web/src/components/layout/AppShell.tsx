@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from 'react-router';
 
 import { routes } from '../../app/routes';
 import { environment } from '../../config/environment';
+import { AccountMenu } from '../../features/auth/components';
 
 const navigationItems = [
   {
@@ -74,6 +75,7 @@ export function AppShell() {
             >
               Settings
             </Link>
+            <AccountMenu />
           </div>
         </div>
       </header>

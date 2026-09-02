@@ -3,7 +3,7 @@ import { getApp, getApps, initializeApp } from 'firebase/app';
 
 import { environment } from '../config/environment';
 
-const hasDefaultApp = getApps().some((app) => app.name === '[DEFAULT');
+const hasDefaultApp = getApps().some((app) => app.name === '[DEFAULT]');
 
 export const firebaseApp = hasDefaultApp ? getApp() : initializeApp(environment.firebase.config);
 

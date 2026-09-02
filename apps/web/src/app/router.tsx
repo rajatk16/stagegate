@@ -6,8 +6,17 @@ import { NotFoundPage } from '../pages/NotFoundPage';
 import { SettingsPage } from '../pages/SettingsPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { AppShell } from '../components/layout/AppShell';
+import { LoginPage, SignUpPage } from '../features/auth/pages';
 
 export const appRoutes: RouteObject[] = [
+  {
+    path: routes.login,
+    element: <LoginPage />,
+  },
+  {
+    path: routes.signUp,
+    element: <SignUpPage />,
+  },
   {
     element: <AppShell />,
     children: [
