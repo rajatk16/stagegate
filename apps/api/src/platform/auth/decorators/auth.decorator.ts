@@ -4,11 +4,8 @@ import {
   SetMetadata,
 } from '@nestjs/common';
 
-import {
-  AuthenticationError,
-  type AuthenticatedUser,
-  type AuthenticatedRequest,
-} from '../types';
+import { AuthenticationError } from '../utils';
+import { type AuthenticatedUser, type AuthenticatedRequest } from '../types';
 
 export const PUBLIC_ROUTE_KEY = Symbol('PUBLIC_ROUTE');
 

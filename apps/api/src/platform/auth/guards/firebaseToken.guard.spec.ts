@@ -3,8 +3,9 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { Logger, type ExecutionContext } from '@nestjs/common';
 import type { Auth, DecodedIdToken } from 'firebase-admin/auth';
 
+import type { AuthenticatedRequest } from '../types';
 import { FirebaseTokenGuard } from './firebaseToken.guard';
-import type { AuthenticatedRequest, AuthenticationError } from '../types';
+import { type AuthenticationError } from '../utils';
 
 const decodedToken: DecodedIdToken = {
   aud: 'stagegate-test',

@@ -20,6 +20,7 @@ module.exports = {
     '!src/main.ts',
     '!src/**/*.module.ts',
     '!src/**/*.spec.ts',
+    '!src/**/index.ts',
   ],
   coverageDirectory: '<rootDir>/coverage/unit',
   coverageReporters: ['text', 'lcov', 'json-summary'],

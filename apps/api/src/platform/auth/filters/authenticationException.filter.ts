@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { Request, Response } from 'express';
 import { ArgumentsHost, Catch, ExceptionFilter } from '@nestjs/common';
 
-import { AuthenticationError } from '../types';
+import { AuthenticationError } from '../utils';
 
 @Catch(AuthenticationError)
 export class AuthenticationExceptionFilter implements ExceptionFilter<AuthenticationError> {

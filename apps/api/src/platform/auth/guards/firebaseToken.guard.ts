@@ -10,8 +10,9 @@ import {
 
 import { FIREBASE_AUTH } from '@stagegate/backend-platform';
 
+import { AuthenticationError } from '../utils';
+import { AuthenticatedRequest } from '../types';
 import { PUBLIC_ROUTE_KEY } from '../decorators';
-import { AuthenticatedRequest, AuthenticationError } from '../types';
 
 const INVALID_TOKEN_CODES = new Set([
   'auth/argument-error',

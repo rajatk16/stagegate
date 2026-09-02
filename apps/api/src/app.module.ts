@@ -6,6 +6,7 @@ import {
 
 import { AuthModule } from './platform/auth';
 import { AppController } from './app.controller';
+import { IdentityModule } from './platform/identity';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AppController } from './app.controller';
     }),
     FirebaseAdminModule,
     AuthModule,
+    IdentityModule,
   ],
   controllers: [AppController],
 })
