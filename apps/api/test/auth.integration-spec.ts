@@ -1,4 +1,12 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  jest,
+} from '@jest/globals';
 import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import type { Auth, DecodedIdToken } from 'firebase-admin/auth';
@@ -77,17 +85,19 @@ describe('API authentication', () => {
     expect(verifyIdToken).not.toHaveBeenCalled();
   });
 
-  it.each(['Basic credentials', 'Bearer', 'Bearer token extra', 'Bearer first,Bearer second'])(
-    'rejects malformed authorization: %s',
-    async (header) => {
-      await request(app.getHttpServer())
-        .get('/api/v1/auth/session')
-        .set('Authorization', header)
-        .expect(401);
+  it.each([
+    'Basic credentials',
+    'Bearer',
+    'Bearer token extra',
+    'Bearer first,Bearer second',
+  ])('rejects malformed authorization: %s', async (header) => {
+    await request(app.getHttpServer())
+      .get('/api/v1/auth/session')
+      .set('Authorization', header)
+      .expect(401);
 
-      expect(verifyIdToken).not.toHaveBeenCalled();
-    },
-  );
+    expect(verifyIdToken).not.toHaveBeenCalled();
+  });
 
   it('rejects duplicate Authorization headers', async () => {
     await request(app.getHttpServer())
@@ -99,7 +109,9 @@ describe('API authentication', () => {
   });
 
   it('does not accept a token in the query string', async () => {
-    await request(app.getHttpServer()).get('/api/v1/auth/session?token=not-a-header').expect(401);
+    await request(app.getHttpServer())
+      .get('/api/v1/auth/session?token=not-a-header')
+      .expect(401);
 
     expect(verifyIdToken).not.toHaveBeenCalled();
   });
@@ -128,23 +140,26 @@ describe('API authentication', () => {
     'auth/invalid-argument',
     'auth/invalid-id-token',
     'auth/id-token-expired',
-  ])('rejects Firebase token error %s without leaking details', async (code) => {
-    verifyIdToken.mockRejectedValue({
-      code,
-      message: 'Sensitive upstream error details',
-    });
+  ])(
+    'rejects Firebase token error %s without leaking details',
+    async (code) => {
+      verifyIdToken.mockRejectedValue({
+        code,
+        message: 'Sensitive upstream error details',
+      });
 
-    const response = await request(app.getHttpServer())
-      .get('/api/v1/auth/session')
-      .set('Authorization', 'Bearer rejected-token')
-      .expect(401);
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/auth/session')
+        .set('Authorization', 'Bearer rejected-token')
+        .expect(401);
 
-    expect(response.body).toMatchObject({
-      code: 'AUTH_INVALID_TOKEN',
-    });
-    expect(JSON.stringify(response.body)).not.toContain('Sensitive');
-    expect(JSON.stringify(response.body)).not.toContain('rejected-token');
-  });
+      expect(response.body).toMatchObject({
+        code: 'AUTH_INVALID_TOKEN',
+      });
+      expect(JSON.stringify(response.body)).not.toContain('Sensitive');
+      expect(JSON.stringify(response.body)).not.toContain('rejected-token');
+    },
+  );
 
   it('fails closed when verification fails unexpectedly', async () => {
     verifyIdToken.mockRejectedValue({
