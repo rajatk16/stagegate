@@ -9,6 +9,7 @@ import type { IdentityService, ProfileResponse } from '../services';
 type MockIdentityService = jest.Mocked<
   Pick<IdentityService, 'bootstrap' | 'getProfile' | 'updateProfile'>
 >;
+type StoredHeaderValue = number | string | string[];
 
 const actor: AuthenticatedUser = {
   uid: 'user-123',
@@ -38,40 +39,39 @@ function createIdentityService(): MockIdentityService {
 
 function createResponse(): {
   response: Response;
-  headers: Record<string, number | string | readonly string[]>;
+  headers: Record<string, StoredHeaderValue>;
   status: jest.MockedFunction<Response['status']>;
+  getHeader: jest.MockedFunction<Response['getHeader']>;
   setHeader: jest.MockedFunction<Response['setHeader']>;
 } {
-  const headers: Record<string, number | string | readonly string[]> = {};
+  const headers: Record<string, StoredHeaderValue> = {};
   const response = {} as Response;
   const status = jest.fn<Response['status']>().mockReturnValue(response);
+  const getHeader = jest.fn<Response['getHeader']>((name) => headers[String(name)]);
   const setHeader = jest.fn<Response['setHeader']>((name, value) => {
-    headers[name] = value;
+    headers[name] = typeof value === 'string' || typeof value === 'number' ? value : [...value];
     return response;
   });
 
   response.status = status;
+  response.getHeader = getHeader;
   response.setHeader = setHeader;
 
-  return { response, headers, status, setHeader };
+  return { response, headers, status, getHeader, setHeader };
 }
 
 describe('UsersController', () => {
   it('creates a profile, sets response metadata, and returns the profile', async () => {
     const identity = createIdentityService();
     const { headers, response, status } = createResponse();
-    const controller = new UsersController(
-      identity as unknown as IdentityService,
-    );
+    const controller = new UsersController(identity as unknown as IdentityService);
 
     identity.bootstrap.mockResolvedValue({
       created: true,
       profile: profileResponse,
     });
 
-    await expect(controller.bootstrap(actor, {}, response)).resolves.toBe(
-      profileResponse,
-    );
+    await expect(controller.bootstrap(actor, {}, response)).resolves.toBe(profileResponse);
 
     expect(headers['X-Request-Id']).toEqual(expect.any(String));
     expect(headers['Cache-Control']).toBe('no-store');
@@ -83,18 +83,14 @@ describe('UsersController', () => {
   it('returns an existing profile bootstrap response without a location header', async () => {
     const identity = createIdentityService();
     const { headers, response, status } = createResponse();
-    const controller = new UsersController(
-      identity as unknown as IdentityService,
-    );
+    const controller = new UsersController(identity as unknown as IdentityService);
 
     identity.bootstrap.mockResolvedValue({
       created: false,
       profile: profileResponse,
     });
 
-    await expect(controller.bootstrap(actor, {}, response)).resolves.toBe(
-      profileResponse,
-    );
+    await expect(controller.bootstrap(actor, {}, response)).resolves.toBe(profileResponse);
 
     expect(status).toHaveBeenCalledWith(200);
     expect(headers['Location']).toBeUndefined();
@@ -103,9 +99,7 @@ describe('UsersController', () => {
   it('rejects unsupported bootstrap request bodies before calling the service', async () => {
     const identity = createIdentityService();
     const { response } = createResponse();
-    const controller = new UsersController(
-      identity as unknown as IdentityService,
-    );
+    const controller = new UsersController(identity as unknown as IdentityService);
 
     await expect(
       controller.bootstrap(actor, { displayName: 'Ada' }, response),
@@ -119,15 +113,11 @@ describe('UsersController', () => {
   it('gets the current profile and sets no-store response headers', async () => {
     const identity = createIdentityService();
     const { headers, response } = createResponse();
-    const controller = new UsersController(
-      identity as unknown as IdentityService,
-    );
+    const controller = new UsersController(identity as unknown as IdentityService);
 
     identity.getProfile.mockResolvedValue(profileResponse);
 
-    await expect(controller.getProfile(actor, response)).resolves.toBe(
-      profileResponse,
-    );
+    await expect(controller.getProfile(actor, response)).resolves.toBe(profileResponse);
 
     expect(headers['X-Request-Id']).toEqual(expect.any(String));
     expect(headers['Cache-Control']).toBe('no-store');
@@ -137,9 +127,7 @@ describe('UsersController', () => {
   it('parses updates and forwards the request id to the service', async () => {
     const identity = createIdentityService();
     const { response } = createResponse();
-    const controller = new UsersController(
-      identity as unknown as IdentityService,
-    );
+    const controller = new UsersController(identity as unknown as IdentityService);
 
     identity.updateProfile.mockResolvedValue({
       ...profileResponse,
@@ -148,11 +136,7 @@ describe('UsersController', () => {
     });
 
     await expect(
-      controller.updateProfile(
-        actor,
-        { expectedVersion: 1, displayName: '  Grace  ' },
-        response,
-      ),
+      controller.updateProfile(actor, { expectedVersion: 1, displayName: '  Grace  ' }, response),
     ).resolves.toMatchObject({
       displayName: 'Grace',
       version: 2,

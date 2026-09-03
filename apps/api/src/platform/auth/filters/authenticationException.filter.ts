@@ -13,8 +13,7 @@ export class AuthenticationExceptionFilter implements ExceptionFilter<Authentica
 
     const status = exception.getStatus();
     const existingRequestId = response.getHeader('X-Request-Id');
-    const requestId =
-      typeof existingRequestId === 'string' ? existingRequestId : randomUUID();
+    const requestId = typeof existingRequestId === 'string' ? existingRequestId : randomUUID();
 
     response.setHeader('X-Request-Id', requestId);
     response.setHeader('Cache-Control', 'no-store');
@@ -22,9 +21,7 @@ export class AuthenticationExceptionFilter implements ExceptionFilter<Authentica
     if (status === 401) {
       response.setHeader(
         'WWW-Authenticate',
-        exception.code === 'AUTH_INVALID_TOKEN'
-          ? 'Bearer error="invalid_token"'
-          : 'Bearer ',
+        exception.code === 'AUTH_REQUIRED' ? 'Bearer' : 'Bearer error="invalid_token"',
       );
     }
 
@@ -33,7 +30,9 @@ export class AuthenticationExceptionFilter implements ExceptionFilter<Authentica
         ? 'Email verification required'
         : exception.code === 'AUTH_UNAVAILABLE'
           ? 'Authentication unavailable'
-          : 'Authentication required';
+          : exception.code === 'AUTH_REQUIRED'
+            ? 'Authentication required'
+            : 'Authentication session invalid';
 
     response
       .status(status)

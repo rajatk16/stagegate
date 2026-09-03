@@ -1,4 +1,5 @@
 import type { Reflector } from '@nestjs/core';
+import type { Response } from 'express';
 import { describe, expect, it, jest } from '@jest/globals';
 import { Logger, type ExecutionContext } from '@nestjs/common';
 import type { Auth, DecodedIdToken } from 'firebase-admin/auth';
@@ -6,6 +7,7 @@ import type { Auth, DecodedIdToken } from 'firebase-admin/auth';
 import type { AuthenticatedRequest } from '../types';
 import { FirebaseTokenGuard } from './firebaseToken.guard';
 import { type AuthenticationError } from '../utils';
+import { type AuthenticationAuditWriter } from '../services';
 
 const decodedToken: DecodedIdToken = {
   aud: 'stagegate-test',
@@ -28,9 +30,7 @@ class Controller {}
 
 function createRequest(
   authorization?: string,
-  rawHeaders: string[] = authorization === undefined
-    ? []
-    : ['Authorization', authorization],
+  rawHeaders: string[] = authorization === undefined ? [] : ['Authorization', authorization],
 ): AuthenticatedRequest {
   return {
     headers: authorization === undefined ? {} : { authorization },
@@ -38,14 +38,23 @@ function createRequest(
   } as AuthenticatedRequest;
 }
 
-function createExecutionContext(
-  request: AuthenticatedRequest,
-): ExecutionContext {
+function createExecutionContext(request: AuthenticatedRequest): ExecutionContext {
+  const headers: Record<string, string> = {};
+
+  const response = {
+    getHeader: (name: string) => headers[name],
+    setHeader: (name: string, value: string) => {
+      headers[name] = value;
+      return response;
+    },
+  } as unknown as Response;
+
   return {
     getClass: () => Controller,
     getHandler: () => handler,
     switchToHttp: () => ({
       getRequest: () => request,
+      getResponse: () => response,
     }),
   } as unknown as ExecutionContext;
 }
@@ -54,6 +63,7 @@ function createGuard(): {
   guard: FirebaseTokenGuard;
   getAllAndOverride: jest.MockedFunction<Reflector['getAllAndOverride']>;
   verifyIdToken: jest.MockedFunction<Auth['verifyIdToken']>;
+  recordDenied: jest.MockedFunction<AuthenticationAuditWriter['recordDenied']>;
 } {
   const getAllAndOverride = jest.fn<Reflector['getAllAndOverride']>();
   const verifyIdToken = jest.fn<Auth['verifyIdToken']>();
@@ -62,10 +72,17 @@ function createGuard(): {
     getAllAndOverride,
   } as Pick<Reflector, 'getAllAndOverride'>;
 
+  const recordDenied = jest.fn<AuthenticationAuditWriter['recordDenied']>();
+
+  const audit = {
+    recordDenied,
+  } as AuthenticationAuditWriter;
+
   return {
-    guard: new FirebaseTokenGuard(reflector as Reflector, { verifyIdToken }),
+    guard: new FirebaseTokenGuard(reflector as Reflector, { verifyIdToken }, audit),
     getAllAndOverride,
     verifyIdToken,
+    recordDenied,
   };
 }
 
@@ -82,9 +99,7 @@ describe('FirebaseTokenGuard', () => {
 
     getAllAndOverride.mockReturnValue(true);
 
-    await expect(
-      guard.canActivate(createExecutionContext(request)),
-    ).resolves.toBe(true);
+    await expect(guard.canActivate(createExecutionContext(request))).resolves.toBe(true);
 
     expect(request.actor).toBeUndefined();
     expect(verifyIdToken).not.toHaveBeenCalled();
@@ -94,32 +109,26 @@ describe('FirebaseTokenGuard', () => {
     const { guard, verifyIdToken } = createGuard();
     const request = createRequest();
 
-    await expect(
-      guard.canActivate(createExecutionContext(request)),
-    ).rejects.toMatchObject({
+    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
       code: 'AUTH_REQUIRED',
     } satisfies Partial<AuthenticationError>);
 
     expect(verifyIdToken).not.toHaveBeenCalled();
   });
 
-  it.each([
-    'Basic credentials',
-    'Bearer',
-    'Bearer token extra',
-    'Bearer first,Bearer second',
-  ])('rejects malformed authorization header: %s', async (authorization) => {
-    const { guard, verifyIdToken } = createGuard();
-    const request = createRequest(authorization);
+  it.each(['Basic credentials', 'Bearer', 'Bearer token extra', 'Bearer first,Bearer second'])(
+    'rejects malformed authorization header: %s',
+    async (authorization) => {
+      const { guard, verifyIdToken } = createGuard();
+      const request = createRequest(authorization);
 
-    await expect(
-      guard.canActivate(createExecutionContext(request)),
-    ).rejects.toMatchObject({
-      code: 'AUTH_INVALID_TOKEN',
-    } satisfies Partial<AuthenticationError>);
+      await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
+        code: 'AUTH_INVALID_TOKEN',
+      } satisfies Partial<AuthenticationError>);
 
-    expect(verifyIdToken).not.toHaveBeenCalled();
-  });
+      expect(verifyIdToken).not.toHaveBeenCalled();
+    },
+  );
 
   it('rejects duplicate authorization headers', async () => {
     const { guard, verifyIdToken } = createGuard();
@@ -130,9 +139,7 @@ describe('FirebaseTokenGuard', () => {
       'Bearer second',
     ]);
 
-    await expect(
-      guard.canActivate(createExecutionContext(request)),
-    ).rejects.toMatchObject({
+    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
       code: 'AUTH_INVALID_TOKEN',
     } satisfies Partial<AuthenticationError>);
 
@@ -145,14 +152,30 @@ describe('FirebaseTokenGuard', () => {
 
     verifyIdToken.mockResolvedValue(decodedToken);
 
-    await expect(
-      guard.canActivate(createExecutionContext(request)),
-    ).resolves.toBe(true);
+    await expect(guard.canActivate(createExecutionContext(request))).resolves.toBe(true);
 
-    expect(verifyIdToken).toHaveBeenCalledWith('test-token');
+    expect(verifyIdToken).toHaveBeenCalledWith('test-token', true);
     expect(request.actor).toEqual({
       uid: 'user-123',
       email: 'person@example.test',
+      emailVerified: true,
+      authTime: 1_700_000_000,
+    });
+  });
+
+  it('normalizes a missing token email to null', async () => {
+    const { guard, verifyIdToken } = createGuard();
+    const request = createRequest('Bearer test-token');
+    const decodedWithoutEmail = { ...decodedToken };
+    delete decodedWithoutEmail.email;
+
+    verifyIdToken.mockResolvedValue(decodedWithoutEmail);
+
+    await expect(guard.canActivate(createExecutionContext(request))).resolves.toBe(true);
+
+    expect(request.actor).toEqual({
+      uid: 'user-123',
+      email: null,
       emailVerified: true,
       authTime: 1_700_000_000,
     });
@@ -162,7 +185,6 @@ describe('FirebaseTokenGuard', () => {
     'auth/argument-error',
     'auth/invalid-argument',
     'auth/invalid-id-token',
-    'auth/id-token-expired',
   ])('maps Firebase token error %s to an invalid-token error', async (code) => {
     const { guard, verifyIdToken } = createGuard();
     const request = createRequest('Bearer rejected-token');
@@ -172,34 +194,58 @@ describe('FirebaseTokenGuard', () => {
       message: 'Sensitive upstream error details',
     });
 
-    await expect(
-      guard.canActivate(createExecutionContext(request)),
-    ).rejects.toMatchObject({
+    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
       code: 'AUTH_INVALID_TOKEN',
+    } satisfies Partial<AuthenticationError>);
+  });
+
+  it('maps expired Firebase tokens to an expired-token error', async () => {
+    const { guard, verifyIdToken } = createGuard();
+    const request = createRequest('Bearer expired-token');
+
+    verifyIdToken.mockRejectedValue({
+      code: 'auth/id-token-expired',
+      message: 'Sensitive upstream error details',
+    });
+
+    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
+      code: 'AUTH_TOKEN_EXPIRED',
+    } satisfies Partial<AuthenticationError>);
+  });
+
+  it.each([
+    ['auth/id-token-revoked', 'AUTH_TOKEN_REVOKED'],
+    ['auth/user-disabled', 'AUTH_USER_DISABLED'],
+    ['auth/user-not-found', 'AUTH_INVALID_TOKEN'],
+  ] as const)('maps Firebase token error %s to %s', async (firebaseCode, expectedCode) => {
+    const { guard, verifyIdToken } = createGuard();
+    const request = createRequest('Bearer rejected-token');
+
+    verifyIdToken.mockRejectedValue({
+      code: firebaseCode,
+      message: 'Sensitive upstream error details',
+    });
+
+    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
+      code: expectedCode,
     } satisfies Partial<AuthenticationError>);
   });
 
   it('fails closed when Firebase token verification fails unexpectedly', async () => {
     const { guard, verifyIdToken } = createGuard();
     const request = createRequest('Bearer test-token');
-    const loggerError = jest
-      .spyOn(Logger.prototype, 'error')
-      .mockImplementation(() => undefined);
+    const loggerError = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
 
     verifyIdToken.mockRejectedValue({
       code: 'auth/internal-error',
       message: 'Sensitive upstream error details',
     });
 
-    await expect(
-      guard.canActivate(createExecutionContext(request)),
-    ).rejects.toMatchObject({
+    await expect(guard.canActivate(createExecutionContext(request))).rejects.toMatchObject({
       code: 'AUTH_UNAVAILABLE',
     } satisfies Partial<AuthenticationError>);
 
     expect(request.actor).toBeUndefined();
-    expect(loggerError).toHaveBeenCalledWith(
-      'Firebase token verification failed unexpectedly.',
-    );
+    expect(loggerError).toHaveBeenCalledWith('Firebase token verification failed unexpectedly.');
   });
 });
