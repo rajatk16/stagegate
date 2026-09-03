@@ -80,24 +80,27 @@ describe('VerifiedEmailGuard', () => {
       email: null,
       emailVerified: false,
     },
-  ])('denies an actor without a verified email: %j', ({ email, emailVerified }) => {
-    const { guard } = createGuard(true);
+  ])(
+    'denies an actor without a verified email: %j',
+    ({ email, emailVerified }) => {
+      const { guard } = createGuard(true);
 
-    expect(() =>
-      guard.canActivate(
-        createContext({
-          uid: 'user-123',
-          email,
-          emailVerified,
-          authTime: 1_700_000_000,
-        }),
-      ),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'EMAIL_VERIFICATION_REQUIRED',
-      }) as unknown as AuthenticationError,
-    );
-  });
+      expect(() =>
+        guard.canActivate(
+          createContext({
+            uid: 'user-123',
+            email,
+            emailVerified,
+            authTime: 1_700_000_000,
+          }),
+        ),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'EMAIL_VERIFICATION_REQUIRED',
+        }) as unknown as AuthenticationError,
+      );
+    },
+  );
 
   it('fails closed if authentication did not attach an actor', () => {
     const { guard } = createGuard(true);

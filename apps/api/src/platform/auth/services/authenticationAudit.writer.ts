@@ -9,7 +9,9 @@ export abstract class AuthenticationAuditWriter {
 
 @Injectable()
 export class StructuredAuthenticationAuditWriter extends AuthenticationAuditWriter {
-  private readonly logger = new Logger(StructuredAuthenticationAuditWriter.name);
+  private readonly logger = new Logger(
+    StructuredAuthenticationAuditWriter.name,
+  );
 
   override recordDenied(event: AuthenticationDenial): void {
     try {

@@ -17,9 +17,14 @@ function createHost(path = '/api/v1/auth/session'): {
   const headers: Record<string, StoredHeaderValue> = {};
   const request = { path } as Request;
   const response = {} as Response;
-  const getHeader = jest.fn<Response['getHeader']>((name) => headers[String(name)]);
+  const getHeader = jest.fn<Response['getHeader']>(
+    (name) => headers[String(name)],
+  );
   const setHeader = jest.fn<Response['setHeader']>((name, value) => {
-    headers[name] = typeof value === 'string' || typeof value === 'number' ? value : [...value];
+    headers[name] =
+      typeof value === 'string' || typeof value === 'number'
+        ? value
+        : [...value];
     return response;
   });
   const status = jest.fn<Response['status']>().mockReturnValue(response);
@@ -88,20 +93,23 @@ describe('AuthenticationExceptionFilter', () => {
   it.each([
     ['EMAIL_VERIFICATION_REQUIRED', 403, 'Email verification required'],
     ['AUTH_UNAVAILABLE', 503, 'Authentication unavailable'],
-  ] as const)('maps %s to the expected problem title', (code, expectedStatus, title) => {
-    const { headers, host, json, status } = createHost('/api/v1/users/me');
-    const filter = new AuthenticationExceptionFilter();
+  ] as const)(
+    'maps %s to the expected problem title',
+    (code, expectedStatus, title) => {
+      const { headers, host, json, status } = createHost('/api/v1/users/me');
+      const filter = new AuthenticationExceptionFilter();
 
-    filter.catch(new AuthenticationError(code), host);
+      filter.catch(new AuthenticationError(code), host);
 
-    expect(headers['WWW-Authenticate']).toBeUndefined();
-    expect(status).toHaveBeenCalledWith(expectedStatus);
-    expect(json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title,
-        status: expectedStatus,
-        code,
-      }),
-    );
-  });
+      expect(headers['WWW-Authenticate']).toBeUndefined();
+      expect(status).toHaveBeenCalledWith(expectedStatus);
+      expect(json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title,
+          status: expectedStatus,
+          code,
+        }),
+      );
+    },
+  );
 });

@@ -3,7 +3,10 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 
 import { AuthenticationExceptionFilter } from '../filters';
 import { FirebaseTokenGuard, VerifiedEmailGuard } from '../guards';
-import { AuthenticationAuditWriter, StructuredAuthenticationAuditWriter } from '../services';
+import {
+  AuthenticationAuditWriter,
+  StructuredAuthenticationAuditWriter,
+} from '../services';
 
 @Module({
   providers: [

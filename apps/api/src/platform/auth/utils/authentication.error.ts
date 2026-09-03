@@ -31,7 +31,10 @@ const authenticationProblems = {
     status: HttpStatus.SERVICE_UNAVAILABLE,
     detail: 'Authentication is temporarily unavailable.',
   },
-} as const satisfies Record<AuthenticationErrorCode, { status: number; detail: string }>;
+} as const satisfies Record<
+  AuthenticationErrorCode,
+  { status: number; detail: string }
+>;
 
 export class AuthenticationError extends HttpException {
   constructor(readonly code: AuthenticationErrorCode) {

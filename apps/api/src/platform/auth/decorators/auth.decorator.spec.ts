@@ -64,7 +64,9 @@ describe('auth decorators', () => {
       }
     }
 
-    expect(Reflect.getMetadata(PUBLIC_ROUTE_KEY, Controller.prototype.handler)).toBe(true);
+    expect(
+      Reflect.getMetadata(PUBLIC_ROUTE_KEY, Controller.prototype.handler),
+    ).toBe(true);
   });
 
   it('marks routes that require verified email', () => {
@@ -75,9 +77,12 @@ describe('auth decorators', () => {
       }
     }
 
-    expect(Reflect.getMetadata(VERIFIED_EMAIL_REQUIRED_KEY, Controller.prototype.handler)).toBe(
-      true,
-    );
+    expect(
+      Reflect.getMetadata(
+        VERIFIED_EMAIL_REQUIRED_KEY,
+        Controller.prototype.handler,
+      ),
+    ).toBe(true);
   });
 
   it('returns the authenticated actor from the request', () => {

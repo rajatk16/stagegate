@@ -15,10 +15,10 @@ export class VerifiedEmailGuard implements CanActivate {
   ) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const required = this.reflector.getAllAndOverride<boolean>(VERIFIED_EMAIL_REQUIRED_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const required = this.reflector.getAllAndOverride<boolean>(
+      VERIFIED_EMAIL_REQUIRED_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     if (required !== true) {
       return true;
@@ -37,7 +37,8 @@ export class VerifiedEmailGuard implements CanActivate {
       const requestId = response.getHeader('X-Request-Id');
 
       this.audit.recordDenied({
-        requestId: typeof requestId === 'string' ? requestId : 'request-id-unavailable',
+        requestId:
+          typeof requestId === 'string' ? requestId : 'request-id-unavailable',
         target: `${context.getClass().name}.${context.getHandler().name}`,
         actorId: actor.uid,
         reason: 'email_unverified',

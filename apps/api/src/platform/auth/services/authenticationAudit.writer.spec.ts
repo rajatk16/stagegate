@@ -5,7 +5,9 @@ import { StructuredAuthenticationAuditWriter } from './authenticationAudit.write
 
 describe('StructuredAuthenticationAuditWriter', () => {
   it('writes a structured authentication denial audit event', () => {
-    const loggerWarn = jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => undefined);
+    const loggerWarn = jest
+      .spyOn(Logger.prototype, 'warn')
+      .mockImplementation(() => undefined);
     const writer = new StructuredAuthenticationAuditWriter();
 
     writer.recordDenied({

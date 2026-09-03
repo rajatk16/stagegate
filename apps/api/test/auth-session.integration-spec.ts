@@ -46,7 +46,9 @@ describe('Firebase authentication session lifecycle', () => {
 
   afterAll(async () => {
     try {
-      await Promise.allSettled(createdUserIds.map((uid) => auth.deleteUser(uid)));
+      await Promise.allSettled(
+        createdUserIds.map((uid) => auth.deleteUser(uid)),
+      );
     } finally {
       await app.close();
       await deleteApp(firebaseApp);
