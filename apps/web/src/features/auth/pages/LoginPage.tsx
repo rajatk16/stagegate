@@ -1,15 +1,19 @@
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate, useSearchParams } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router';
 
 import { AuthLayout } from '../components';
 import { routes } from '../../../app/routes';
 import { getAuthErrorMessage } from '../errors';
 import { signInWithPassword } from '../services';
+import { readAuthNavigationState } from '../routing';
 import { loginSchema, type LoginValues } from '../schemas';
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const navigation = readAuthNavigationState(location.state);
+  const didSessionExpire = navigation.reason === 'expired';
   const [searchParams] = useSearchParams();
   const didResetPassword = searchParams.get('passwordReset') === 'success';
 
@@ -29,7 +33,7 @@ export function LoginPage() {
   const handleLogin = async (values: LoginValues) => {
     try {
       await signInWithPassword(values.email, values.password);
-      await navigate(routes.dashboard, { replace: true });
+      await navigate(navigation.returnTo, { replace: true });
     } catch (error: unknown) {
       setError('root', {
         message: getAuthErrorMessage(error, 'login'),
@@ -57,6 +61,14 @@ export function LoginPage() {
           void handleSubmit(handleLogin)(event);
         }}
       >
+        {didSessionExpire ? (
+          <div
+            className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+            role="alert"
+          >
+            Your session ended. Sign in again to continue.
+          </div>
+        ) : null}
         {didResetPassword ? (
           <div
             className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800"

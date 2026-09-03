@@ -2,10 +2,22 @@ import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { renderApp } from '../test/renderApp';
+import type { AuthState } from '../lib/auth';
+
+const verifiedUser: AuthState = {
+  status: 'authenticated',
+  user: {
+    uid: 'verified-user',
+    email: 'verified@example.test',
+    displayName: 'Verified User',
+    photoURL: null,
+    emailVerified: true,
+  },
+};
 
 describe('application routing', () => {
   it('renders the dashboard inside the application shell', () => {
-    renderApp();
+    renderApp(['/'], verifiedUser);
 
     expect(screen.getByRole('link', { name: 'StageGate' })).toBeInTheDocument();
 
@@ -26,7 +38,7 @@ describe('application routing', () => {
   });
 
   it('navigates to the events page without reloading', async () => {
-    const { router, user } = renderApp();
+    const { router, user } = renderApp(['/'], verifiedUser);
 
     await user.click(
       screen.getByRole('link', {
@@ -51,7 +63,7 @@ describe('application routing', () => {
   });
 
   it('renders settings at its direct URL', () => {
-    renderApp(['/settings']);
+    renderApp(['/settings'], verifiedUser);
 
     expect(
       screen.getByRole('heading', {
@@ -62,7 +74,7 @@ describe('application routing', () => {
   });
 
   it('renders the not-found page for an unknown URL', () => {
-    renderApp(['/unknown-page']);
+    renderApp(['/unknown-page'], verifiedUser);
 
     expect(
       screen.getByRole('heading', {

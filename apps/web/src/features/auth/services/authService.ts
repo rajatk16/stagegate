@@ -1,6 +1,5 @@
 import {
   reload,
-  signOut,
   type User,
   applyActionCode,
   confirmPasswordReset,
@@ -11,8 +10,8 @@ import {
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
 
-import { firebaseAuth } from '../../../lib';
 import { routes } from '../../../app/routes';
+import { firebaseAuth, signOutSession } from '../../../lib';
 
 export interface CreateAccountResult {
   readonly verificationEmailSent: boolean;
@@ -56,7 +55,7 @@ export const createPasswordAccount = async (
 };
 
 export const signOutCurrentUser = async (): Promise<void> => {
-  await signOut(firebaseAuth);
+  await signOutSession();
 };
 
 export const resendVerificationEmail = async (): Promise<void> => {
