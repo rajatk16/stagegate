@@ -4,9 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderApp } from '../../../test/renderApp';
 
 const mocks = vi.hoisted(() => ({
-  createPasswordAccount: vi.fn<
-    (email: string, password: string) => Promise<{ verificationEmailSent: boolean }>
-  >(),
+  createPasswordAccount:
+    vi.fn<(email: string, password: string) => Promise<{ verificationEmailSent: boolean }>>(),
   signInWithPassword: vi.fn<(email: string, password: string) => Promise<void>>(),
   signOutCurrentUser: vi.fn<() => Promise<void>>(),
 }));
