@@ -25,7 +25,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
           status: 'unauthenticated',
           user: null,
           reason:
-            requestedReason ?? (previousState.status === 'unauthenticated' ? 'expired' : 'initial'),
+            requestedReason ?? (previousState.status === 'authenticated' ? 'expired' : 'initial'),
         }));
 
         return;
