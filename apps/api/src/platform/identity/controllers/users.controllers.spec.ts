@@ -9,6 +9,7 @@ import type { IdentityService, ProfileResponse } from '../services';
 type MockIdentityService = jest.Mocked<
   Pick<IdentityService, 'bootstrap' | 'getProfile' | 'updateProfile'>
 >;
+type StoredHeaderValue = number | string | string[];
 
 const actor: AuthenticatedUser = {
   uid: 'user-123',
@@ -38,22 +39,30 @@ function createIdentityService(): MockIdentityService {
 
 function createResponse(): {
   response: Response;
-  headers: Record<string, number | string | readonly string[]>;
+  headers: Record<string, StoredHeaderValue>;
   status: jest.MockedFunction<Response['status']>;
+  getHeader: jest.MockedFunction<Response['getHeader']>;
   setHeader: jest.MockedFunction<Response['setHeader']>;
 } {
-  const headers: Record<string, number | string | readonly string[]> = {};
+  const headers: Record<string, StoredHeaderValue> = {};
   const response = {} as Response;
   const status = jest.fn<Response['status']>().mockReturnValue(response);
+  const getHeader = jest.fn<Response['getHeader']>(
+    (name) => headers[String(name)],
+  );
   const setHeader = jest.fn<Response['setHeader']>((name, value) => {
-    headers[name] = value;
+    headers[name] =
+      typeof value === 'string' || typeof value === 'number'
+        ? value
+        : [...value];
     return response;
   });
 
   response.status = status;
+  response.getHeader = getHeader;
   response.setHeader = setHeader;
 
-  return { response, headers, status, setHeader };
+  return { response, headers, status, getHeader, setHeader };
 }
 
 describe('UsersController', () => {

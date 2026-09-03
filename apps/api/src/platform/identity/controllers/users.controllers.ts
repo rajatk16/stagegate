@@ -11,13 +11,13 @@ import {
 } from '@nestjs/common';
 
 import { IdentityExceptionFilter } from '../filters';
+import { IdentityService, type ProfileResponse } from '../services';
+import { parseProfilePatch, validateBootstrapBody } from '../utils';
 import {
   type AuthenticatedUser,
   CurrentActor,
   RequireVerifiedEmail,
 } from '../../auth';
-import { IdentityService, type ProfileResponse } from '../services';
-import { parseProfilePatch, validateBootstrapBody } from '../utils';
 
 @Controller('users')
 @UseFilters(IdentityExceptionFilter)
@@ -67,7 +67,8 @@ export class UsersController {
   }
 
   private prepareResponse(response: Response): string {
-    const requestId = randomUUID();
+    const existing = response.getHeader('X-Request-Id');
+    const requestId = typeof existing === 'string' ? existing : randomUUID();
 
     response.setHeader('X-Request-Id', requestId);
     response.setHeader('Cache-Control', 'no-store');

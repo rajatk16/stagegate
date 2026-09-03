@@ -131,7 +131,7 @@ describe('API authentication', () => {
         authTime: 1_700_000_000,
       });
 
-    expect(verifyIdToken).toHaveBeenCalledWith('test-token');
+    expect(verifyIdToken).toHaveBeenCalledWith('test-token', true);
     expect(verifyIdToken).toHaveBeenCalledTimes(1);
   });
 
@@ -139,7 +139,6 @@ describe('API authentication', () => {
     'auth/argument-error',
     'auth/invalid-argument',
     'auth/invalid-id-token',
-    'auth/id-token-expired',
   ])(
     'rejects Firebase token error %s without leaking details',
     async (code) => {
@@ -158,6 +157,32 @@ describe('API authentication', () => {
       });
       expect(JSON.stringify(response.body)).not.toContain('Sensitive');
       expect(JSON.stringify(response.body)).not.toContain('rejected-token');
+    },
+  );
+
+  it.each([
+    ['auth/id-token-expired', 'AUTH_TOKEN_EXPIRED'],
+    ['auth/id-token-revoked', 'AUTH_TOKEN_REVOKED'],
+    ['auth/user-disabled', 'AUTH_USER_DISABLED'],
+  ])(
+    'returns a stable session error for %s',
+    async (firebaseCode, expectedCode) => {
+      verifyIdToken.mockRejectedValue({
+        code: firebaseCode,
+        message: 'Sensitive upstream details',
+      });
+
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/auth/session')
+        .set('Authorization', 'Bearer rejected-token')
+        .expect(401)
+        .expect('WWW-Authenticate', 'Bearer error="invalid_token"');
+
+      expect(response.body.code).toBe(expectedCode);
+      expect(JSON.stringify(response.body)).not.toContain('rejected-token');
+      expect(JSON.stringify(response.body)).not.toContain(
+        'Sensitive upstream details',
+      );
     },
   );
 
