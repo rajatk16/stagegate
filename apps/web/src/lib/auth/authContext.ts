@@ -5,6 +5,8 @@ export type AuthUser = Readonly<
   Pick<User, 'uid' | 'email' | 'emailVerified' | 'displayName' | 'photoURL'>
 >;
 
+export type SessionEndReason = 'initial' | 'signed-out' | 'expired';
+
 export type AuthState =
   | {
       readonly status: 'loading';
@@ -13,6 +15,7 @@ export type AuthState =
   | {
       readonly status: 'unauthenticated';
       readonly user: null;
+      readonly reason: SessionEndReason;
     }
   | {
       readonly status: 'authenticated';

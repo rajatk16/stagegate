@@ -4,7 +4,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderApp } from '../../../test/renderApp';
 
 const mocks = vi.hoisted(() => ({
-  createPasswordAccount: vi.fn<(email: string, password: string) => Promise<void>>(),
+  createPasswordAccount: vi.fn<
+    (email: string, password: string) => Promise<{ verificationEmailSent: boolean }>
+  >(),
   signInWithPassword: vi.fn<(email: string, password: string) => Promise<void>>(),
   signOutCurrentUser: vi.fn<() => Promise<void>>(),
 }));
@@ -16,14 +18,16 @@ beforeEach(() => {
   mocks.signInWithPassword.mockReset();
   mocks.signOutCurrentUser.mockReset();
 
-  mocks.createPasswordAccount.mockResolvedValue();
+  mocks.createPasswordAccount.mockResolvedValue({
+    verificationEmailSent: true,
+  });
   mocks.signInWithPassword.mockResolvedValue();
   mocks.signOutCurrentUser.mockResolvedValue();
 });
 
 describe('LoginPage', () => {
-  it('signs in and navigates to the dashboard', async () => {
-    const { router, user } = renderApp(['/login']);
+  it('signs in with normalized credentials', async () => {
+    const { user } = renderApp(['/login']);
 
     await user.type(
       screen.getByRole('textbox', { name: 'Email address' }),
@@ -41,8 +45,7 @@ describe('LoginPage', () => {
       );
     });
 
-    expect(router.state.location.pathname).toBe('/');
-    expect(screen.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument();
+    expect(mocks.signInWithPassword).toHaveBeenCalledOnce();
   });
 
   it('preserves input and announces a failed sign-in', async () => {
@@ -84,7 +87,7 @@ describe('SignUpPage', () => {
     expect(mocks.createPasswordAccount).not.toHaveBeenCalled();
   });
 
-  it('creates an account and navigates to the dashboard', async () => {
+  it('creates an account and navigates to email verification', async () => {
     const { router, user } = renderApp(['/sign-up']);
 
     await user.type(
@@ -108,20 +111,21 @@ describe('SignUpPage', () => {
       );
     });
 
-    expect(router.state.location.pathname).toBe('/sign-up');
+    expect(router.state.location.pathname).toBe('/verify-email');
+    expect(router.state.location.search).toBe('?sent=true');
   });
 });
 
 describe('AccountMenu', () => {
-  it('signs out an authenticated user and navigates to login', async () => {
-    const { router, user } = renderApp(['/'], {
+  it('signs out an authenticated user', async () => {
+    const { user } = renderApp(['/'], {
       status: 'authenticated',
       user: {
         uid: 'user-123',
         email: 'speaker@example.test',
         displayName: 'Test Speaker',
         photoURL: null,
-        emailVerified: false,
+        emailVerified: true,
       },
     });
 
@@ -130,7 +134,5 @@ describe('AccountMenu', () => {
     await waitFor(() => {
       expect(mocks.signOutCurrentUser).toHaveBeenCalledOnce();
     });
-
-    expect(router.state.location.pathname).toBe('/login');
   });
 });

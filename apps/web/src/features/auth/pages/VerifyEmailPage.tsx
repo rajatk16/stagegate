@@ -1,15 +1,18 @@
 import { useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link, useSearchParams, useLocation } from 'react-router';
 
 import { useAuth } from '../../../lib';
 import { AuthLayout } from '../components';
 import { routes } from '../../../app/routes';
 import { getAuthErrorMessage } from '../errors';
+import { readAuthNavigationState } from '../routing';
 import { refreshEmailVerification, resendVerificationEmail } from '../services';
 
 export function VerifyEmailPage() {
   const auth = useAuth();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
+  const navigation = readAuthNavigationState(location.state);
   const initialEmailSent = searchParams.get('sent') !== 'false';
 
   const [message, setMessage] = useState<string | null>(
@@ -62,9 +65,9 @@ export function VerifyEmailPage() {
       >
         <Link
           className="bg-brand-600 hover:bg-brand-700 inline-flex rounded-lg px-4 py-2.5 text-sm font-semibold text-white"
-          to={routes.dashboard}
+          to={navigation.returnTo}
         >
-          Continue to dashboard
+          Continue
         </Link>
       </AuthLayout>
     );
