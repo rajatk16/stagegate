@@ -17,19 +17,28 @@ export class OrganizationService {
     name: string,
     requestId: string,
   ): Promise<OrganizationResponse> {
-    const context = await this.organizations.createWithOwner(name, actor.uid, requestId);
+    const context = await this.organizations.createWithOwner(
+      name,
+      actor.uid,
+      requestId,
+    );
 
     return this.toOrganizationResponse(context);
   }
 
-  async list(actor: AuthenticatedUser): Promise<readonly OrganizationResponse[]> {
+  async list(
+    actor: AuthenticatedUser,
+  ): Promise<readonly OrganizationResponse[]> {
     const memberships = await this.memberships.listActiveForUser(actor.uid);
     const organizations = await this.organizations.findMany(
       memberships.map((membership) => membership.organizationId),
     );
 
     const organizationById = new Map(
-      organizations.map((organization) => [organization.organizationId, organization]),
+      organizations.map((organization) => [
+        organization.organizationId,
+        organization,
+      ]),
     );
 
     return memberships
@@ -52,8 +61,14 @@ export class OrganizationService {
       );
   }
 
-  async get(actor: AuthenticatedUser, organizationId: string): Promise<OrganizationResponse> {
-    const membership = await this.memberships.findActive(organizationId, actor.uid);
+  async get(
+    actor: AuthenticatedUser,
+    organizationId: string,
+  ): Promise<OrganizationResponse> {
+    const membership = await this.memberships.findActive(
+      organizationId,
+      actor.uid,
+    );
 
     if (membership === null) {
       throw new TenancyError('ORGANIZATION_NOT_FOUND');
@@ -71,7 +86,9 @@ export class OrganizationService {
     });
   }
 
-  private toOrganizationResponse(context: OrganizationContext): OrganizationResponse {
+  private toOrganizationResponse(
+    context: OrganizationContext,
+  ): OrganizationResponse {
     return {
       organizationId: context.organization.organizationId,
       name: context.organization.name,

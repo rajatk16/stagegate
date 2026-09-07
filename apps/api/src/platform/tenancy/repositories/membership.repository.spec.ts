@@ -24,35 +24,50 @@ const storedMembership = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-const snapshot = (data: Record<string, unknown> | undefined, id = 'org-a_user-123') =>
+const snapshot = (
+  data: Record<string, unknown> | undefined,
+  id = 'org-a_user-123',
+) =>
   ({
     id,
     exists: data !== undefined,
     data: () => data,
   }) as DocumentSnapshot;
 
-function createFirestore(options: {
-  documentSnapshot?: DocumentSnapshot;
-  querySnapshots?: readonly DocumentSnapshot[];
-  collectionError?: Error;
-} = {}): {
+function createFirestore(
+  options: {
+    documentSnapshot?: DocumentSnapshot;
+    querySnapshots?: readonly DocumentSnapshot[];
+    collectionError?: Error;
+  } = {},
+): {
   firestore: Firestore;
   collection: jest.MockedFunction<(path: string) => unknown>;
   doc: jest.MockedFunction<(id: string) => unknown>;
-  where: jest.MockedFunction<(field: string, operator: string, value: string) => unknown>;
+  where: jest.MockedFunction<
+    (field: string, operator: string, value: string) => unknown
+  >;
 } {
   const documentReference = {
     get: jest
       .fn<() => Promise<DocumentSnapshot>>()
-      .mockResolvedValue(options.documentSnapshot ?? snapshot(storedMembership())),
+      .mockResolvedValue(
+        options.documentSnapshot ?? snapshot(storedMembership()),
+      ),
   };
   const query = {
-    get: jest.fn<() => Promise<{ docs: readonly DocumentSnapshot[] }>>().mockResolvedValue({
-      docs: options.querySnapshots ?? [snapshot(storedMembership())],
-    }),
+    get: jest
+      .fn<() => Promise<{ docs: readonly DocumentSnapshot[] }>>()
+      .mockResolvedValue({
+        docs: options.querySnapshots ?? [snapshot(storedMembership())],
+      }),
   };
-  const doc = jest.fn<(id: string) => unknown>().mockReturnValue(documentReference);
-  const where = jest.fn<(field: string, operator: string, value: string) => unknown>().mockReturnValue(query);
+  const doc = jest
+    .fn<(id: string) => unknown>()
+    .mockReturnValue(documentReference);
+  const where = jest
+    .fn<(field: string, operator: string, value: string) => unknown>()
+    .mockReturnValue(query);
   const collection = jest.fn<(path: string) => unknown>(() => {
     if (options.collectionError !== undefined) {
       throw options.collectionError;
@@ -98,19 +113,29 @@ describe('FirestoreMembershipRepository', () => {
     });
     const repository = new FirestoreMembershipRepository(firestore);
 
-    await expect(repository.findActive('org-a', 'user-123')).resolves.toBeNull();
+    await expect(
+      repository.findActive('org-a', 'user-123'),
+    ).resolves.toBeNull();
   });
 
   it('lists active memberships for a user', async () => {
     const { firestore, where } = createFirestore({
       querySnapshots: [
-        snapshot(storedMembership({ organizationId: 'org-b', membershipId: 'org-b_user-123' }), 'org-b_user-123'),
+        snapshot(
+          storedMembership({
+            organizationId: 'org-b',
+            membershipId: 'org-b_user-123',
+          }),
+          'org-b_user-123',
+        ),
         snapshot(storedMembership()),
       ],
     });
     const repository = new FirestoreMembershipRepository(firestore);
 
-    await expect(repository.listActiveForUser('user-123')).resolves.toMatchObject([
+    await expect(
+      repository.listActiveForUser('user-123'),
+    ).resolves.toMatchObject([
       {
         organizationId: 'org-b',
       },
@@ -123,23 +148,31 @@ describe('FirestoreMembershipRepository', () => {
 
   it('throws when membership data is invalid', async () => {
     const { firestore } = createFirestore({
-      documentSnapshot: snapshot(storedMembership({ membershipId: 'wrong-id' })),
+      documentSnapshot: snapshot(
+        storedMembership({ membershipId: 'wrong-id' }),
+      ),
     });
     const repository = new FirestoreMembershipRepository(firestore);
 
-    await expect(repository.findActive('org-a', 'user-123')).rejects.toMatchObject({
+    await expect(
+      repository.findActive('org-a', 'user-123'),
+    ).rejects.toMatchObject({
       code: 'TENANCY_DATA_INVALID',
     } satisfies Partial<TenancyError>);
   });
 
   it('wraps unexpected storage failures', async () => {
-    const loggerError = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    const loggerError = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
     const { firestore } = createFirestore({
       collectionError: new Error('permission denied'),
     });
     const repository = new FirestoreMembershipRepository(firestore);
 
-    await expect(repository.findActive('org-a', 'user-123')).rejects.toMatchObject({
+    await expect(
+      repository.findActive('org-a', 'user-123'),
+    ).rejects.toMatchObject({
       code: 'TENANCY_UNAVAILABLE',
     } satisfies Partial<TenancyError>);
     expect(loggerError).toHaveBeenCalledWith('Membership persistence failed.');

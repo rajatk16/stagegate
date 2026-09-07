@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { DocumentSnapshot, Firestore, Timestamp } from 'firebase-admin/firestore';
+import {
+  DocumentSnapshot,
+  Firestore,
+  Timestamp,
+} from 'firebase-admin/firestore';
 
 import { FIRESTORE } from '@stagegate/backend-platform';
 
@@ -22,7 +26,10 @@ const storedMembershipSchema = z.object({
 });
 
 export abstract class MembershipRepository {
-  abstract findActive(organizationId: string, userId: string): Promise<Membership | null>;
+  abstract findActive(
+    organizationId: string,
+    userId: string,
+  ): Promise<Membership | null>;
 
   abstract listActiveForUser(userId: string): Promise<readonly Membership[]>;
 }
@@ -38,11 +45,17 @@ export class FirestoreMembershipRepository extends MembershipRepository {
     super();
   }
 
-  override findActive(organizationId: string, userId: string): Promise<Membership | null> {
+  override findActive(
+    organizationId: string,
+    userId: string,
+  ): Promise<Membership | null> {
     return this.withStorageErrors(async () => {
       const membershipId = `${organizationId}_${userId}`;
 
-      const snapshot = await this.firestore.collection('memberships').doc(membershipId).get();
+      const snapshot = await this.firestore
+        .collection('memberships')
+        .doc(membershipId)
+        .get();
 
       if (!snapshot.exists) return null;
 

@@ -1,12 +1,24 @@
 import { randomUUID } from 'crypto';
 import type { Response } from 'express';
-import { Body, Controller, Get, Param, Post, Res, UseFilters } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Res,
+  UseFilters,
+} from '@nestjs/common';
 
 import { OrganizationResponse } from '../types';
 import { OrganizationService } from '../services';
 import { TenancyExceptionFilter } from '../filters';
 import { parseCreateOrganization, parseOrganizationId } from '../utils';
-import { type AuthenticatedUser, CurrentActor, RequireVerifiedEmail } from '../../auth';
+import {
+  type AuthenticatedUser,
+  CurrentActor,
+  RequireVerifiedEmail,
+} from '../../auth';
 
 const prepareResponse = (response: Response): string => {
   const existing = response.getHeader('X-Request-Id');
@@ -33,10 +45,17 @@ export class OrganizationsControllers {
     const requestId = prepareResponse(response);
     const input = parseCreateOrganization(body);
 
-    const organization = await this.organizations.create(actor, input.name, requestId);
+    const organization = await this.organizations.create(
+      actor,
+      input.name,
+      requestId,
+    );
 
     response.status(201);
-    response.setHeader('Location', `/api/v1/organizations/${organization.organizationId}`);
+    response.setHeader(
+      'Location',
+      `/api/v1/organizations/${organization.organizationId}`,
+    );
 
     return organization;
   }
@@ -59,6 +78,9 @@ export class OrganizationsControllers {
   ): Promise<OrganizationResponse> {
     prepareResponse(response);
 
-    return this.organizations.get(actor, parseOrganizationId(rawOrganizationId));
+    return this.organizations.get(
+      actor,
+      parseOrganizationId(rawOrganizationId),
+    );
   }
 }

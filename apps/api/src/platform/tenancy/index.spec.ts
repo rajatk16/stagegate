@@ -23,7 +23,8 @@ describe('tenancy exports', () => {
       MembershipRepository: repositories.MembershipRepository,
       FirestoreMembershipRepository: repositories.FirestoreMembershipRepository,
       OrganizationRepository: repositories.OrganizationRepository,
-      FirestoreOrganizationRepository: repositories.FirestoreOrganizationRepository,
+      FirestoreOrganizationRepository:
+        repositories.FirestoreOrganizationRepository,
     });
   });
 });

@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 
 import { TenancyExceptionFilter } from '../filters';
 import { MembershipService, OrganizationService } from '../services';
-import { MembershipsController, OrganizationsControllers } from '../controllers';
+import {
+  MembershipsController,
+  OrganizationsControllers,
+} from '../controllers';
 import {
   MembershipRepository,
   OrganizationRepository,

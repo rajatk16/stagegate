@@ -31,7 +31,9 @@ describe('tenancy input utilities', () => {
 
   describe('parseOrganizationId', () => {
     it('accepts a Firestore-style organization id', () => {
-      expect(parseOrganizationId('abcDEF1234567890wxyz')).toBe('abcDEF1234567890wxyz');
+      expect(parseOrganizationId('abcDEF1234567890wxyz')).toBe(
+        'abcDEF1234567890wxyz',
+      );
     });
 
     it.each(['', 'short', 'abcDEF1234567890wxy-', 'abcDEF1234567890wxyz1'])(

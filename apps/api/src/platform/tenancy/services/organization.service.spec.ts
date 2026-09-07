@@ -2,7 +2,10 @@ import { describe, expect, it, jest } from '@jest/globals';
 
 import type { AuthenticatedUser } from '../../auth';
 import type { Membership, Organization } from '../types';
-import type { MembershipRepository, OrganizationRepository } from '../repositories';
+import type {
+  MembershipRepository,
+  OrganizationRepository,
+} from '../repositories';
 import type { TenancyError } from '../utils';
 import { OrganizationService } from './organization.service';
 
@@ -61,7 +64,9 @@ describe('OrganizationService', () => {
     });
     const service = new OrganizationService(organizations, memberships);
 
-    await expect(service.create(actor, 'StageGate Conf', 'request-123')).resolves.toEqual({
+    await expect(
+      service.create(actor, 'StageGate Conf', 'request-123'),
+    ).resolves.toEqual({
       organizationId: 'org-a',
       name: 'StageGate Conf',
       version: 1,
@@ -108,7 +113,11 @@ describe('OrganizationService', () => {
         name: 'Zeta Org',
       },
     ]);
-    expect(organizations.findMany).toHaveBeenCalledWith(['org-b', 'org-a', 'org-c']);
+    expect(organizations.findMany).toHaveBeenCalledWith([
+      'org-b',
+      'org-a',
+      'org-c',
+    ]);
   });
 
   it('throws when a listed membership has no organization data', async () => {
@@ -125,7 +134,9 @@ describe('OrganizationService', () => {
   it('returns an organization when the actor has an active membership', async () => {
     const { memberships, organizations } = createRepositories();
     memberships.findActive.mockResolvedValue(membership('org-a'));
-    organizations.find.mockResolvedValue(organization('org-a', 'StageGate Conf'));
+    organizations.find.mockResolvedValue(
+      organization('org-a', 'StageGate Conf'),
+    );
     const service = new OrganizationService(organizations, memberships);
 
     await expect(service.get(actor, 'org-a')).resolves.toMatchObject({

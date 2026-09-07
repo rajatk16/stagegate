@@ -32,11 +32,18 @@ function createResponse(existingRequestId?: string): {
   headers: Record<string, StoredHeaderValue>;
 } {
   const headers: Record<string, StoredHeaderValue> =
-    existingRequestId === undefined ? {} : { 'X-Request-Id': existingRequestId };
+    existingRequestId === undefined
+      ? {}
+      : { 'X-Request-Id': existingRequestId };
   const response = {} as Response;
-  const getHeader = jest.fn<Response['getHeader']>((name) => headers[String(name)]);
+  const getHeader = jest.fn<Response['getHeader']>(
+    (name) => headers[String(name)],
+  );
   const setHeader = jest.fn<Response['setHeader']>((name, value) => {
-    headers[name] = typeof value === 'string' || typeof value === 'number' ? value : [...value];
+    headers[name] =
+      typeof value === 'string' || typeof value === 'number'
+        ? value
+        : [...value];
     return response;
   });
 
@@ -49,12 +56,18 @@ function createResponse(existingRequestId?: string): {
 describe('MembershipsController', () => {
   it('lists the current actor memberships and sets response metadata', async () => {
     const memberships: MockMembershipService = {
-      listMine: jest.fn<MembershipService['listMine']>().mockResolvedValue([membershipResponse]),
+      listMine: jest
+        .fn<MembershipService['listMine']>()
+        .mockResolvedValue([membershipResponse]),
     };
     const { headers, response } = createResponse('request-123');
-    const controller = new MembershipsController(memberships as unknown as MembershipService);
+    const controller = new MembershipsController(
+      memberships as unknown as MembershipService,
+    );
 
-    await expect(controller.listMine(actor, response)).resolves.toEqual([membershipResponse]);
+    await expect(controller.listMine(actor, response)).resolves.toEqual([
+      membershipResponse,
+    ]);
 
     expect(memberships.listMine).toHaveBeenCalledWith(actor);
     expect(headers['X-Request-Id']).toBe('request-123');

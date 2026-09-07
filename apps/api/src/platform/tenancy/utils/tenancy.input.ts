@@ -31,7 +31,9 @@ const parse = <T>(schema: z.ZodType<T>, value: unknown): T => {
   return result.data;
 };
 
-export const parseCreateOrganization = (body: unknown): CreateOrganizationInput =>
-  parse(createOrganizationSchema, body);
+export const parseCreateOrganization = (
+  body: unknown,
+): CreateOrganizationInput => parse(createOrganizationSchema, body);
 
-export const parseOrganizationId = (value: unknown): string => parse(organizationIdSchema, value);
+export const parseOrganizationId = (value: unknown): string =>
+  parse(organizationIdSchema, value);

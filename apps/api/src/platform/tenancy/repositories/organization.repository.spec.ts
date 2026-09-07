@@ -1,6 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { describe, expect, it, jest } from '@jest/globals';
-import type { DocumentReference, DocumentSnapshot, Firestore, Transaction } from 'firebase-admin/firestore';
+import type {
+  DocumentReference,
+  DocumentSnapshot,
+  Firestore,
+  Transaction,
+} from 'firebase-admin/firestore';
 import { Timestamp } from 'firebase-admin/firestore';
 
 import type { TenancyError } from '../utils';
@@ -46,28 +51,38 @@ const snapshot = (
     data: () => data,
   }) as DocumentSnapshot;
 
-function createFirestore(options: {
-  userExists?: boolean;
-  organizationSnapshot?: DocumentSnapshot;
-  membershipSnapshot?: DocumentSnapshot;
-  getAllSnapshots?: readonly DocumentSnapshot[];
-  collectionError?: Error;
-} = {}): {
+function createFirestore(
+  options: {
+    userExists?: boolean;
+    organizationSnapshot?: DocumentSnapshot;
+    membershipSnapshot?: DocumentSnapshot;
+    getAllSnapshots?: readonly DocumentSnapshot[];
+    collectionError?: Error;
+  } = {},
+): {
   firestore: Firestore;
   organizationReference: DocumentReference;
   membershipReference: DocumentReference;
   transaction: {
-    get: jest.MockedFunction<(reference: DocumentReference) => Promise<DocumentSnapshot>>;
-    set: jest.MockedFunction<(reference: DocumentReference, data: unknown) => Transaction>;
+    get: jest.MockedFunction<
+      (reference: DocumentReference) => Promise<DocumentSnapshot>
+    >;
+    set: jest.MockedFunction<
+      (reference: DocumentReference, data: unknown) => Transaction
+    >;
   };
-  getAll: jest.MockedFunction<(...references: DocumentReference[]) => Promise<DocumentSnapshot[]>>;
+  getAll: jest.MockedFunction<
+    (...references: DocumentReference[]) => Promise<DocumentSnapshot[]>
+  >;
 } {
   const userReference = { id: 'user-123' } as DocumentReference;
   const organizationReference = {
     id: 'abcDEF1234567890wxyz',
     get: jest
       .fn<() => Promise<DocumentSnapshot>>()
-      .mockResolvedValue(options.organizationSnapshot ?? snapshot(storedOrganization())),
+      .mockResolvedValue(
+        options.organizationSnapshot ?? snapshot(storedOrganization()),
+      ),
   } as unknown as DocumentReference;
   const membershipReference = {
     id: 'abcDEF1234567890wxyz_user-123',
@@ -81,22 +96,31 @@ function createFirestore(options: {
   const auditReference = { id: 'audit-123' } as DocumentReference;
 
   const usersCollection = {
-    doc: jest.fn<(id: string) => DocumentReference>().mockReturnValue(userReference),
+    doc: jest
+      .fn<(id: string) => DocumentReference>()
+      .mockReturnValue(userReference),
   };
   const organizationsCollection = {
-    doc: jest.fn<(id?: string) => DocumentReference>().mockImplementation((id) =>
-      id === undefined
-        ? organizationReference
-        : ({
-            id,
-            get: jest
-              .fn<() => Promise<DocumentSnapshot>>()
-              .mockResolvedValue(options.organizationSnapshot ?? snapshot(storedOrganization(), id)),
-          } as unknown as DocumentReference),
-    ),
+    doc: jest
+      .fn<(id?: string) => DocumentReference>()
+      .mockImplementation((id) =>
+        id === undefined
+          ? organizationReference
+          : ({
+              id,
+              get: jest
+                .fn<() => Promise<DocumentSnapshot>>()
+                .mockResolvedValue(
+                  options.organizationSnapshot ??
+                    snapshot(storedOrganization(), id),
+                ),
+            } as unknown as DocumentReference),
+      ),
   };
   const membershipsCollection = {
-    doc: jest.fn<(id: string) => DocumentReference>().mockReturnValue(membershipReference),
+    doc: jest
+      .fn<(id: string) => DocumentReference>()
+      .mockReturnValue(membershipReference),
   };
   const auditCollection = {
     doc: jest.fn<() => DocumentReference>().mockReturnValue(auditReference),
@@ -116,7 +140,9 @@ function createFirestore(options: {
   const transaction = {
     get: jest
       .fn<(reference: DocumentReference) => Promise<DocumentSnapshot>>()
-      .mockResolvedValue(snapshot(options.userExists === false ? undefined : {}, 'user-123')),
+      .mockResolvedValue(
+        snapshot(options.userExists === false ? undefined : {}, 'user-123'),
+      ),
     set: jest
       .fn<(reference: DocumentReference, data: unknown) => Transaction>()
       .mockReturnValue({} as Transaction),
@@ -127,7 +153,9 @@ function createFirestore(options: {
   );
   const getAll = jest
     .fn<(...references: DocumentReference[]) => Promise<DocumentSnapshot[]>>()
-    .mockResolvedValue([...(options.getAllSnapshots ?? [snapshot(storedOrganization())])]);
+    .mockResolvedValue([
+      ...(options.getAllSnapshots ?? [snapshot(storedOrganization())]),
+    ]);
 
   return {
     firestore: {
@@ -144,7 +172,12 @@ function createFirestore(options: {
 
 describe('FirestoreOrganizationRepository', () => {
   it('creates an organization with owner membership and audit record', async () => {
-    const { firestore, membershipReference, organizationReference, transaction } = createFirestore();
+    const {
+      firestore,
+      membershipReference,
+      organizationReference,
+      transaction,
+    } = createFirestore();
     const repository = new FirestoreOrganizationRepository(firestore);
 
     await expect(
@@ -203,7 +236,11 @@ describe('FirestoreOrganizationRepository', () => {
     const repository = new FirestoreOrganizationRepository(firestore);
 
     await expect(
-      repository.createWithOwner('StageGate Conf', 'users/user-123', 'request-123'),
+      repository.createWithOwner(
+        'StageGate Conf',
+        'users/user-123',
+        'request-123',
+      ),
     ).rejects.toMatchObject({
       code: 'TENANCY_DATA_INVALID',
     } satisfies Partial<TenancyError>);
@@ -243,13 +280,21 @@ describe('FirestoreOrganizationRepository', () => {
   it('finds many organizations by id', async () => {
     const { firestore, getAll } = createFirestore({
       getAllSnapshots: [
-        snapshot(storedOrganization({ organizationId: 'org-a', name: 'Alpha' }), 'org-a'),
-        snapshot(storedOrganization({ organizationId: 'org-b', name: 'Beta' }), 'org-b'),
+        snapshot(
+          storedOrganization({ organizationId: 'org-a', name: 'Alpha' }),
+          'org-a',
+        ),
+        snapshot(
+          storedOrganization({ organizationId: 'org-b', name: 'Beta' }),
+          'org-b',
+        ),
       ],
     });
     const repository = new FirestoreOrganizationRepository(firestore);
 
-    await expect(repository.findMany(['org-a', 'org-b'])).resolves.toMatchObject([
+    await expect(
+      repository.findMany(['org-a', 'org-b']),
+    ).resolves.toMatchObject([
       {
         organizationId: 'org-a',
         name: 'Alpha',
@@ -274,15 +319,21 @@ describe('FirestoreOrganizationRepository', () => {
   });
 
   it('wraps unexpected storage failures', async () => {
-    const loggerError = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
+    const loggerError = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
     const { firestore } = createFirestore({
       collectionError: new Error('permission denied'),
     });
     const repository = new FirestoreOrganizationRepository(firestore);
 
-    await expect(repository.find('abcDEF1234567890wxyz')).rejects.toMatchObject({
-      code: 'TENANCY_UNAVAILABLE',
-    } satisfies Partial<TenancyError>);
-    expect(loggerError).toHaveBeenCalledWith('Organization persistence failed.');
+    await expect(repository.find('abcDEF1234567890wxyz')).rejects.toMatchObject(
+      {
+        code: 'TENANCY_UNAVAILABLE',
+      } satisfies Partial<TenancyError>,
+    );
+    expect(loggerError).toHaveBeenCalledWith(
+      'Organization persistence failed.',
+    );
   });
 });

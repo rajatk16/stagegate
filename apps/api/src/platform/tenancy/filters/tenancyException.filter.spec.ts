@@ -17,9 +17,14 @@ function createHost(path = '/api/v1/organizations'): {
   const headers: Record<string, StoredHeaderValue> = {};
   const request = { path } as Request;
   const response = {} as Response;
-  const getHeader = jest.fn<Response['getHeader']>((name) => headers[String(name)]);
+  const getHeader = jest.fn<Response['getHeader']>(
+    (name) => headers[String(name)],
+  );
   const setHeader = jest.fn<Response['setHeader']>((name, value) => {
-    headers[name] = typeof value === 'string' || typeof value === 'number' ? value : [...value];
+    headers[name] =
+      typeof value === 'string' || typeof value === 'number'
+        ? value
+        : [...value];
     return response;
   });
   const status = jest.fn<Response['status']>().mockReturnValue(response);
@@ -86,24 +91,29 @@ describe('TenancyExceptionFilter', () => {
     ['ORGANIZATION_NOT_FOUND', 404, 'Organization not found'],
     ['TENANCY_DATA_INVALID', 500, 'Organization unavailable'],
     ['TENANCY_UNAVAILABLE', 503, 'Organization service unavailable'],
-  ] as const)('maps %s to its problem response', (code, expectedStatus, title) => {
-    const { headers, host, json, status } = createHost('/api/v1/organizations/org123');
-    const filter = new TenancyExceptionFilter();
+  ] as const)(
+    'maps %s to its problem response',
+    (code, expectedStatus, title) => {
+      const { headers, host, json, status } = createHost(
+        '/api/v1/organizations/org123',
+      );
+      const filter = new TenancyExceptionFilter();
 
-    filter.catch(new TenancyError(code), host);
+      filter.catch(new TenancyError(code), host);
 
-    expect(headers['X-Request-Id']).toEqual(expect.any(String));
-    expect(status).toHaveBeenCalledWith(expectedStatus);
-    expect(json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: `https://stagegate.dev/problems/${code.toLowerCase().replaceAll('_', '-')}`,
-        status: expectedStatus,
-        title,
-        code,
-        instance: '/api/v1/organizations/org123',
-        requestId: headers['X-Request-Id'],
-      }),
-    );
-    expect(json.mock.calls[0]?.[0]).not.toHaveProperty('errors');
-  });
+      expect(headers['X-Request-Id']).toEqual(expect.any(String));
+      expect(status).toHaveBeenCalledWith(expectedStatus);
+      expect(json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: `https://stagegate.dev/problems/${code.toLowerCase().replaceAll('_', '-')}`,
+          status: expectedStatus,
+          title,
+          code,
+          instance: '/api/v1/organizations/org123',
+          requestId: headers['X-Request-Id'],
+        }),
+      );
+      expect(json.mock.calls[0]?.[0]).not.toHaveProperty('errors');
+    },
+  );
 });

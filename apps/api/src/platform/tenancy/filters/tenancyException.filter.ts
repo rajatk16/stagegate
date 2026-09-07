@@ -48,7 +48,8 @@ export class TenancyExceptionFilter implements ExceptionFilter<TenancyError> {
     const problem = problems[exception.code];
 
     const existingRequestId = response.getHeader('X-Request-Id');
-    const requestId = typeof existingRequestId === 'string' ? existingRequestId : randomUUID();
+    const requestId =
+      typeof existingRequestId === 'string' ? existingRequestId : randomUUID();
 
     response.setHeader('X-Request-Id', requestId);
     response.setHeader('Cache-Control', 'no-store');
