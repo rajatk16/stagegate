@@ -2,6 +2,7 @@ import { createBrowserRouter, type RouteObject } from 'react-router';
 
 import { routes } from './routes';
 import { AppShell } from '../components/layout';
+import { MembersPage } from '../features/members';
 import { EventsPage, NotFoundPage, SettingsPage, DashboardPage } from '../pages';
 import {
   LoginPage,
@@ -60,6 +61,10 @@ export const appRoutes: RouteObject[] = [
               {
                 path: routes.settings,
                 element: <SettingsPage />,
+              },
+              {
+                path: routes.members,
+                element: <MembersPage />,
               },
               {
                 path: '*',

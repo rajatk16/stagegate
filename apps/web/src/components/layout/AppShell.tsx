@@ -16,7 +16,12 @@ const navigationItems = [
     to: routes.events,
     end: false,
   },
-] as const;
+  {
+    label: 'Members',
+    to: routes.members,
+    end: false,
+  },
+];
 
 function Navigation() {
   return (

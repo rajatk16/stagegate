@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { apiRequest } from '../../../lib';
+import { membershipRoleSchema } from '../models';
 
 const organizationSchema = z.object({
   organizationId: z.string(),
@@ -8,7 +9,7 @@ const organizationSchema = z.object({
   version: z.number().int().positive(),
   membership: z.object({
     membershipId: z.string(),
-    role: z.literal('OWNER'),
+    role: membershipRoleSchema,
     status: z.literal('ACTIVE'),
   }),
   createdAt: z.iso.datetime(),
