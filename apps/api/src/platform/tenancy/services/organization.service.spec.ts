@@ -4,7 +4,10 @@ import type { TenancyError } from '../utils';
 import type { AuthenticatedUser } from '../../auth';
 import { OrganizationService } from './organization.service';
 import type { OrganizationPolicyService } from './organizationPolicy.service';
-import type { MembershipRepository, OrganizationRepository } from '../repositories';
+import type {
+  MembershipRepository,
+  OrganizationRepository,
+} from '../repositories';
 import {
   MembershipRole,
   type Membership,
@@ -77,7 +80,9 @@ describe('OrganizationService', () => {
       organizations,
     );
 
-    await expect(service.create(actor, 'StageGate Conf', 'request-123')).resolves.toEqual({
+    await expect(
+      service.create(actor, 'StageGate Conf', 'request-123'),
+    ).resolves.toEqual({
       organizationId: 'org-a',
       name: 'StageGate Conf',
       version: 1,
@@ -128,7 +133,11 @@ describe('OrganizationService', () => {
         name: 'Zeta Org',
       },
     ]);
-    expect(organizations.findMany).toHaveBeenCalledWith(['org-b', 'org-a', 'org-c']);
+    expect(organizations.findMany).toHaveBeenCalledWith([
+      'org-b',
+      'org-a',
+      'org-c',
+    ]);
     expect(policy.can).toHaveBeenCalledWith(
       expect.objectContaining({ organizationId: 'org-b' }),
       'user-123',
@@ -155,7 +164,9 @@ describe('OrganizationService', () => {
   it('returns an organization when the actor has an active membership', async () => {
     const { memberships, organizations, policy } = createRepositories();
     policy.authorize.mockResolvedValue(membership('org-a'));
-    organizations.find.mockResolvedValue(organization('org-a', 'StageGate Conf'));
+    organizations.find.mockResolvedValue(
+      organization('org-a', 'StageGate Conf'),
+    );
     const service = new OrganizationService(
       memberships,
       policy as unknown as OrganizationPolicyService,
@@ -178,7 +189,9 @@ describe('OrganizationService', () => {
 
   it('throws when the actor has no active membership', async () => {
     const { memberships, organizations, policy } = createRepositories();
-    policy.authorize.mockRejectedValue(expect.objectContaining({ code: 'ORGANIZATION_NOT_FOUND' }));
+    policy.authorize.mockRejectedValue(
+      expect.objectContaining({ code: 'ORGANIZATION_NOT_FOUND' }),
+    );
     const service = new OrganizationService(
       memberships,
       policy as unknown as OrganizationPolicyService,

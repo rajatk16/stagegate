@@ -5,9 +5,15 @@ import type { TenancyError } from '../utils';
 import type { AuthenticatedUser } from '../../auth';
 import type { OrganizationService } from '../services';
 import { OrganizationsControllers } from './organizations.controllers';
-import { MembershipRole, MembershipStatus, type OrganizationResponse } from '../types';
+import {
+  MembershipRole,
+  MembershipStatus,
+  type OrganizationResponse,
+} from '../types';
 
-type MockOrganizationService = jest.Mocked<Pick<OrganizationService, 'create' | 'get' | 'list'>>;
+type MockOrganizationService = jest.Mocked<
+  Pick<OrganizationService, 'create' | 'get' | 'list'>
+>;
 type StoredHeaderValue = number | string | string[];
 
 const actor: AuthenticatedUser = {
@@ -44,11 +50,18 @@ function createResponse(existingRequestId?: string): {
   status: jest.MockedFunction<Response['status']>;
 } {
   const headers: Record<string, StoredHeaderValue> =
-    existingRequestId === undefined ? {} : { 'X-Request-Id': existingRequestId };
+    existingRequestId === undefined
+      ? {}
+      : { 'X-Request-Id': existingRequestId };
   const response = {} as Response;
-  const getHeader = jest.fn<Response['getHeader']>((name) => headers[String(name)]);
+  const getHeader = jest.fn<Response['getHeader']>(
+    (name) => headers[String(name)],
+  );
   const setHeader = jest.fn<Response['setHeader']>((name, value) => {
-    headers[name] = typeof value === 'string' || typeof value === 'number' ? value : [...value];
+    headers[name] =
+      typeof value === 'string' || typeof value === 'number'
+        ? value
+        : [...value];
     return response;
   });
   const status = jest.fn<Response['status']>().mockReturnValue(response);
@@ -70,13 +83,19 @@ describe('OrganizationsControllers', () => {
 
     organizations.create.mockResolvedValue(organizationResponse);
 
-    await expect(controller.create(actor, { name: '  StageGate Conf  ' }, response)).resolves.toBe(
-      organizationResponse,
-    );
+    await expect(
+      controller.create(actor, { name: '  StageGate Conf  ' }, response),
+    ).resolves.toBe(organizationResponse);
 
-    expect(organizations.create).toHaveBeenCalledWith(actor, 'StageGate Conf', 'request-123');
+    expect(organizations.create).toHaveBeenCalledWith(
+      actor,
+      'StageGate Conf',
+      'request-123',
+    );
     expect(status).toHaveBeenCalledWith(201);
-    expect(headers['Location']).toBe('/api/v1/organizations/abcDEF1234567890wxyz');
+    expect(headers['Location']).toBe(
+      '/api/v1/organizations/abcDEF1234567890wxyz',
+    );
     expect(headers['Cache-Control']).toBe('no-store');
   });
 
@@ -87,7 +106,9 @@ describe('OrganizationsControllers', () => {
       organizations as unknown as OrganizationService,
     );
 
-    await expect(controller.create(actor, { name: 'A' }, response)).rejects.toMatchObject({
+    await expect(
+      controller.create(actor, { name: 'A' }, response),
+    ).rejects.toMatchObject({
       code: 'VALIDATION_ERROR',
     } satisfies Partial<TenancyError>);
     expect(organizations.create).not.toHaveBeenCalled();
@@ -102,7 +123,9 @@ describe('OrganizationsControllers', () => {
 
     organizations.list.mockResolvedValue([organizationResponse]);
 
-    await expect(controller.list(actor, response)).resolves.toEqual([organizationResponse]);
+    await expect(controller.list(actor, response)).resolves.toEqual([
+      organizationResponse,
+    ]);
     expect(organizations.list).toHaveBeenCalledWith(actor);
     expect(headers['X-Request-Id']).toEqual(expect.any(String));
   });
@@ -116,9 +139,12 @@ describe('OrganizationsControllers', () => {
 
     organizations.get.mockResolvedValue(organizationResponse);
 
-    await expect(controller.get(actor, 'abcDEF1234567890wxyz', response)).resolves.toBe(
-      organizationResponse,
+    await expect(
+      controller.get(actor, 'abcDEF1234567890wxyz', response),
+    ).resolves.toBe(organizationResponse);
+    expect(organizations.get).toHaveBeenCalledWith(
+      actor,
+      'abcDEF1234567890wxyz',
     );
-    expect(organizations.get).toHaveBeenCalledWith(actor, 'abcDEF1234567890wxyz');
   });
 });

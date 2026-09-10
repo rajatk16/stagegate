@@ -8,7 +8,10 @@ import { MembershipStatus, type Membership } from '../types';
 import { storedMembershipSchema } from './membership.schema';
 
 export abstract class MembershipRepository {
-  abstract findActive(organizationId: string, userId: string): Promise<Membership | null>;
+  abstract findActive(
+    organizationId: string,
+    userId: string,
+  ): Promise<Membership | null>;
 
   abstract listActiveForUser(userId: string): Promise<readonly Membership[]>;
 }
@@ -24,7 +27,10 @@ export class FirestoreMembershipRepository extends MembershipRepository {
     super();
   }
 
-  override findActive(organizationId: string, userId: string): Promise<Membership | null> {
+  override findActive(
+    organizationId: string,
+    userId: string,
+  ): Promise<Membership | null> {
     return this.withStorageErrors(async () => {
       const snapshot = await this.firestore
         .collection('memberships')
@@ -35,7 +41,10 @@ export class FirestoreMembershipRepository extends MembershipRepository {
 
       const membership = this.decode(snapshot);
 
-      if (membership.organizationId !== organizationId || membership.userId !== userId) {
+      if (
+        membership.organizationId !== organizationId ||
+        membership.userId !== userId
+      ) {
         throw new TenancyError('TENANCY_DATA_INVALID');
       }
 
@@ -50,13 +59,17 @@ export class FirestoreMembershipRepository extends MembershipRepository {
         .where('userId', '==', userId)
         .get();
 
-      const memberships = snapshot.docs.map((document) => this.decode(document));
+      const memberships = snapshot.docs.map((document) =>
+        this.decode(document),
+      );
 
       if (memberships.some((membership) => membership.userId !== userId)) {
         throw new TenancyError('TENANCY_DATA_INVALID');
       }
 
-      return memberships.filter((membership) => membership.status === MembershipStatus.ACTIVE);
+      return memberships.filter(
+        (membership) => membership.status === MembershipStatus.ACTIVE,
+      );
     });
   }
 

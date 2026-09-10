@@ -3,30 +3,42 @@ import { Injectable } from '@nestjs/common';
 import { TenancyError } from '../utils';
 import { AuthenticatedUser } from '../../auth';
 import { MembershipRepository } from '../repositories';
-import { Membership, MembershipRole, MembershipStatus, OrganizationPermission } from '../types';
+import {
+  Membership,
+  MembershipRole,
+  MembershipStatus,
+  OrganizationPermission,
+} from '../types';
 
-const ROLE_PERMISSIONS: Readonly<Record<MembershipRole, readonly OrganizationPermission[]>> =
-  Object.freeze({
-    OWNER: Object.freeze<OrganizationPermission[]>([
-      OrganizationPermission.ORGANIZATION_READ,
-      OrganizationPermission.ORGANIZATION_UPDATE,
-      OrganizationPermission.MEMBERSHIP_READ,
-      OrganizationPermission.INVITATION_CREATE,
-      OrganizationPermission.OWNERSHIP_TRANSFER,
-    ]),
-    ADMIN: Object.freeze<OrganizationPermission[]>([
-      OrganizationPermission.ORGANIZATION_READ,
-      OrganizationPermission.ORGANIZATION_UPDATE,
-      OrganizationPermission.MEMBERSHIP_READ,
-      OrganizationPermission.INVITATION_CREATE,
-    ]),
-    EVENT_MANAGER: Object.freeze<OrganizationPermission[]>([
-      OrganizationPermission.MEMBERSHIP_READ,
-    ]),
-    REVIEWER: Object.freeze<OrganizationPermission[]>([OrganizationPermission.ORGANIZATION_READ]),
-    SUBMITTER: Object.freeze<OrganizationPermission[]>([OrganizationPermission.MEMBERSHIP_READ]),
-    OBSERVER: Object.freeze<OrganizationPermission[]>([OrganizationPermission.MEMBERSHIP_READ]),
-  });
+const ROLE_PERMISSIONS: Readonly<
+  Record<MembershipRole, readonly OrganizationPermission[]>
+> = Object.freeze({
+  OWNER: Object.freeze<OrganizationPermission[]>([
+    OrganizationPermission.ORGANIZATION_READ,
+    OrganizationPermission.ORGANIZATION_UPDATE,
+    OrganizationPermission.MEMBERSHIP_READ,
+    OrganizationPermission.INVITATION_CREATE,
+    OrganizationPermission.OWNERSHIP_TRANSFER,
+  ]),
+  ADMIN: Object.freeze<OrganizationPermission[]>([
+    OrganizationPermission.ORGANIZATION_READ,
+    OrganizationPermission.ORGANIZATION_UPDATE,
+    OrganizationPermission.MEMBERSHIP_READ,
+    OrganizationPermission.INVITATION_CREATE,
+  ]),
+  EVENT_MANAGER: Object.freeze<OrganizationPermission[]>([
+    OrganizationPermission.MEMBERSHIP_READ,
+  ]),
+  REVIEWER: Object.freeze<OrganizationPermission[]>([
+    OrganizationPermission.ORGANIZATION_READ,
+  ]),
+  SUBMITTER: Object.freeze<OrganizationPermission[]>([
+    OrganizationPermission.MEMBERSHIP_READ,
+  ]),
+  OBSERVER: Object.freeze<OrganizationPermission[]>([
+    OrganizationPermission.MEMBERSHIP_READ,
+  ]),
+});
 
 @Injectable()
 export class OrganizationPolicyService {
@@ -37,9 +49,17 @@ export class OrganizationPolicyService {
     organizationId: string,
     permission: OrganizationPermission,
   ): Promise<Membership> {
-    const membership = await this.memberships.findActive(organizationId, actor.uid);
+    const membership = await this.memberships.findActive(
+      organizationId,
+      actor.uid,
+    );
 
-    return this.assertAllowed(membership, actor.uid, organizationId, permission);
+    return this.assertAllowed(
+      membership,
+      actor.uid,
+      organizationId,
+      permission,
+    );
   }
 
   assertAllowed(
@@ -48,7 +68,10 @@ export class OrganizationPolicyService {
     organizationId: string,
     permission: OrganizationPermission,
   ): Membership {
-    if (membership === null || !this.matchesContext(membership, actorId, organizationId)) {
+    if (
+      membership === null ||
+      !this.matchesContext(membership, actorId, organizationId)
+    ) {
       throw new TenancyError('ORGANIZATION_NOT_FOUND');
     }
 
@@ -72,7 +95,11 @@ export class OrganizationPolicyService {
     );
   }
 
-  private matchesContext(membership: Membership, actorId: string, organizationId: string): boolean {
+  private matchesContext(
+    membership: Membership,
+    actorId: string,
+    organizationId: string,
+  ): boolean {
     return (
       membership.status === MembershipStatus.ACTIVE &&
       membership.userId === actorId &&
@@ -81,7 +108,9 @@ export class OrganizationPolicyService {
     );
   }
 
-  private permissionsForRole(role: MembershipRole): readonly OrganizationPermission[] {
+  private permissionsForRole(
+    role: MembershipRole,
+  ): readonly OrganizationPermission[] {
     if (!Object.hasOwn(ROLE_PERMISSIONS, role)) {
       return [];
     }

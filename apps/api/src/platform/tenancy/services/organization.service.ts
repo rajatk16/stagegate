@@ -4,7 +4,11 @@ import { TenancyError } from '../utils';
 import { AuthenticatedUser } from '../../auth';
 import { OrganizationPolicyService } from './organizationPolicy.service';
 import { MembershipRepository, OrganizationRepository } from '../repositories';
-import { OrganizationContext, OrganizationPermission, OrganizationResponse } from '../types';
+import {
+  OrganizationContext,
+  OrganizationPermission,
+  OrganizationResponse,
+} from '../types';
 
 @Injectable()
 export class OrganizationService {
@@ -19,12 +23,18 @@ export class OrganizationService {
     name: string,
     requestId: string,
   ): Promise<OrganizationResponse> {
-    const context = await this.organizations.createWithOwner(name, actor.uid, requestId);
+    const context = await this.organizations.createWithOwner(
+      name,
+      actor.uid,
+      requestId,
+    );
 
     return this.toOrganizationResponse(context);
   }
 
-  async list(actor: AuthenticatedUser): Promise<readonly OrganizationResponse[]> {
+  async list(
+    actor: AuthenticatedUser,
+  ): Promise<readonly OrganizationResponse[]> {
     const candidates = await this.memberships.listActiveForUser(actor.uid);
     const memberships = candidates.filter((membership) =>
       this.policy.can(
@@ -40,7 +50,10 @@ export class OrganizationService {
     );
 
     const organizationById = new Map(
-      organizations.map((organization) => [organization.organizationId, organization]),
+      organizations.map((organization) => [
+        organization.organizationId,
+        organization,
+      ]),
     );
 
     return memberships
@@ -63,7 +76,10 @@ export class OrganizationService {
       );
   }
 
-  async get(actor: AuthenticatedUser, organizationId: string): Promise<OrganizationResponse> {
+  async get(
+    actor: AuthenticatedUser,
+    organizationId: string,
+  ): Promise<OrganizationResponse> {
     const membership = await this.policy.authorize(
       actor,
       organizationId,
@@ -82,7 +98,9 @@ export class OrganizationService {
     });
   }
 
-  private toOrganizationResponse(context: OrganizationContext): OrganizationResponse {
+  private toOrganizationResponse(
+    context: OrganizationContext,
+  ): OrganizationResponse {
     return {
       organizationId: context.organization.organizationId,
       name: context.organization.name,

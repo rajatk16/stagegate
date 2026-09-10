@@ -33,7 +33,9 @@ const membership = (overrides: Partial<Membership> = {}): Membership => ({
   ...overrides,
 });
 
-function createMembershipRepository(): jest.Mocked<Pick<MembershipRepository, 'findActive'>> {
+function createMembershipRepository(): jest.Mocked<
+  Pick<MembershipRepository, 'findActive'>
+> {
   return {
     findActive: jest.fn<MembershipRepository['findActive']>(),
   };
@@ -44,10 +46,16 @@ describe('OrganizationPolicyService', () => {
     const memberships = createMembershipRepository();
     const ownerMembership = membership();
     memberships.findActive.mockResolvedValue(ownerMembership);
-    const service = new OrganizationPolicyService(memberships as unknown as MembershipRepository);
+    const service = new OrganizationPolicyService(
+      memberships as unknown as MembershipRepository,
+    );
 
     await expect(
-      service.authorize(actor, 'org-a', OrganizationPermission.ORGANIZATION_READ),
+      service.authorize(
+        actor,
+        'org-a',
+        OrganizationPermission.ORGANIZATION_READ,
+      ),
     ).resolves.toBe(ownerMembership);
     expect(memberships.findActive).toHaveBeenCalledWith('org-a', 'user-123');
   });
@@ -76,19 +84,29 @@ describe('OrganizationPolicyService', () => {
     [MembershipRole.REVIEWER, [OrganizationPermission.ORGANIZATION_READ]],
     [MembershipRole.SUBMITTER, [OrganizationPermission.MEMBERSHIP_READ]],
     [MembershipRole.OBSERVER, [OrganizationPermission.MEMBERSHIP_READ]],
-  ] as const)('allows %s to use its configured permissions', (role, permissions) => {
-    const service = new OrganizationPolicyService(
-      createMembershipRepository() as unknown as MembershipRepository,
-    );
-    const currentMembership = membership({ role });
-
-    for (const permission of permissions) {
-      expect(service.assertAllowed(currentMembership, 'user-123', 'org-a', permission)).toBe(
-        currentMembership,
+  ] as const)(
+    'allows %s to use its configured permissions',
+    (role, permissions) => {
+      const service = new OrganizationPolicyService(
+        createMembershipRepository() as unknown as MembershipRepository,
       );
-      expect(service.can(currentMembership, 'user-123', 'org-a', permission)).toBe(true);
-    }
-  });
+      const currentMembership = membership({ role });
+
+      for (const permission of permissions) {
+        expect(
+          service.assertAllowed(
+            currentMembership,
+            'user-123',
+            'org-a',
+            permission,
+          ),
+        ).toBe(currentMembership);
+        expect(
+          service.can(currentMembership, 'user-123', 'org-a', permission),
+        ).toBe(true);
+      }
+    },
+  );
 
   it('throws permission denied when the role lacks a requested permission', () => {
     const service = new OrganizationPolicyService(
@@ -112,10 +130,19 @@ describe('OrganizationPolicyService', () => {
 
   it.each([
     ['missing membership', null],
-    ['suspended membership', membership({ status: MembershipStatus.SUSPENDED })],
+    [
+      'suspended membership',
+      membership({ status: MembershipStatus.SUSPENDED }),
+    ],
     ['removed membership', membership({ status: MembershipStatus.REMOVED })],
-    ['wrong user', membership({ userId: 'other-user', membershipId: 'org-a_other-user' })],
-    ['wrong organization', membership({ organizationId: 'org-b', membershipId: 'org-b_user-123' })],
+    [
+      'wrong user',
+      membership({ userId: 'other-user', membershipId: 'org-a_other-user' }),
+    ],
+    [
+      'wrong organization',
+      membership({ organizationId: 'org-b', membershipId: 'org-b_user-123' }),
+    ],
     ['wrong composite id', membership({ membershipId: 'org-a_other-user' })],
   ] as const)('treats %s as not found', (_name, currentMembership) => {
     const service = new OrganizationPolicyService(
@@ -135,7 +162,12 @@ describe('OrganizationPolicyService', () => {
       } satisfies Partial<TenancyError>),
     );
     expect(
-      service.can(currentMembership, 'user-123', 'org-a', OrganizationPermission.ORGANIZATION_READ),
+      service.can(
+        currentMembership,
+        'user-123',
+        'org-a',
+        OrganizationPermission.ORGANIZATION_READ,
+      ),
     ).toBe(false);
   });
 
@@ -143,10 +175,17 @@ describe('OrganizationPolicyService', () => {
     const service = new OrganizationPolicyService(
       createMembershipRepository() as unknown as MembershipRepository,
     );
-    const currentMembership = membership({ role: 'UNKNOWN_ROLE' as MembershipRole });
+    const currentMembership = membership({
+      role: 'UNKNOWN_ROLE' as MembershipRole,
+    });
 
     expect(
-      service.can(currentMembership, 'user-123', 'org-a', OrganizationPermission.ORGANIZATION_READ),
+      service.can(
+        currentMembership,
+        'user-123',
+        'org-a',
+        OrganizationPermission.ORGANIZATION_READ,
+      ),
     ).toBe(false);
   });
 });

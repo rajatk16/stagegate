@@ -28,12 +28,16 @@ const membership = (organizationId: string): Membership => ({
 
 describe('MembershipService', () => {
   it('returns active memberships sorted by organization id', async () => {
-    const repository: jest.Mocked<Pick<MembershipRepository, 'listActiveForUser'>> = {
+    const repository: jest.Mocked<
+      Pick<MembershipRepository, 'listActiveForUser'>
+    > = {
       listActiveForUser: jest
         .fn<MembershipRepository['listActiveForUser']>()
         .mockResolvedValue([membership('org-b'), membership('org-a')]),
     };
-    const service = new MembershipService(repository as unknown as MembershipRepository);
+    const service = new MembershipService(
+      repository as unknown as MembershipRepository,
+    );
 
     await expect(service.listMine(actor)).resolves.toEqual([
       {
