@@ -2,14 +2,16 @@ import { Injectable } from '@nestjs/common';
 
 import { TenancyError } from '../utils';
 import { AuthenticatedUser } from '../../auth';
-import { OrganizationContext, OrganizationResponse } from '../types';
+import { OrganizationPolicyService } from './organizationPolicy.service';
 import { MembershipRepository, OrganizationRepository } from '../repositories';
+import { OrganizationContext, OrganizationPermission, OrganizationResponse } from '../types';
 
 @Injectable()
 export class OrganizationService {
   constructor(
-    private readonly organizations: OrganizationRepository,
     private readonly memberships: MembershipRepository,
+    private readonly policy: OrganizationPolicyService,
+    private readonly organizations: OrganizationRepository,
   ) {}
 
   async create(
@@ -17,28 +19,28 @@ export class OrganizationService {
     name: string,
     requestId: string,
   ): Promise<OrganizationResponse> {
-    const context = await this.organizations.createWithOwner(
-      name,
-      actor.uid,
-      requestId,
-    );
+    const context = await this.organizations.createWithOwner(name, actor.uid, requestId);
 
     return this.toOrganizationResponse(context);
   }
 
-  async list(
-    actor: AuthenticatedUser,
-  ): Promise<readonly OrganizationResponse[]> {
-    const memberships = await this.memberships.listActiveForUser(actor.uid);
+  async list(actor: AuthenticatedUser): Promise<readonly OrganizationResponse[]> {
+    const candidates = await this.memberships.listActiveForUser(actor.uid);
+    const memberships = candidates.filter((membership) =>
+      this.policy.can(
+        membership,
+        actor.uid,
+        membership.organizationId,
+        OrganizationPermission.ORGANIZATION_READ,
+      ),
+    );
+
     const organizations = await this.organizations.findMany(
       memberships.map((membership) => membership.organizationId),
     );
 
     const organizationById = new Map(
-      organizations.map((organization) => [
-        organization.organizationId,
-        organization,
-      ]),
+      organizations.map((organization) => [organization.organizationId, organization]),
     );
 
     return memberships
@@ -61,18 +63,12 @@ export class OrganizationService {
       );
   }
 
-  async get(
-    actor: AuthenticatedUser,
-    organizationId: string,
-  ): Promise<OrganizationResponse> {
-    const membership = await this.memberships.findActive(
+  async get(actor: AuthenticatedUser, organizationId: string): Promise<OrganizationResponse> {
+    const membership = await this.policy.authorize(
+      actor,
       organizationId,
-      actor.uid,
+      OrganizationPermission.ORGANIZATION_READ,
     );
-
-    if (membership === null) {
-      throw new TenancyError('ORGANIZATION_NOT_FOUND');
-    }
 
     const organization = await this.organizations.find(organizationId);
 
@@ -86,9 +82,7 @@ export class OrganizationService {
     });
   }
 
-  private toOrganizationResponse(
-    context: OrganizationContext,
-  ): OrganizationResponse {
+  private toOrganizationResponse(context: OrganizationContext): OrganizationResponse {
     return {
       organizationId: context.organization.organizationId,
       name: context.organization.name,

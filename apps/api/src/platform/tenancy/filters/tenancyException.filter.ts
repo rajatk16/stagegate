@@ -30,6 +30,11 @@ const problems = {
     title: 'Organization service unavailable',
     detail: 'The organization service is temporarily unavailable.',
   },
+  PERMISSION_DENIED: {
+    status: 403,
+    title: 'Permission denied',
+    detail: 'Your organization role does not allow this action.',
+  },
 } as const satisfies Record<
   TenancyErrorCode,
   {
@@ -48,8 +53,7 @@ export class TenancyExceptionFilter implements ExceptionFilter<TenancyError> {
     const problem = problems[exception.code];
 
     const existingRequestId = response.getHeader('X-Request-Id');
-    const requestId =
-      typeof existingRequestId === 'string' ? existingRequestId : randomUUID();
+    const requestId = typeof existingRequestId === 'string' ? existingRequestId : randomUUID();
 
     response.setHeader('X-Request-Id', requestId);
     response.setHeader('Cache-Control', 'no-store');

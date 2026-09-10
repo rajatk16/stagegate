@@ -1,38 +1,16 @@
 import { z } from 'zod';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  DocumentSnapshot,
-  FieldValue,
-  Firestore,
-  Timestamp,
-} from 'firebase-admin/firestore';
+import { DocumentSnapshot, FieldValue, Firestore, Timestamp } from 'firebase-admin/firestore';
 
 import { FIRESTORE } from '@stagegate/backend-platform';
 
 import { TenancyError } from '../utils';
-import {
-  Membership,
-  type Organization,
-  type OrganizationContext,
-} from '../types';
+import { storedMembershipSchema } from './membership.schema';
+import { Membership, type Organization, type OrganizationContext } from '../types';
 
 const storedOrganizationSchema = z.object({
   organizationId: z.string().min(1),
   name: z.string().min(2).max(120),
-  version: z.number().int().positive(),
-  schemaVersion: z.literal(1),
-  createdAt: z.instanceof(Timestamp),
-  updatedAt: z.instanceof(Timestamp),
-  createdBy: z.string().min(1),
-  updatedBy: z.string().min(1),
-});
-
-const storedMembershipSchema = z.object({
-  membershipId: z.string().min(1),
-  organizationId: z.string().min(1),
-  userId: z.string().min(1).max(128),
-  role: z.literal('OWNER'),
-  status: z.literal('ACTIVE'),
   version: z.number().int().positive(),
   schemaVersion: z.literal(1),
   createdAt: z.instanceof(Timestamp),
@@ -50,9 +28,7 @@ export abstract class OrganizationRepository {
 
   abstract find(organizationId: string): Promise<Organization | null>;
 
-  abstract findMany(
-    organizationIds: readonly string[],
-  ): Promise<readonly Organization[]>;
+  abstract findMany(organizationIds: readonly string[]): Promise<readonly Organization[]>;
 }
 
 @Injectable()
@@ -75,15 +51,11 @@ export class FirestoreOrganizationRepository extends OrganizationRepository {
       this.assertDocumentSegment(actorId);
 
       const userReference = this.firestore.collection('users').doc(actorId);
-      const organizationReference = this.firestore
-        .collection('organizations')
-        .doc();
+      const organizationReference = this.firestore.collection('organizations').doc();
 
       const membershipId = this.membershipId(organizationReference.id, actorId);
 
-      const membershipReference = this.firestore
-        .collection('memberships')
-        .doc(membershipId);
+      const membershipReference = this.firestore.collection('memberships').doc(membershipId);
 
       const auditReference = this.firestore.collection('auditLogs').doc();
 
@@ -153,18 +125,13 @@ export class FirestoreOrganizationRepository extends OrganizationRepository {
 
   override find(organizationId: string): Promise<Organization | null> {
     return this.withStorageErrors(async () => {
-      const snapshot = await this.firestore
-        .collection('organizations')
-        .doc(organizationId)
-        .get();
+      const snapshot = await this.firestore.collection('organizations').doc(organizationId).get();
 
       return snapshot.exists ? this.decodeOrganization(snapshot) : null;
     });
   }
 
-  override findMany(
-    organizationIds: readonly string[],
-  ): Promise<readonly Organization[]> {
+  override findMany(organizationIds: readonly string[]): Promise<readonly Organization[]> {
     return this.withStorageErrors(async () => {
       if (organizationIds.length === 0) {
         return [];
@@ -189,11 +156,7 @@ export class FirestoreOrganizationRepository extends OrganizationRepository {
   private decodeOrganization(snapshot: DocumentSnapshot): Organization {
     const result = storedOrganizationSchema.safeParse(snapshot.data());
 
-    if (
-      !snapshot.exists ||
-      !result.success ||
-      result.data.organizationId !== snapshot.id
-    ) {
+    if (!snapshot.exists || !result.success || result.data.organizationId !== snapshot.id) {
       throw new TenancyError('TENANCY_DATA_INVALID');
     }
 
@@ -212,7 +175,8 @@ export class FirestoreOrganizationRepository extends OrganizationRepository {
     if (
       !snapshot.exists ||
       !result.success ||
-      result.data.membershipId !== snapshot.id
+      result.data.membershipId !== snapshot.id ||
+      snapshot.id !== `${result.data.organizationId}_${result.data.userId}`
     ) {
       throw new TenancyError('TENANCY_DATA_INVALID');
     }

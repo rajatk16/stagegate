@@ -1,0 +1,8 @@
+export enum MembershipRole {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  EVENT_MANAGER = 'EVENT_MANAGER',
+  REVIEWER = 'REVIEWER',
+  SUBMITTER = 'SUBMITTER',
+  OBSERVER = 'OBSERVER',
+}

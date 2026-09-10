@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
-import {
-  FirebaseAdminModule,
-  RuntimeConfigModule,
-} from '@stagegate/backend-platform';
+
+import { FirebaseAdminModule, RuntimeConfigModule } from '@stagegate/backend-platform';
 
 import { AuthModule } from './platform/auth';
 import { AppController } from './app.controller';
+import { TenancyModule } from './platform/tenancy';
 import { IdentityModule } from './platform/identity';
-import { TenancyModule } from './platform/tenancy/modules';
 
 @Module({
   imports: [
