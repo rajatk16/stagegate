@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
 
 import { TenancyExceptionFilter } from '../filters';
-import { MembershipService, OrganizationService } from '../services';
 import {
   MembershipsController,
   OrganizationsControllers,
 } from '../controllers';
+import {
+  MembershipService,
+  OrganizationPolicyService,
+  OrganizationService,
+} from '../services';
 import {
   MembershipRepository,
   OrganizationRepository,
@@ -15,11 +19,17 @@ import {
 
 @Module({
   controllers: [MembershipsController, OrganizationsControllers],
-  exports: [OrganizationService, MembershipService, MembershipRepository],
+  exports: [
+    MembershipService,
+    OrganizationService,
+    MembershipRepository,
+    OrganizationPolicyService,
+  ],
   providers: [
     MembershipService,
     OrganizationService,
     TenancyExceptionFilter,
+    OrganizationPolicyService,
     {
       provide: MembershipRepository,
       useClass: FirestoreMembershipRepository,

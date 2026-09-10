@@ -2,9 +2,13 @@ import type { Response } from 'express';
 import { describe, expect, it, jest } from '@jest/globals';
 
 import type { AuthenticatedUser } from '../../auth';
-import type { MembershipResponse } from '../types';
 import type { MembershipService } from '../services';
 import { MembershipsController } from './memberships.controller';
+import {
+  MembershipRole,
+  MembershipStatus,
+  type MembershipResponse,
+} from '../types';
 
 type MockMembershipService = jest.Mocked<Pick<MembershipService, 'listMine'>>;
 type StoredHeaderValue = number | string | string[];
@@ -20,8 +24,8 @@ const membershipResponse: MembershipResponse = {
   membershipId: 'org-a_user-123',
   organizationId: 'org-a',
   userId: 'user-123',
-  role: 'OWNER',
-  status: 'ACTIVE',
+  role: MembershipRole.OWNER,
+  status: MembershipStatus.ACTIVE,
   version: 1,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-02T00:00:00.000Z',

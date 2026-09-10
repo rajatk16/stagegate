@@ -1,5 +1,5 @@
-export type MembershipRole = 'OWNER';
-export type MembershipStatus = 'ACTIVE';
+import { type MembershipRole } from './membershipRole.enum';
+import { type MembershipStatus } from './membershipStatus.enum';
 
 export interface Membership {
   readonly membershipId: string;

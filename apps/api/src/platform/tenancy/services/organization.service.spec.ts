@@ -1,13 +1,20 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
+import type { TenancyError } from '../utils';
 import type { AuthenticatedUser } from '../../auth';
-import type { Membership, Organization } from '../types';
+import { OrganizationService } from './organization.service';
+import type { OrganizationPolicyService } from './organizationPolicy.service';
 import type {
   MembershipRepository,
   OrganizationRepository,
 } from '../repositories';
-import type { TenancyError } from '../utils';
-import { OrganizationService } from './organization.service';
+import {
+  MembershipRole,
+  type Membership,
+  MembershipStatus,
+  type Organization,
+  OrganizationPermission,
+} from '../types';
 
 const actor: AuthenticatedUser = {
   uid: 'user-123',
@@ -31,8 +38,8 @@ const membership = (organizationId: string): Membership => ({
   membershipId: `${organizationId}_user-123`,
   organizationId,
   userId: 'user-123',
-  role: 'OWNER',
-  status: 'ACTIVE',
+  role: MembershipRole.OWNER,
+  status: MembershipStatus.ACTIVE,
   version: 1,
   createdAt,
   updatedAt,
@@ -41,6 +48,7 @@ const membership = (organizationId: string): Membership => ({
 function createRepositories(): {
   organizations: jest.Mocked<OrganizationRepository>;
   memberships: jest.Mocked<MembershipRepository>;
+  policy: jest.Mocked<Pick<OrganizationPolicyService, 'authorize' | 'can'>>;
 } {
   return {
     organizations: {
@@ -52,17 +60,25 @@ function createRepositories(): {
       findActive: jest.fn<MembershipRepository['findActive']>(),
       listActiveForUser: jest.fn<MembershipRepository['listActiveForUser']>(),
     },
+    policy: {
+      authorize: jest.fn<OrganizationPolicyService['authorize']>(),
+      can: jest.fn<OrganizationPolicyService['can']>().mockReturnValue(true),
+    },
   };
 }
 
 describe('OrganizationService', () => {
   it('creates an organization and returns its owner membership context', async () => {
-    const { memberships, organizations } = createRepositories();
+    const { memberships, organizations, policy } = createRepositories();
     organizations.createWithOwner.mockResolvedValue({
       organization: organization('org-a', 'StageGate Conf'),
       membership: membership('org-a'),
     });
-    const service = new OrganizationService(organizations, memberships);
+    const service = new OrganizationService(
+      memberships,
+      policy as unknown as OrganizationPolicyService,
+      organizations,
+    );
 
     await expect(
       service.create(actor, 'StageGate Conf', 'request-123'),
@@ -72,8 +88,8 @@ describe('OrganizationService', () => {
       version: 1,
       membership: {
         membershipId: 'org-a_user-123',
-        role: 'OWNER',
-        status: 'ACTIVE',
+        role: MembershipRole.OWNER,
+        status: MembershipStatus.ACTIVE,
       },
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-02T00:00:00.000Z',
@@ -86,7 +102,7 @@ describe('OrganizationService', () => {
   });
 
   it('lists organizations in name and id order', async () => {
-    const { memberships, organizations } = createRepositories();
+    const { memberships, organizations, policy } = createRepositories();
     memberships.listActiveForUser.mockResolvedValue([
       membership('org-b'),
       membership('org-a'),
@@ -97,7 +113,11 @@ describe('OrganizationService', () => {
       organization('org-a', 'Alpha Org'),
       organization('org-c', 'Alpha Org'),
     ]);
-    const service = new OrganizationService(organizations, memberships);
+    const service = new OrganizationService(
+      memberships,
+      policy as unknown as OrganizationPolicyService,
+      organizations,
+    );
 
     await expect(service.list(actor)).resolves.toMatchObject([
       {
@@ -118,13 +138,23 @@ describe('OrganizationService', () => {
       'org-a',
       'org-c',
     ]);
+    expect(policy.can).toHaveBeenCalledWith(
+      expect.objectContaining({ organizationId: 'org-b' }),
+      'user-123',
+      'org-b',
+      OrganizationPermission.ORGANIZATION_READ,
+    );
   });
 
   it('throws when a listed membership has no organization data', async () => {
-    const { memberships, organizations } = createRepositories();
+    const { memberships, organizations, policy } = createRepositories();
     memberships.listActiveForUser.mockResolvedValue([membership('org-a')]);
     organizations.findMany.mockResolvedValue([]);
-    const service = new OrganizationService(organizations, memberships);
+    const service = new OrganizationService(
+      memberships,
+      policy as unknown as OrganizationPolicyService,
+      organizations,
+    );
 
     await expect(service.list(actor)).rejects.toMatchObject({
       code: 'TENANCY_DATA_INVALID',
@@ -132,12 +162,16 @@ describe('OrganizationService', () => {
   });
 
   it('returns an organization when the actor has an active membership', async () => {
-    const { memberships, organizations } = createRepositories();
-    memberships.findActive.mockResolvedValue(membership('org-a'));
+    const { memberships, organizations, policy } = createRepositories();
+    policy.authorize.mockResolvedValue(membership('org-a'));
     organizations.find.mockResolvedValue(
       organization('org-a', 'StageGate Conf'),
     );
-    const service = new OrganizationService(organizations, memberships);
+    const service = new OrganizationService(
+      memberships,
+      policy as unknown as OrganizationPolicyService,
+      organizations,
+    );
 
     await expect(service.get(actor, 'org-a')).resolves.toMatchObject({
       organizationId: 'org-a',
@@ -146,13 +180,23 @@ describe('OrganizationService', () => {
         membershipId: 'org-a_user-123',
       },
     });
-    expect(memberships.findActive).toHaveBeenCalledWith('org-a', 'user-123');
+    expect(policy.authorize).toHaveBeenCalledWith(
+      actor,
+      'org-a',
+      OrganizationPermission.ORGANIZATION_READ,
+    );
   });
 
   it('throws when the actor has no active membership', async () => {
-    const { memberships, organizations } = createRepositories();
-    memberships.findActive.mockResolvedValue(null);
-    const service = new OrganizationService(organizations, memberships);
+    const { memberships, organizations, policy } = createRepositories();
+    policy.authorize.mockRejectedValue(
+      expect.objectContaining({ code: 'ORGANIZATION_NOT_FOUND' }),
+    );
+    const service = new OrganizationService(
+      memberships,
+      policy as unknown as OrganizationPolicyService,
+      organizations,
+    );
 
     await expect(service.get(actor, 'org-a')).rejects.toMatchObject({
       code: 'ORGANIZATION_NOT_FOUND',
@@ -161,10 +205,14 @@ describe('OrganizationService', () => {
   });
 
   it('throws when membership exists but organization data is missing', async () => {
-    const { memberships, organizations } = createRepositories();
-    memberships.findActive.mockResolvedValue(membership('org-a'));
+    const { memberships, organizations, policy } = createRepositories();
+    policy.authorize.mockResolvedValue(membership('org-a'));
     organizations.find.mockResolvedValue(null);
-    const service = new OrganizationService(organizations, memberships);
+    const service = new OrganizationService(
+      memberships,
+      policy as unknown as OrganizationPolicyService,
+      organizations,
+    );
 
     await expect(service.get(actor, 'org-a')).rejects.toMatchObject({
       code: 'TENANCY_DATA_INVALID',

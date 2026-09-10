@@ -30,6 +30,11 @@ const problems = {
     title: 'Organization service unavailable',
     detail: 'The organization service is temporarily unavailable.',
   },
+  PERMISSION_DENIED: {
+    status: 403,
+    title: 'Permission denied',
+    detail: 'Your organization role does not allow this action.',
+  },
 } as const satisfies Record<
   TenancyErrorCode,
   {

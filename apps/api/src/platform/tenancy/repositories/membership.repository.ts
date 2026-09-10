@@ -1,29 +1,11 @@
-import { z } from 'zod';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import {
-  DocumentSnapshot,
-  Firestore,
-  Timestamp,
-} from 'firebase-admin/firestore';
+import { DocumentSnapshot, Firestore } from 'firebase-admin/firestore';
 
 import { FIRESTORE } from '@stagegate/backend-platform';
 
 import { TenancyError } from '../utils';
-import { type Membership } from '../types';
-
-const storedMembershipSchema = z.object({
-  membershipId: z.string().min(1),
-  organizationId: z.string().min(1),
-  userId: z.string().min(1).max(128),
-  role: z.literal('OWNER'),
-  status: z.literal('ACTIVE'),
-  version: z.number().int().positive(),
-  schemaVersion: z.literal(1),
-  createdAt: z.instanceof(Timestamp),
-  updatedAt: z.instanceof(Timestamp),
-  createdBy: z.string().min(1),
-  updatedBy: z.string().min(1),
-});
+import { MembershipStatus, type Membership } from '../types';
+import { storedMembershipSchema } from './membership.schema';
 
 export abstract class MembershipRepository {
   abstract findActive(
@@ -50,18 +32,23 @@ export class FirestoreMembershipRepository extends MembershipRepository {
     userId: string,
   ): Promise<Membership | null> {
     return this.withStorageErrors(async () => {
-      const membershipId = `${organizationId}_${userId}`;
-
       const snapshot = await this.firestore
         .collection('memberships')
-        .doc(membershipId)
+        .doc(`${organizationId}_${userId}`)
         .get();
 
       if (!snapshot.exists) return null;
 
       const membership = this.decode(snapshot);
 
-      return membership;
+      if (
+        membership.organizationId !== organizationId ||
+        membership.userId !== userId
+      ) {
+        throw new TenancyError('TENANCY_DATA_INVALID');
+      }
+
+      return membership.status === MembershipStatus.ACTIVE ? membership : null;
     });
   }
 
@@ -72,7 +59,17 @@ export class FirestoreMembershipRepository extends MembershipRepository {
         .where('userId', '==', userId)
         .get();
 
-      return snapshot.docs.map((document) => this.decode(document));
+      const memberships = snapshot.docs.map((document) =>
+        this.decode(document),
+      );
+
+      if (memberships.some((membership) => membership.userId !== userId)) {
+        throw new TenancyError('TENANCY_DATA_INVALID');
+      }
+
+      return memberships.filter(
+        (membership) => membership.status === MembershipStatus.ACTIVE,
+      );
     });
   }
 

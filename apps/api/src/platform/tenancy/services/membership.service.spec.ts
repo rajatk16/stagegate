@@ -1,9 +1,9 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
 import type { AuthenticatedUser } from '../../auth';
-import type { Membership } from '../types';
-import type { MembershipRepository } from '../repositories';
 import { MembershipService } from './membership.service';
+import type { MembershipRepository } from '../repositories';
+import { MembershipRole, MembershipStatus, type Membership } from '../types';
 
 const actor: AuthenticatedUser = {
   uid: 'user-123',
@@ -19,8 +19,8 @@ const membership = (organizationId: string): Membership => ({
   membershipId: `${organizationId}_user-123`,
   organizationId,
   userId: 'user-123',
-  role: 'OWNER',
-  status: 'ACTIVE',
+  role: MembershipRole.OWNER,
+  status: MembershipStatus.ACTIVE,
   version: 1,
   createdAt,
   updatedAt,
@@ -44,8 +44,8 @@ describe('MembershipService', () => {
         membershipId: 'org-a_user-123',
         organizationId: 'org-a',
         userId: 'user-123',
-        role: 'OWNER',
-        status: 'ACTIVE',
+        role: MembershipRole.OWNER,
+        status: MembershipStatus.ACTIVE,
         version: 1,
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-02T00:00:00.000Z',
@@ -54,8 +54,8 @@ describe('MembershipService', () => {
         membershipId: 'org-b_user-123',
         organizationId: 'org-b',
         userId: 'user-123',
-        role: 'OWNER',
-        status: 'ACTIVE',
+        role: MembershipRole.OWNER,
+        status: MembershipStatus.ACTIVE,
         version: 1,
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-02T00:00:00.000Z',

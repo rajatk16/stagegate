@@ -3,7 +3,8 @@ export type TenancyErrorCode =
   | 'ACTOR_NOT_BOOTSTRAPPED'
   | 'ORGANIZATION_NOT_FOUND'
   | 'TENANCY_DATA_INVALID'
-  | 'TENANCY_UNAVAILABLE';
+  | 'TENANCY_UNAVAILABLE'
+  | 'PERMISSION_DENIED';
 
 export interface TenancyFieldError {
   readonly path: string;

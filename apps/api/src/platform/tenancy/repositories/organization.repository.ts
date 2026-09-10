@@ -10,6 +10,7 @@ import {
 import { FIRESTORE } from '@stagegate/backend-platform';
 
 import { TenancyError } from '../utils';
+import { storedMembershipSchema } from './membership.schema';
 import {
   Membership,
   type Organization,
@@ -19,20 +20,6 @@ import {
 const storedOrganizationSchema = z.object({
   organizationId: z.string().min(1),
   name: z.string().min(2).max(120),
-  version: z.number().int().positive(),
-  schemaVersion: z.literal(1),
-  createdAt: z.instanceof(Timestamp),
-  updatedAt: z.instanceof(Timestamp),
-  createdBy: z.string().min(1),
-  updatedBy: z.string().min(1),
-});
-
-const storedMembershipSchema = z.object({
-  membershipId: z.string().min(1),
-  organizationId: z.string().min(1),
-  userId: z.string().min(1).max(128),
-  role: z.literal('OWNER'),
-  status: z.literal('ACTIVE'),
   version: z.number().int().positive(),
   schemaVersion: z.literal(1),
   createdAt: z.instanceof(Timestamp),
@@ -212,7 +199,8 @@ export class FirestoreOrganizationRepository extends OrganizationRepository {
     if (
       !snapshot.exists ||
       !result.success ||
-      result.data.membershipId !== snapshot.id
+      result.data.membershipId !== snapshot.id ||
+      snapshot.id !== `${result.data.organizationId}_${result.data.userId}`
     ) {
       throw new TenancyError('TENANCY_DATA_INVALID');
     }

@@ -1,4 +1,5 @@
-import { type MembershipRole, type MembershipStatus } from './membership.types';
+import { type MembershipRole } from './membershipRole.enum';
+import { type MembershipStatus } from './membershipStatus.enum';
 
 export interface MembershipResponse {
   readonly membershipId: string;

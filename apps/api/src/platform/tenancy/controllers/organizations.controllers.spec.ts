@@ -1,11 +1,15 @@
 import type { Response } from 'express';
 import { describe, expect, it, jest } from '@jest/globals';
 
-import type { AuthenticatedUser } from '../../auth';
-import type { OrganizationResponse } from '../types';
-import type { OrganizationService } from '../services';
 import type { TenancyError } from '../utils';
+import type { AuthenticatedUser } from '../../auth';
+import type { OrganizationService } from '../services';
 import { OrganizationsControllers } from './organizations.controllers';
+import {
+  MembershipRole,
+  MembershipStatus,
+  type OrganizationResponse,
+} from '../types';
 
 type MockOrganizationService = jest.Mocked<
   Pick<OrganizationService, 'create' | 'get' | 'list'>
@@ -25,8 +29,8 @@ const organizationResponse: OrganizationResponse = {
   version: 1,
   membership: {
     membershipId: 'abcDEF1234567890wxyz_user-123',
-    role: 'OWNER',
-    status: 'ACTIVE',
+    role: MembershipRole.OWNER,
+    status: MembershipStatus.ACTIVE,
   },
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-02T00:00:00.000Z',

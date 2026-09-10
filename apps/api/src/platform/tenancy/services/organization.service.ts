@@ -2,14 +2,20 @@ import { Injectable } from '@nestjs/common';
 
 import { TenancyError } from '../utils';
 import { AuthenticatedUser } from '../../auth';
-import { OrganizationContext, OrganizationResponse } from '../types';
+import { OrganizationPolicyService } from './organizationPolicy.service';
 import { MembershipRepository, OrganizationRepository } from '../repositories';
+import {
+  OrganizationContext,
+  OrganizationPermission,
+  OrganizationResponse,
+} from '../types';
 
 @Injectable()
 export class OrganizationService {
   constructor(
-    private readonly organizations: OrganizationRepository,
     private readonly memberships: MembershipRepository,
+    private readonly policy: OrganizationPolicyService,
+    private readonly organizations: OrganizationRepository,
   ) {}
 
   async create(
@@ -29,7 +35,16 @@ export class OrganizationService {
   async list(
     actor: AuthenticatedUser,
   ): Promise<readonly OrganizationResponse[]> {
-    const memberships = await this.memberships.listActiveForUser(actor.uid);
+    const candidates = await this.memberships.listActiveForUser(actor.uid);
+    const memberships = candidates.filter((membership) =>
+      this.policy.can(
+        membership,
+        actor.uid,
+        membership.organizationId,
+        OrganizationPermission.ORGANIZATION_READ,
+      ),
+    );
+
     const organizations = await this.organizations.findMany(
       memberships.map((membership) => membership.organizationId),
     );
@@ -65,14 +80,11 @@ export class OrganizationService {
     actor: AuthenticatedUser,
     organizationId: string,
   ): Promise<OrganizationResponse> {
-    const membership = await this.memberships.findActive(
+    const membership = await this.policy.authorize(
+      actor,
       organizationId,
-      actor.uid,
+      OrganizationPermission.ORGANIZATION_READ,
     );
-
-    if (membership === null) {
-      throw new TenancyError('ORGANIZATION_NOT_FOUND');
-    }
 
     const organization = await this.organizations.find(organizationId);
 
