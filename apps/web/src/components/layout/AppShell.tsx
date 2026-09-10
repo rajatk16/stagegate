@@ -1,8 +1,9 @@
 import { Link, NavLink, Outlet } from 'react-router';
 
 import { routes } from '../../app/routes';
+import { AccountMenu } from '../../features/auth';
 import { environment } from '../../config/environment';
-import { AccountMenu } from '../../features/auth/components';
+import { OrganizationProvider, OrganizationSwitcher } from '../../features/organizations';
 
 const navigationItems = [
   {
@@ -44,7 +45,7 @@ function Navigation() {
   );
 }
 
-export function AppShell() {
+const AppShellContent = () => {
   const showEnvironment = environment.appEnvironment !== 'production';
 
   return (
@@ -62,7 +63,9 @@ export function AppShell() {
             {environment.appName}
           </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <OrganizationSwitcher />
+
             {showEnvironment ? (
               <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 uppercase">
                 {environment.appEnvironment}
@@ -91,4 +94,10 @@ export function AppShell() {
       </div>
     </div>
   );
-}
+};
+
+export const AppShell = () => (
+  <OrganizationProvider>
+    <AppShellContent />
+  </OrganizationProvider>
+);
