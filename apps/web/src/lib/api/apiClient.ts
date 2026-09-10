@@ -51,7 +51,9 @@ export const apiRequest = async (path: string, init: RequestInit = {}): Promise<
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(`${environment.apiBaseUrl}/api/v1/${path}`, {
+  const normalizedPath = path.replace(/^\/+/, '');
+
+  const response = await fetch(`${environment.apiBaseUrl}/api/v1/${normalizedPath}`, {
     ...init,
     headers,
   });
