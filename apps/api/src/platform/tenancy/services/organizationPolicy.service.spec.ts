@@ -80,10 +80,10 @@ describe('OrganizationPolicyService', () => {
         OrganizationPermission.INVITATION_CREATE,
       ],
     ],
-    [MembershipRole.EVENT_MANAGER, [OrganizationPermission.MEMBERSHIP_READ]],
+    [MembershipRole.EVENT_MANAGER, [OrganizationPermission.ORGANIZATION_READ]],
     [MembershipRole.REVIEWER, [OrganizationPermission.ORGANIZATION_READ]],
-    [MembershipRole.SUBMITTER, [OrganizationPermission.MEMBERSHIP_READ]],
-    [MembershipRole.OBSERVER, [OrganizationPermission.MEMBERSHIP_READ]],
+    [MembershipRole.SUBMITTER, [OrganizationPermission.ORGANIZATION_READ]],
+    [MembershipRole.OBSERVER, [OrganizationPermission.ORGANIZATION_READ]],
   ] as const)(
     'allows %s to use its configured permissions',
     (role, permissions) => {

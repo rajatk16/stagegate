@@ -35,6 +35,23 @@ const problems = {
     title: 'Permission denied',
     detail: 'Your organization role does not allow this action.',
   },
+  INVITATION_UNAVAILABLE: {
+    status: 410,
+    title: 'Invitation unavailable',
+    detail:
+      'The invitation is invalid, expired, used, or no longer authorized.',
+  },
+  INVITATION_EMAIL_MISMATCH: {
+    status: 403,
+    title: 'Invitation email mismatch',
+    detail:
+      'Sign in with the verified email address that received this invitation.',
+  },
+  MEMBERSHIP_ALREADY_EXISTS: {
+    status: 409,
+    title: 'Membership already exists',
+    detail: 'An invitation cannot replace an existing organization membership.',
+  },
 } as const satisfies Record<
   TenancyErrorCode,
   {
