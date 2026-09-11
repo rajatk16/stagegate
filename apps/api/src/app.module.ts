@@ -9,6 +9,7 @@ import { AuthModule } from './platform/auth';
 import { AppController } from './app.controller';
 import { TenancyModule } from './platform/tenancy';
 import { IdentityModule } from './platform/identity';
+import { InvitationModule } from './platform/invitations';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { IdentityModule } from './platform/identity';
     AuthModule,
     TenancyModule,
     IdentityModule,
+    InvitationModule,
     FirebaseAdminModule,
   ],
   controllers: [AppController],

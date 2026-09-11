@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 
 import { AppController } from './app.controller';
 import { PUBLIC_ROUTE_KEY, type AuthenticatedUser } from './platform/auth';
@@ -14,9 +14,7 @@ describe('AppController', () => {
   });
 
   it('marks the API identity route as public', () => {
-    expect(
-      Reflect.getMetadata(PUBLIC_ROUTE_KEY, AppController.prototype.getRoot),
-    ).toBe(true);
+    expect(Reflect.getMetadata(PUBLIC_ROUTE_KEY, AppController.prototype.getRoot)).toBe(true);
   });
 
   it('returns the authenticated session actor', () => {

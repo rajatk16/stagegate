@@ -27,16 +27,16 @@ const ROLE_PERMISSIONS: Readonly<
     OrganizationPermission.INVITATION_CREATE,
   ]),
   EVENT_MANAGER: Object.freeze<OrganizationPermission[]>([
-    OrganizationPermission.MEMBERSHIP_READ,
+    OrganizationPermission.ORGANIZATION_READ,
   ]),
   REVIEWER: Object.freeze<OrganizationPermission[]>([
     OrganizationPermission.ORGANIZATION_READ,
   ]),
   SUBMITTER: Object.freeze<OrganizationPermission[]>([
-    OrganizationPermission.MEMBERSHIP_READ,
+    OrganizationPermission.ORGANIZATION_READ,
   ]),
   OBSERVER: Object.freeze<OrganizationPermission[]>([
-    OrganizationPermission.MEMBERSHIP_READ,
+    OrganizationPermission.ORGANIZATION_READ,
   ]),
 });
 
@@ -116,5 +116,30 @@ export class OrganizationPolicyService {
     }
 
     return ROLE_PERMISSIONS[role];
+  }
+
+  assertCanInvite(
+    membership: Membership | null,
+    actorId: string,
+    organizationId: string,
+    invitedRole: MembershipRole,
+  ): Membership {
+    const current = this.assertAllowed(
+      membership,
+      actorId,
+      organizationId,
+      OrganizationPermission.INVITATION_CREATE,
+    );
+
+    if (
+      !Object.values(MembershipRole).includes(invitedRole) ||
+      invitedRole === MembershipRole.OWNER ||
+      (invitedRole === MembershipRole.ADMIN &&
+        current.role !== MembershipRole.OWNER)
+    ) {
+      throw new TenancyError('PERMISSION_DENIED');
+    }
+
+    return current;
   }
 }

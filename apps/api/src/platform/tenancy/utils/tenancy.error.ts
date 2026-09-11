@@ -4,7 +4,10 @@ export type TenancyErrorCode =
   | 'ORGANIZATION_NOT_FOUND'
   | 'TENANCY_DATA_INVALID'
   | 'TENANCY_UNAVAILABLE'
-  | 'PERMISSION_DENIED';
+  | 'PERMISSION_DENIED'
+  | 'INVITATION_UNAVAILABLE'
+  | 'INVITATION_EMAIL_MISMATCH'
+  | 'MEMBERSHIP_ALREADY_EXISTS';
 
 export interface TenancyFieldError {
   readonly path: string;
