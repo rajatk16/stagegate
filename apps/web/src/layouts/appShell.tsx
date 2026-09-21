@@ -1,0 +1,105 @@
+import { useEffect, useRef } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router";
+import { Layers3, LayoutDashboard, Activity } from "lucide-react";
+
+import { ThemeToggle } from "@/components/custom";
+
+const navigation = [
+  {
+    to: "/",
+    label: "Overview", 
+    icon: LayoutDashboard
+  },
+  {
+    to: "/connection",
+    label: "Connection",
+    icon: Activity
+  }
+];
+
+export const AppShell = () => {
+  const { pathname } = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
+  const title = navigation.find((item) => item.to === pathname)?.label ?? "Page not found";
+
+  useEffect(() => {
+    document.title = `${title} | StageGate`;
+    mainRef.current?.focus({ preventScroll: true });
+  }, [pathname, title]);
+
+  return  (
+    <div className="stagegate-surface min-h-screen bg-background text-foreground">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:p-3 focus:text-primary-foreground">
+        Skip to content
+      </a>
+      <div className="mx-auto min-h-screen md:grid md:grid-cols-[240px_minmax(0,1fr)]">
+        <aside className="border-b bg-card/70 p-5 md:sticky md:top-0 md:h-screen md:border-b-0 md:border-r md:p-6">
+        <Link to="/" className="flex items-center gap-3">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+              <Layers3 className="size-5" aria-hidden="true" />
+            </span>
+            <span>
+              <span className="block font-semibold">StageGate</span>
+              <span className="block text-xs text-muted-foreground">
+                Project workspace
+              </span>
+            </span>
+          </Link>
+
+          <nav 
+            aria-label="main navigation"
+            className="mt-6 flex flex-wrap gap-2 md:mt-10 md:flex-col"
+          >
+            {navigation.map(({ to, label, icon: Icon }) => (
+              <NavLink
+              key={to}
+              to={to}
+              end
+              className={({ isActive }) =>
+                [
+                  "flex items-center gap-3 rounded-xl px-4 py-3 text-sm",
+                  "transition-colors focus-visible:outline-2",
+                  "focus-visible:outline-offset-2 focus-visible:outline-ring",
+                  isActive
+                    ? "bg-primary/10 font-medium text-primary"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                ].join(" ")
+              }
+            >
+              <Icon className="size-4" aria-hidden="true" />
+              {label}
+            </NavLink>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="min-w-0">
+          <header className="flex flex-wrap items-center justify-between gap-4 border-b bg-background/80 px-6 py-4 backdrop-blur md:px-10">
+            <div>
+              <p className="text-sm font-medium">{title}</p>
+              <p className="text-xs text-muted-foreground">
+                StageGate workspace
+              </p>
+            </div>
+
+            <ThemeToggle />
+          </header>
+
+          <main
+            ref={mainRef}
+            id="main-content"
+            tabIndex={-1}
+            className="mx-auto max-w-6xl space-y-8 px-6 py-10 md:px-10 md:py-14"
+          >
+            <Outlet />
+
+            <footer className="border-t pt-6 text-xs text-muted-foreground">
+              StageGate - Built one stage at a time
+            </footer>
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}

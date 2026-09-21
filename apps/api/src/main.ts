@@ -2,18 +2,17 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 
+import { Environment } from './config';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const config = app.get(ConfigService);
+  const config = app.get<ConfigService<Environment, true>>(ConfigService);
 
-  const port = Number(config.get<string>('PORT') ?? 3000);
-  const frontendOrigin = config.get<string>('FRONTEND_ORIGIN') ?? 'http://localhost:5173';
-
-  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
-    throw new Error('PORT must be an integer between 1 and 65535');
-  }
+  const port = config.getOrThrow('PORT', { infer: true });
+  const frontendOrigin = config.getOrThrow('FRONTEND_ORIGIN', {
+    infer: true,
+  });
 
   app.setGlobalPrefix('api/v1');
 

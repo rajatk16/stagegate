@@ -1,9 +1,10 @@
 import { StrictMode } from "react";
 import { ThemeProvider } from "next-themes";
+import { BrowserRouter } from "react-router";
 import { createRoot } from "react-dom/client";
 
 import "@/style.css";
-import App from '@/App';
+import { App } from '@/App';
 
 const rootElement = document.getElementById('app');
 
@@ -20,7 +21,9 @@ createRoot(rootElement).render(
       storageKey="stagegate-theme"
       disableTransitionOnChange
     >
-      <App />
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
     </ThemeProvider>
   </StrictMode>
 );
