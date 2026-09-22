@@ -2,6 +2,8 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { Module, ValidationPipe } from '@nestjs/common';
 
+import { AuthModule } from './auth';
+import { UsersModule } from './users';
 import { HealthModule } from './health';
 import { FirebaseModule } from './firebase';
 import { ApiExceptionFilter } from './common';
@@ -16,6 +18,8 @@ import { validateEnvironment } from './config';
     }),
     HealthModule,
     FirebaseModule,
+    AuthModule,
+    UsersModule,
   ],
   providers: [
     {
