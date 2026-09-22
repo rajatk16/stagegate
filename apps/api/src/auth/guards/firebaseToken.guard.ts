@@ -5,31 +5,13 @@ import {
   Injectable, 
   CanActivate, 
   ExecutionContext, 
-  UnauthorizedException,
-  ServiceUnavailableException
 } from "@nestjs/common";
 
+import { AuthException } from "../../common";
 import { IS_PUBLIC_KEY } from "../decorators";
 import { AuthenticatedRequest } from "../types";
 import { FirebaseService } from "../../firebase/services";
-
-const rejectedCredentialCodes = new Set([
-  'auth/argument-error',
-  'auth/invalid-argument',
-  'auth/invalid-id-token',
-  'auth/id-token-expired',
-  'auth/id-token-revoked',
-  'auth/user-disabled',
-  'auth/user-not-found',
-]);
-
-const getErrorCode = (error: unknown): string | undefined => {
-  if (typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string') {
-    return error.code;
-  }
-
-  return undefined;
-}
+import { getFirebaseErrorCode, toAuthException } from "../mappers";
 
 @Injectable()
 export class FirebaseTokenGuard implements CanActivate {
@@ -41,22 +23,29 @@ export class FirebaseTokenGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(
+    const isPublic = this.reflector.get<boolean>(
       IS_PUBLIC_KEY,
-      [context.getHandler(), context.getClass()],
+      context.getHandler(),
     );
 
-    if (isPublic) {
+    if (isPublic === true) {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
+    const request = context
+      .switchToHttp()
+      .getRequest<AuthenticatedRequest>();
 
-    const header = request.headers.authorization;
-    const match = /^Bearer ([^\s,]+)$/i.exec(header ?? '');
+    const authorization = request.headers.authorization;
+
+    if (authorization === undefined) {
+      throw new AuthException("AUTH_REQUIRED");
+    }
+    
+    const match = /^Bearer ([^\s,]+)$/i.exec(authorization);
 
     if (!match) {
-      throw new UnauthorizedException('A Bearer ID token is required');
+      throw new AuthException('AUTH_INVALID_TOKEN');
     }
 
     let user: DecodedIdToken;
@@ -64,28 +53,28 @@ export class FirebaseTokenGuard implements CanActivate {
     try {
       user = await this.firebase.auth.verifyIdToken(match[1], true);
     } catch (error: unknown) {
-      const code = getErrorCode(error);
+      const mapped = toAuthException(error);
 
-      if (code && rejectedCredentialCodes.has(code)) {
-        throw new UnauthorizedException('Invalid or expired ID token.');
+      if (mapped.code === 'AUTH_UNAVAILABLE') {
+        this.logger.error(
+          `Firebase verification unavailable: ${
+            getFirebaseErrorCode(error) ?? 'unknown'
+          }`
+        );
       }
 
-      this.logger.error(
-        `Firebase token verification failed: ${code ?? 'unknown'}`
-      );
-
-      throw new ServiceUnavailableException(
-        "Authentication is temporarily unavailable."
-      )
+      throw mapped;
     }
 
     if (
+      typeof user.uid !== 'string' ||
+      user.uid.length === 0 ||
       user.uid.includes('/') ||
       user.uid === '.' ||
       user.uid === '..' ||
       /^__.*__$/.test(user.uid)
     ) {
-      throw new UnauthorizedException('Unsupported user identifier');
+      throw new AuthException('AUTH_INVALID_TOKEN');
     }
 
     request.firebaseUser = user;

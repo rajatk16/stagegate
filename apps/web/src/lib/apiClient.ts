@@ -41,7 +41,7 @@ export const apiRequest = async (path: string, options: ApiRequestOptions): Prom
     throw new Error("GET requests cannot include a JSON body.");
   }
 
-  const url = `${API_BASE_URL}/${path.replace(/\/+/, "")}`;
+  const url = `${API_BASE_URL}/${path.replace(/^\/+/, "")}`;
   const headers = new Headers(customHeaders);
 
   if (!headers.has('Accept')) {
@@ -68,9 +68,9 @@ export const apiRequest = async (path: string, options: ApiRequestOptions): Prom
     });
 
     if (!response.ok) {
-      const message = response.status === 502 
-        ? "The gateway could not reach the API. Check that the backend is running." 
-        : "The API returned ${response.status}.";
+      const message = response.status === 502
+        ? "The gateway could not reach the API. Check that the backend is running."
+        : `The API returned HTTP ${response.status}.`;
 
       throw new ApiError(message, "http", response.status);
     }

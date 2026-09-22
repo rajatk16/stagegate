@@ -1,15 +1,21 @@
-import { Link } from "react-router";
 import { useRef, useState } from "react";
+import { Link, useLocation } from "react-router";
 import { LoaderCircle, UserRound } from "lucide-react";
 
 import { useAuth } from "@/hooks"
 import { signOut } from "@/services";
-import { getAuthErrorMessage } from "@/lib";
+import { getAuthErrorMessage, getAuthUrl, getSafeReturnTo } from "@/lib";
 
 import { Badge, Button } from "../ui";
 
 export const AuthStatus = () => {
   const session = useAuth();
+  const location = useLocation();
+
+  const returnTo = getSafeReturnTo(
+    new URLSearchParams(location.search).get('returnTo') ?? 
+      `${location.pathname}${location.search}${location.hash}`
+  );
   const signOutLock = useRef(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +44,9 @@ export const AuthStatus = () => {
   if (session.status === 'unauthenticated') {
     return (
       <Button asChild variant="outline">
-        <Link to="/sign-in">Sign in</Link>
+        <Link to={getAuthUrl("/sign-in", returnTo)}>
+          Sign in
+        </Link>
       </Button>
     );
   }
