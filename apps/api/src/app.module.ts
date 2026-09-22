@@ -3,16 +3,19 @@ import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { Module, ValidationPipe } from '@nestjs/common';
 
 import { HealthModule } from './health';
-import { environmentSchema } from './config';
+import { FirebaseModule } from './firebase';
 import { ApiExceptionFilter } from './common';
+import { validateEnvironment } from './config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      validationSchema: environmentSchema
+      validate: validateEnvironment,
+      ignoreEnvFile: process.env.NODE_ENV === 'production'
     }),
     HealthModule,
+    FirebaseModule,
   ],
   providers: [
     {
