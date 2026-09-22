@@ -18,7 +18,7 @@ const endpoint = new URL(emulatorUrl);
 
 if (
   endpoint.protocol !== "http:" || 
-  !["127.0.0.1", "locahost"].includes(endpoint.hostname) ||
+  !["127.0.0.1", "localhost"].includes(endpoint.hostname) ||
   endpoint.pathname !== '/' ||
   endpoint.search ||
   endpoint.hash ||

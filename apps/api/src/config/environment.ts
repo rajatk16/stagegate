@@ -33,6 +33,9 @@ export const environmentSchema = z.object({
   }),
   FIRESTORE_EMULATOR_HOST: z.string().refine(isLocalEmulatorHost, {
     message: "Must be localhost:PORT or 127.0.0.1:PORT"
+  }).optional(),
+  FIREBASE_AUTH_EMULATOR_HOST: z.string().refine(isLocalEmulatorHost, {
+    message: "Must be localhost:PORT or 127.0.0.1:PORT"
   }).optional()
 }).superRefine((env, context) => {
   const issue = (field: string, message: string) => {
@@ -52,11 +55,13 @@ export const environmentSchema = z.object({
       issue('FIREBASE_PROJECT_ID', 'Production cannot use a demo project');
     }
 
-    if (env.FIRESTORE_EMULATOR_HOST !== undefined) {
-      issue(
-        'FIRESTORE_EMULATOR_HOST',
-        'Must be absent in production',
-      );
+    for (const key of [
+      'FIRESTORE_EMULATOR_HOST',
+      'FIREBASE_AUTH_EMULATOR_HOST',
+    ] as const) {
+      if (env[key] !== undefined) {
+        issue(key, 'Must be absent in production');
+      }
     }
 
     return;
@@ -76,11 +81,13 @@ export const environmentSchema = z.object({
     );
   }
 
-  if (!env.FIRESTORE_EMULATOR_HOST) {
-    issue(
-      'FIRESTORE_EMULATOR_HOST',
-      'Required when using the emulator',
-    );
+  for (const key of [
+    'FIRESTORE_EMULATOR_HOST',
+    'FIREBASE_AUTH_EMULATOR_HOST',
+  ] as const) {
+    if (!env[key]) {
+      issue(key, 'Required when using the emulator');
+    }
   }
 })
 

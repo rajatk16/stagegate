@@ -17,11 +17,18 @@ const navigation = [
   }
 ];
 
+const pageTitles: Record<string, string> = {
+  "/": "Overview",
+  "/connection": "Connection",
+  "/sign-in": "Sign in",
+  "/register": "Create Account"
+}
+
 export const AppShell = () => {
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
-  const title = navigation.find((item) => item.to === pathname)?.label ?? "Page not found";
+  const title = pageTitles[pathname] ?? 'Page not found';
 
   useEffect(() => {
     document.title = `${title} | StageGate`;

@@ -1,4 +1,5 @@
 import { ConfigService } from "@nestjs/config";
+import { Auth, getAuth } from "firebase-admin/auth";
 import { Firestore, getFirestore } from "firebase-admin/firestore";
 import { Injectable, Logger, OnApplicationShutdown } from "@nestjs/common";
 import { App, applicationDefault, deleteApp, initializeApp } from "firebase-admin";
@@ -10,6 +11,7 @@ export class FirebaseService implements OnApplicationShutdown {
   private readonly logger = new Logger(FirebaseService.name);
   private readonly app: App;
 
+  readonly auth: Auth;
   readonly firestore: Firestore;
 
   constructor(config: ConfigService<Environment, true>) {
@@ -24,6 +26,7 @@ export class FirebaseService implements OnApplicationShutdown {
       });
 
       process.env.FIRESTORE_EMULATOR_HOST = host;
+      process.env.FIREBASE_AUTH_EMULATOR_HOST = config.getOrThrow('FIREBASE_AUTH_EMULATOR_HOST', { infer: true });
 
       this.app = initializeApp(
         { projectId },
@@ -43,6 +46,7 @@ export class FirebaseService implements OnApplicationShutdown {
       this.logger.log(`Firestore configured for live project ${projectId}`);
     }
 
+    this.auth = getAuth(this.app);
     this.firestore = getFirestore(this.app);
   }
 
