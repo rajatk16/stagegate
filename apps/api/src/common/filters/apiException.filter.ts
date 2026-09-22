@@ -2,13 +2,8 @@ import { STATUS_CODES } from "node:http";
 import type { Request, Response } from "express";
 import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException, HttpStatus, Logger } from "@nestjs/common";
 
-interface ApiErrorResponse {
-  statusCode: number;
-  error: string;
-  message: string[];
-  path: string;
-  timestamp: string;
-}
+import { ApiException } from "../exceptions";
+import { ApiErrorResponseDto } from "../dtos";
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
@@ -23,7 +18,15 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
     let messages = ['Internal server error'];
 
-    if (exception instanceof HttpException && statusCode < 500) {
+    const code = exception instanceof ApiException 
+      ? exception.code 
+      : statusCode >= 500 
+        ? 'INTERNAL_SERVER_ERROR' 
+        : `HTTP_${statusCode}`;
+
+    if (exception instanceof ApiException) {
+      messages = [exception.publicMessage];
+    } else if (exception instanceof HttpException && statusCode < 500) {
       messages = this.getMessages(exception);
     }
 
@@ -35,14 +38,20 @@ export class ApiExceptionFilter implements ExceptionFilter {
       return;
     }
 
-    const body: ApiErrorResponse = {
+    const body: ApiErrorResponseDto = {
       statusCode,
       error: STATUS_CODES[statusCode] ?? 'Error',
+      code,
       message: messages,
       path: request.path,
       timestamp: new Date().toISOString()
     }
 
+    if (statusCode === HttpStatus.UNAUTHORIZED) {
+      response.setHeader('WWW-Authenticate', 'Bearer realm="stagegate"');
+    }
+
+    response.setHeader('Cache-Control', 'no-store');
     response.status(statusCode).json(body);
   }
 

@@ -15,7 +15,7 @@ export const getAuthErrorMessage = (error: unknown): string => {
       return "Your password does not meet the account requirements."
     case "auth/invalid-credentials":
     case "auth/wrong-password":
-    case "auth.user-not-found":
+    case "auth/user-not-found":
       return "The email or password is incorrect.";
     case "auth/user-disabled":
       return "This account is disabled.";

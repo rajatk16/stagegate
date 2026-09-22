@@ -1,13 +1,14 @@
-import { FormEvent, useRef, useState } from "react";
 import { useForm } from 'react-hook-form';
+import { LoaderCircle } from "lucide-react";
+import { FormEvent, useRef, useState } from "react";
+import { Link, Navigate, useSearchParams } from "react-router";
 
 import { useAuth } from "@/hooks";
 import { registerAccount, signIn } from "@/services";
-import { getAuthErrorMessage } from "@/lib";
-import { Link, Navigate } from "react-router";
-import { Button, Card, CardContent, CardDescription, CardHeader } from "../ui";
+import { getAuthErrorMessage, getAuthUrl, getSafeReturnTo } from "@/lib";
+
 import { AuthField } from "./authField";
-import { LoaderCircle } from "lucide-react";
+import { Button, Card, CardContent, CardDescription, CardHeader } from "../ui";
 
 type AuthFormProps = {
   mode: "register" | "sign-in";
@@ -22,6 +23,8 @@ type FormValues = {
 export const AuthForm = ({ mode }: AuthFormProps) => {
   const session = useAuth();
   const submissionLock = useRef(false);
+  const [searchParams] = useSearchParams();
+  const returnTo = getSafeReturnTo(searchParams.get('returnTo'));
   const [awaitingSession, setAwaitingSession] = useState(false);
 
   const isRegistration = mode === 'register';
@@ -66,6 +69,8 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
 
     if (submissionLock.current || pending) return;
 
+    submissionLock.current = true;
+
     try {
       await handleSubmit(submit)(event);
     } finally {
@@ -74,7 +79,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
   }
 
   if (session.status === "authenticated") {
-    return <Navigate to="/" replace />;
+    return <Navigate to={returnTo} replace />;
   }
 
   const title = isRegistration ? "Create your account" : "Welcome back";
@@ -196,7 +201,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
               <>
                 {isRegistration ? "Already have an account?" : "New to StageGate?"}
 
-                <Link to={isRegistration ? "/sign-in" : "/register"} className="font-medium text-primary underline-offset-4 hover:underline">
+                <Link to={getAuthUrl(isRegistration ? '/sign-in' : '/register', returnTo)} className='font-medium text-primary underline underline-offset-4 hover:underline'>
                   {isRegistration ? "Sign in" : "Create an account"}
                 </Link>
               </>

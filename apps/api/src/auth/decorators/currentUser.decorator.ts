@@ -1,6 +1,7 @@
 import { DecodedIdToken } from "firebase-admin/auth";
-import { createParamDecorator, ExecutionContext, UnauthorizedException } from "@nestjs/common";
+import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 
+import { AuthException } from "../../common";
 import { AuthenticatedRequest } from "../types";
 
 export const CurrentUser = createParamDecorator(
@@ -8,7 +9,7 @@ export const CurrentUser = createParamDecorator(
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
 
     if (!request.firebaseUser) {
-      throw new UnauthorizedException('Authentication required');
+      throw new AuthException('AUTH_REQUIRED');
     }
 
     return request.firebaseUser;
