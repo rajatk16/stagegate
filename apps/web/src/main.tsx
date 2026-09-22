@@ -5,6 +5,8 @@ import { createRoot } from "react-dom/client";
 
 import "@/style.css";
 import { App } from '@/App';
+import { AuthProvider } from "@/providers";
+import { SessionBoundary } from "@/layouts";
 
 const rootElement = document.getElementById('app');
 
@@ -21,9 +23,13 @@ createRoot(rootElement).render(
       storageKey="stagegate-theme"
       disableTransitionOnChange
     >
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <SessionBoundary>
+            <App />
+          </SessionBoundary>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   </StrictMode>
 );

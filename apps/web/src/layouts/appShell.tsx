@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { Layers3, LayoutDashboard, Activity } from "lucide-react";
 
-import { ThemeToggle } from "@/components/custom";
+import { AuthStatus, ThemeToggle } from "@/components/custom";
 
 const navigation = [
   {
@@ -83,7 +83,10 @@ export const AppShell = () => {
               </p>
             </div>
 
-            <ThemeToggle />
+            <div className="flex flex-wrap items-center gap-3">
+              <AuthStatus />
+              <ThemeToggle />
+            </div>
           </header>
 
           <main
