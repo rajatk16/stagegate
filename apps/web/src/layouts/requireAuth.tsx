@@ -22,5 +22,13 @@ export const RequireAuth = () => {
     );
   }
 
+  if(!session.user.emailVerified) {
+    const returnTo = location.pathname + location.search + location.hash;
+
+    return (
+      <Navigate to={getAuthUrl("/verify-email", returnTo)} replace />
+    );
+  }
+
   return <Outlet />;
 }

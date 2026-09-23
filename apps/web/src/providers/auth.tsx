@@ -1,4 +1,4 @@
-import { onAuthStateChanged } from "firebase/auth";
+import { onIdTokenChanged } from "firebase/auth";
 import { PropsWithChildren, useEffect, useState } from "react";
 
 import { firebaseAuth } from "@/lib";
@@ -11,7 +11,7 @@ export const AuthProvider = (props: PropsWithChildren) => {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
+    const unsubscribe = onIdTokenChanged(firebaseAuth, (user) => {
       if (user) {
         setSession({
           status: 'authenticated',

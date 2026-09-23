@@ -8,7 +8,7 @@ import {
 } from "@nestjs/common";
 
 import { AuthException } from "../../common";
-import { IS_PUBLIC_KEY } from "../decorators";
+import { IS_PUBLIC_KEY } from "../constants";
 import { AuthenticatedRequest } from "../types";
 import { FirebaseService } from "../../firebase/services";
 import { getFirebaseErrorCode, toAuthException } from "../mappers";
