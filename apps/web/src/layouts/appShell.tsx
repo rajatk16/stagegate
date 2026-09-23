@@ -21,7 +21,10 @@ const pageTitles: Record<string, string> = {
   "/": "Overview",
   "/connection": "Connection",
   "/sign-in": "Sign in",
-  "/register": "Create Account"
+  "/register": "Create Account",
+  "/verify-email": "Verify email",
+  "/forgot-password": "Reset password",
+  "/auth/action": "Account recovery",
 }
 
 export const AppShell = () => {

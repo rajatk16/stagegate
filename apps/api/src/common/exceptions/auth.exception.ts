@@ -27,6 +27,10 @@ const authErrors = {
     status: HttpStatus.SERVICE_UNAVAILABLE,
     message: 'Authentication is temporarily unavailable.',
   },
+  AUTH_EMAIL_NOT_VERIFIED: {
+    status: HttpStatus.FORBIDDEN,
+    message: 'Verify your email address before performing this action.'
+  }
 }
 
 export type AuthErrorCode = keyof typeof authErrors;

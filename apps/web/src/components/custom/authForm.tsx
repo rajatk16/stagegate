@@ -79,7 +79,16 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
   }
 
   if (session.status === "authenticated") {
-    return <Navigate to={returnTo} replace />;
+    return (
+      <Navigate 
+        to={
+          session.user.emailVerified 
+            ? returnTo
+            : getAuthUrl("/verify-email", returnTo)
+        } 
+        replace 
+      />
+    );
   }
 
   const title = isRegistration ? "Create your account" : "Welcome back";
@@ -177,6 +186,15 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                     "The passwords do not match.",
                 })}
               />
+            )}
+
+            {!isRegistration && !pending && (
+              <Link
+                to={getAuthUrl("/forgot-password", returnTo)}
+                className="block text-sm text-primary underline"
+              >
+                Forgot your password?
+              </Link>
             )}
 
             <Button type="submit" disabled={pending} className="h-11 w-full">

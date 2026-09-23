@@ -20,7 +20,8 @@ async function bootstrap() {
   app.setGlobalPrefix('api/v1');
 
   app.enableCors({
-    origin: frontendOrigin
+    origin: frontendOrigin,
+    exposedHeaders: ['Retry-After']
   });
 
   await app.listen(port);

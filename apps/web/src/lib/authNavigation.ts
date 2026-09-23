@@ -30,7 +30,7 @@ export const getSafeReturnTo = (value: string | null | undefined): string => {
 }
 
 export const getAuthUrl = (
-  page: "/sign-in" | "/register",
+  page: "/sign-in" | "/register" | "/verify-email" | "/forgot-password",
   returnTo: string
 ): string => {
   const search = new URLSearchParams({
@@ -38,4 +38,20 @@ export const getAuthUrl = (
   });
 
   return `${page}?${search.toString()}`;
+}
+
+export const getEmailReturnTo = (continueUrl: string | null): string => {
+  if (!continueUrl) return "/";
+
+  try {
+    const url = new URL(continueUrl);
+
+    if (url.origin !== window.location.origin) {
+      return "/";
+    }
+
+    return getSafeReturnTo(url.searchParams.get("returnTo"));
+  } catch {
+    return "/";
+  }
 }
