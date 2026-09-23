@@ -89,6 +89,8 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
         replace 
       />
     );
+
+    return <Navigate to={returnTo} replace />;
   }
 
   const title = isRegistration ? "Create your account" : "Welcome back";
