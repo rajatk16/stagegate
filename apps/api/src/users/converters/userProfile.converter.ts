@@ -25,6 +25,9 @@ export const userProfileConverter: FirestoreDataConverter<UserProfile, UserProfi
       email: profile.email,
       displayName: profile.displayName,
       photoURL: profile.photoURL,
+      biography: profile.biography,
+      affiliation: profile.affiliation,
+      timezone: profile.timezone,
       createdAt: Timestamp.fromDate(profile.createdAt),
       updatedAt: Timestamp.fromDate(profile.updatedAt),
     };
@@ -52,6 +55,9 @@ export const userProfileConverter: FirestoreDataConverter<UserProfile, UserProfi
       email: document.email,
       displayName: document.displayName,
       photoURL: document.photoURL,
+      biography: document.biography,
+      affiliation: document.affiliation,
+      timezone: document.timezone,
       createdAt: document.createdAt.toDate(),
       updatedAt: document.updatedAt.toDate(),
     };

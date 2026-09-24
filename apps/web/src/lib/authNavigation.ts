@@ -2,7 +2,8 @@ const DEFAULT_RETURN_TO = "/";
 
 const allowedReturnPaths = new Set([
   "/",
-  "/connection"
+  "/connection",
+  "/profile"
 ]);
 
 export const getSafeReturnTo = (value: string | null | undefined): string => {

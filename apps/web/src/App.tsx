@@ -3,7 +3,7 @@ import { Route, Routes } from "react-router";
 import { AuthForm } from "@/components/custom";
 import { AppShell, RequireAuth } from "@/layouts";
 
-import { Connection, EmailAction, ForgotPassword, NotFound, Overview, VerifyEmail } from "@/pages";
+import { Connection, EmailAction, ForgotPassword, NotFound, Overview, Profile, VerifyEmail } from "@/pages";
 
 export const App = () => (
   <Routes>
@@ -21,6 +21,7 @@ export const App = () => (
       <Route element={<RequireAuth />}>
         <Route index element={<Overview />} />
         <Route path="connection" element={<Connection />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
 
       <Route path="verify-email" element={<VerifyEmail />} />
