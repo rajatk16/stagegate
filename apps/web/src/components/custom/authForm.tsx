@@ -1,5 +1,4 @@
 import { useForm } from 'react-hook-form';
-import { LoaderCircle } from "lucide-react";
 import { FormEvent, useRef, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router";
 
@@ -7,8 +6,9 @@ import { useAuth } from "@/hooks";
 import { registerAccount, signIn } from "@/services";
 import { getAuthErrorMessage, getAuthUrl, getSafeReturnTo } from "@/lib";
 
-import { AuthField } from "./authField";
-import { Button, Card, CardContent, CardDescription, CardHeader } from "../ui";
+import { InlineAlert } from './alerts';
+import { InputField, SubmitButton } from "./form";
+import { Card, CardContent, CardDescription, CardHeader } from "../ui";
 
 type AuthFormProps = {
   mode: "register" | "sign-in";
@@ -89,8 +89,6 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
         replace 
       />
     );
-
-    return <Navigate to={returnTo} replace />;
   }
 
   const title = isRegistration ? "Create your account" : "Welcome back";
@@ -127,18 +125,15 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
           className="space-y-5"
         >
           {errors.root?.server?.message && (
-            <div
-              role="alert"
-              className="rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
-            >
+            <InlineAlert tone="error" title='Could not continue'>
               {errors.root.server.message}
-            </div>
+            </InlineAlert>
           )}
 
           <fieldset disabled={pending} className="space-y-5">
             <legend className="sr-only">{title}</legend>
 
-            <AuthField 
+            <InputField 
               id="auth-email"
               label="Email address"
               type="email"
@@ -154,7 +149,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
               })}
             />
 
-            <AuthField 
+            <InputField 
               id="auth-password"
               label="Password"
               type="password"
@@ -174,7 +169,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
             />
 
             {isRegistration && (
-              <AuthField
+              <InputField
                 id="auth-confirm-password"
                 label="Confirm password"
                 type="password"
@@ -199,15 +194,13 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
               </Link>
             )}
 
-            <Button type="submit" disabled={pending} className="h-11 w-full">
-              {pending && (
-                <LoaderCircle 
-                  className="size-4 motion-safe:animate-spin"
-                  aria-hidden="true"
-                />
-              )}
-              {pending ? pendingLabel : actionLabel}
-            </Button>
+            <SubmitButton
+              pending={pending}
+              pendingLabel={pendingLabel}
+              className="h-11 w-full"
+            >
+              {actionLabel}
+            </SubmitButton>
           </fieldset>
 
           <p role="status" className="sr-only">

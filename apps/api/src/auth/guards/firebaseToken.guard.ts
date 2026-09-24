@@ -1,25 +1,20 @@
 import { Reflector } from "@nestjs/core";
 import { DecodedIdToken } from "firebase-admin/auth";
-import { 
-  Logger, 
-  Injectable, 
-  CanActivate, 
-  ExecutionContext, 
-} from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
 
 import { AuthException } from "../../common";
 import { IS_PUBLIC_KEY } from "../constants";
+import { toAuthException } from "../mappers";
 import { AuthenticatedRequest } from "../types";
 import { FirebaseService } from "../../firebase/services";
-import { getFirebaseErrorCode, toAuthException } from "../mappers";
+import { RequestContextService } from "../../observalibility";
 
 @Injectable()
 export class FirebaseTokenGuard implements CanActivate {
-  private readonly logger = new Logger(FirebaseTokenGuard.name);
-
   constructor(
     private readonly reflector: Reflector,
-    private readonly firebase: FirebaseService
+    private readonly firebase: FirebaseService,
+    private readonly contextService: RequestContextService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -53,17 +48,7 @@ export class FirebaseTokenGuard implements CanActivate {
     try {
       user = await this.firebase.auth.verifyIdToken(match[1], true);
     } catch (error: unknown) {
-      const mapped = toAuthException(error);
-
-      if (mapped.code === 'AUTH_UNAVAILABLE') {
-        this.logger.error(
-          `Firebase verification unavailable: ${
-            getFirebaseErrorCode(error) ?? 'unknown'
-          }`
-        );
-      }
-
-      throw mapped;
+      throw toAuthException(error);
     }
 
     if (
@@ -78,6 +63,7 @@ export class FirebaseTokenGuard implements CanActivate {
     }
 
     request.firebaseUser = user;
+    this.contextService.setActor(user.uid);
     return true;
   }
 }

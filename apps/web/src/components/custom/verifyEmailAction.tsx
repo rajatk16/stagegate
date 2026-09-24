@@ -6,6 +6,7 @@ import { useAuthAction } from "@/hooks";
 import { verifyEmailCode } from "@/services";
 
 import { Button } from "../ui";
+import { InlineAlert } from "./alerts";
 
 type ActionProps = {
   code: string;
@@ -48,9 +49,9 @@ export const VerifyEmailAction = ({ code, returnTo }: ActionProps) => {
 
           {error && (
             <div className="space-y-3">
-              <p role="alert" className="text-sm text-destructive">
+              <InlineAlert tone="error" title="Could not continue">
                 {error}
-              </p>
+              </InlineAlert>
 
               <Link to={getAuthUrl("/verify-email", returnTo)} className="text-sm text-primary underline">
                 Request another verification email

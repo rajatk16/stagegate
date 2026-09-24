@@ -3,6 +3,8 @@ import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { Layers3, LayoutDashboard, Activity, UserRound } from "lucide-react";
 
 import { AuthStatus, ThemeToggle } from "@/components/custom";
+import { useAuth } from "@/hooks";
+import { ErrorBoundary } from "./errorBoundary";
 
 const navigation = [
   {
@@ -34,7 +36,11 @@ const pageTitles: Record<string, string> = {
 }
 
 export const AppShell = () => {
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
+  const session = useAuth();
+
+  const pageBoundaryKey = `${location.key}:${session.user?.uid ?? session.status}`
   const mainRef = useRef<HTMLElement>(null);
 
   const title = pageTitles[pathname] ?? 'Page not found';
@@ -111,7 +117,9 @@ export const AppShell = () => {
             tabIndex={-1}
             className="mx-auto max-w-6xl space-y-8 px-6 py-10 md:px-10 md:py-14"
           >
-            <Outlet />
+            <ErrorBoundary key={pageBoundaryKey} scope="page">
+              <Outlet />
+            </ErrorBoundary>
 
             <footer className="border-t pt-6 text-xs text-muted-foreground">
               StageGate - Built one stage at a time
