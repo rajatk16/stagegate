@@ -5,4 +5,5 @@ export class ApiErrorResponseDto {
   message!: string[];
   path!: string;
   timestamp!: string;
+  requestId!: string;
 }

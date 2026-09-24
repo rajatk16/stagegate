@@ -5,10 +5,14 @@ import { UserProfileChanges } from "../types";
 import { userProfileConverter } from "../converters";
 import { toUserProfileUpdateDocument } from "../mappers";
 import { FirebaseService } from "../../firebase/services";
+import { AuditWriter, PROFILE_FIELDS } from "../../audit";
 
 @Injectable()
 export class UsersRepository {
-  constructor(private readonly firebase: FirebaseService) {}
+  constructor(
+    private readonly audit: AuditWriter,
+    private readonly firebase: FirebaseService,
+  ) {}
 
   private collection() {
     return this.firebase.firestore
@@ -44,6 +48,15 @@ export class UsersRepository {
     changes: UserProfileChanges
   ): Promise<UserProfile> {
     const reference = this.document(candidate.uid);
+
+    const fields = PROFILE_FIELDS.filter(
+      (field) => changes[field] !== undefined
+    );
+
+    const auditEvent = this.audit.prepareProfileUpdated(
+      candidate.uid,
+      fields
+    );
 
     return this.firebase.firestore.runTransaction(
       async (transaction): Promise<UserProfile> => {
@@ -95,6 +108,8 @@ export class UsersRepository {
         } else {
           transaction.update(reference, documentPatch);
         }
+
+        this.audit.append(transaction, auditEvent);
 
         return updatedProfile;
       } 

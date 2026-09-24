@@ -5,6 +5,7 @@ import { getProfile, getProfileErrorMessage, Profile } from "@/services";
 
 import { Button } from "../ui";
 import { ProfileForm } from "./profileForm";
+import { InlineAlert } from "./alerts";
 
 type ProfileState = 
   | { status: "loading" } 
@@ -55,13 +56,9 @@ export const ProfileLoader = ({ user }: { user: User}) => {
   if (state.status === "error") {
     return (
       <div className="max-w-3xl space-y-4 rounded-xl border bg-card p-6">
-        <h1 className="text-xl font-semibold">
-          Could not load your profile
-        </h1>
-
-        <p role="alert" className="text-sm text-destructive">
+        <InlineAlert tone="error" title="Could not load your profile">
           {state.message}
-        </p>
+        </InlineAlert>
 
         <Button
           type="button"
