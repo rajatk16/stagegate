@@ -21,13 +21,13 @@ export class ApiError extends Error {
   }
 }
 
-type ApiRequestOptions = Omit<RequestInit, "body" | "method"> & {
+export type ApiRequestOptions = Omit<RequestInit, "body" | "method"> & {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   json?: unknown;
-  timeoutMs: number;
+  timeoutMs?: number;
 };
 
-export const apiRequest = async (path: string, options: ApiRequestOptions): Promise<unknown> => {
+export const apiRequest = async (path: string, options: ApiRequestOptions = {}): Promise<unknown> => {
   const {
     json,
     timeoutMs = 8_000,

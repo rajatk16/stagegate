@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
-import { Layers3, LayoutDashboard, Activity } from "lucide-react";
+import { Layers3, LayoutDashboard, Activity, UserRound } from "lucide-react";
 
 import { AuthStatus, ThemeToggle } from "@/components/custom";
 
@@ -14,6 +14,11 @@ const navigation = [
     to: "/connection",
     label: "Connection",
     icon: Activity
+  },
+  {
+    to: "/profile",
+    label: "Profile",
+    icon: UserRound
   }
 ];
 
@@ -25,6 +30,7 @@ const pageTitles: Record<string, string> = {
   "/verify-email": "Verify email",
   "/forgot-password": "Reset password",
   "/auth/action": "Account recovery",
+  "/profile": "Profile"
 }
 
 export const AppShell = () => {
