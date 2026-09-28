@@ -14,7 +14,7 @@ import { validateEnvironment } from './config';
     ConfigModule.forRoot({
       isGlobal: true,
       validate: validateEnvironment,
-      ignoreEnvFile: process.env.NODE_ENV === 'production'
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     HealthModule,
     FirebaseModule,
@@ -24,24 +24,25 @@ import { validateEnvironment } from './config';
   providers: [
     {
       provide: APP_PIPE,
-      useFactory: () => new ValidationPipe({
-        transform: true,
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        forbidUnknownValues: true,
-        transformOptions: {
-          enableImplicitConversion: false
-        },
-        validationError: {
-          target: false,
-          value: false
-        }
-      })
+      useFactory: () =>
+        new ValidationPipe({
+          transform: true,
+          whitelist: true,
+          forbidNonWhitelisted: true,
+          forbidUnknownValues: true,
+          transformOptions: {
+            enableImplicitConversion: false,
+          },
+          validationError: {
+            target: false,
+            value: false,
+          },
+        }),
     },
     {
       provide: APP_FILTER,
-      useClass: ApiExceptionFilter
-    }
-  ]
+      useClass: ApiExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

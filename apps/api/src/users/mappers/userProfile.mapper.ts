@@ -1,11 +1,11 @@
-import { DecodedIdToken } from "firebase-admin/auth"
+import { DecodedIdToken } from 'firebase-admin/auth';
 
-import { UserProfile } from "../models"
-import { MeResponseDto } from "../dtos";
+import { UserProfile } from '../models';
+import { MeResponseDto } from '../dtos';
 
 export const toNewUserProfile = (
   user: DecodedIdToken,
-  now: Date
+  now: Date,
 ): UserProfile => ({
   uid: user.uid,
   email: typeof user.email === 'string' ? user.email : null,
@@ -18,7 +18,10 @@ export const toNewUserProfile = (
   updatedAt: now,
 });
 
-export const toMeResponseDto = (profile: UserProfile, user: DecodedIdToken): MeResponseDto => {
+export const toMeResponseDto = (
+  profile: UserProfile,
+  user: DecodedIdToken,
+): MeResponseDto => {
   if (profile.uid !== user.uid) {
     throw new Error('Profile identity mismatch');
   }
@@ -32,7 +35,6 @@ export const toMeResponseDto = (profile: UserProfile, user: DecodedIdToken): MeR
     affiliation: profile.affiliation,
     timezone: profile.timezone,
     createdAt: profile.createdAt.toISOString(),
-    updatedAt: profile.updatedAt.toISOString()
+    updatedAt: profile.updatedAt.toISOString(),
   });
 };
-  

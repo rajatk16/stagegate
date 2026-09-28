@@ -6,7 +6,8 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "emulators": "firebase emulators:start --only auth,firestore --project demo-stagegate"
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-stagegate",
+    "check:api": "npm run check --workspace api"
   },
   "packageManager": "npm@11.19.0",
   "devDependencies": {

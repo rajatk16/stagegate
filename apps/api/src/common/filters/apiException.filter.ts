@@ -1,9 +1,16 @@
-import { STATUS_CODES } from "node:http";
-import type { Request, Response } from "express";
-import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException, HttpStatus, Logger } from "@nestjs/common";
+import { STATUS_CODES } from 'node:http';
+import type { Request, Response } from 'express';
+import {
+  type ArgumentsHost,
+  Catch,
+  type ExceptionFilter,
+  HttpException,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 
-import { ApiException } from "../exceptions";
-import { ApiErrorResponseDto } from "../dtos";
+import { ApiException } from '../exceptions';
+import { ApiErrorResponseDto } from '../dtos';
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
@@ -14,15 +21,19 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const request = context.getRequest<Request>();
     const response = context.getResponse<Response>();
 
-    const statusCode = exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+    const statusCode =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
 
     let messages = ['Internal server error'];
 
-    const code = exception instanceof ApiException 
-      ? exception.code 
-      : statusCode >= 500 
-        ? 'INTERNAL_SERVER_ERROR' 
-        : `HTTP_${statusCode}`;
+    const code =
+      exception instanceof ApiException
+        ? exception.code
+        : statusCode >= 500
+          ? 'INTERNAL_SERVER_ERROR'
+          : `HTTP_${statusCode}`;
 
     if (exception instanceof ApiException) {
       messages = [exception.publicMessage];
@@ -31,7 +42,12 @@ export class ApiExceptionFilter implements ExceptionFilter {
     }
 
     if (statusCode >= 500) {
-      this.logger.error(`${request.method} ${request.path} failed (${statusCode})`, exception instanceof Error ? exception.stack : 'A non-Error value was thrown')
+      this.logger.error(
+        `${request.method} ${request.path} failed (${statusCode})`,
+        exception instanceof Error
+          ? exception.stack
+          : 'A non-Error value was thrown',
+      );
     }
 
     if (response.headersSent) {
@@ -44,8 +60,8 @@ export class ApiExceptionFilter implements ExceptionFilter {
       code,
       message: messages,
       path: request.path,
-      timestamp: new Date().toISOString()
-    }
+      timestamp: new Date().toISOString(),
+    };
 
     if (statusCode === HttpStatus.UNAUTHORIZED) {
       response.setHeader('WWW-Authenticate', 'Bearer realm="stagegate"');
@@ -70,7 +86,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
       if (Array.isArray(message)) {
         const messages = message.filter(
-          (item): item is string => typeof item === 'string'
+          (item): item is string => typeof item === 'string',
         );
 
         if (messages.length > 0) {

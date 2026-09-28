@@ -1,10 +1,10 @@
-import { type DecodedIdToken } from "firebase-admin/auth";
-import { Body, Controller, Get, Header, Patch } from "@nestjs/common";
+import { type DecodedIdToken } from 'firebase-admin/auth';
+import { Body, Controller, Get, Header, Patch } from '@nestjs/common';
 
-import { UsersService } from "../services";
-import { toMeResponseDto } from "../mappers";
-import { CurrentUser } from "../../auth/decorators";
-import { MeResponseDto, UpdateProfileDto } from "../dtos";
+import { UsersService } from '../services';
+import { toMeResponseDto } from '../mappers';
+import { CurrentUser } from '../../auth/decorators';
+import { MeResponseDto, UpdateProfileDto } from '../dtos';
 
 @Controller('users')
 export class UsersController {
@@ -22,7 +22,7 @@ export class UsersController {
   @Header('Cache-Control', 'no-store')
   async updateMe(
     @CurrentUser() user: DecodedIdToken,
-    @Body() dto: UpdateProfileDto
+    @Body() dto: UpdateProfileDto,
   ): Promise<MeResponseDto> {
     const profile = await this.users.updateProfile(user, dto);
 

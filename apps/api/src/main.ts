@@ -4,12 +4,11 @@ import { ConfigService } from '@nestjs/config';
 
 import { Environment } from './config';
 import { AppModule } from './app.module';
+import { installGracefulShutdown } from './installGracefulShutdown';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  
-  app.enableShutdownHooks();
-  
+
   const config = app.get<ConfigService<Environment, true>>(ConfigService);
 
   const port = config.getOrThrow('PORT', { infer: true });
@@ -21,12 +20,22 @@ async function bootstrap() {
 
   app.enableCors({
     origin: frontendOrigin,
-    exposedHeaders: ['Retry-After']
+    exposedHeaders: ['Retry-After'],
   });
 
-  await app.listen(port);
+  installGracefulShutdown(
+    app,
+    config.getOrThrow('SHUTDOWN_TIMEOUT_MS', {
+      infer: true,
+    }),
+  );
 
-  Logger.log(`Health endpoint: http://localhost:${port}/api/v1/health`, 'Bootstrap');
+  await app.listen(port, '0.0.0.0');
+
+  Logger.log(
+    `Health endpoint: http://localhost:${port}/api/v1/health`,
+    'Bootstrap',
+  );
 }
 
 bootstrap().catch((error: unknown) => {

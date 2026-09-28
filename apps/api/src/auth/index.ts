@@ -1,14 +1,14 @@
-import { Module } from "@nestjs/common";
-import { APP_GUARD } from "@nestjs/core";
-import { ThrottlerModule } from "@nestjs/throttler";
+import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 
-import { FirebaseModule } from "../firebase";
-import { 
-  FirebaseTokenGuard, 
-  VerifiedEmailGuard, 
-  SensitiveIpThrottleGuard, 
-  SensitiveUserThrottleGuard 
-} from "./guards";
+import { FirebaseModule } from '../firebase';
+import {
+  FirebaseTokenGuard,
+  VerifiedEmailGuard,
+  SensitiveIpThrottleGuard,
+  SensitiveUserThrottleGuard,
+} from './guards';
 
 @Module({
   imports: [
@@ -24,27 +24,27 @@ import {
           name: 'user',
           limit: 5,
           ttl: 60_000,
-        }
-      ]
-    })
+        },
+      ],
+    }),
   ],
   providers: [
     {
       provide: APP_GUARD,
-      useClass: SensitiveIpThrottleGuard
+      useClass: SensitiveIpThrottleGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: FirebaseTokenGuard
+      useClass: FirebaseTokenGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: SensitiveUserThrottleGuard
+      useClass: SensitiveUserThrottleGuard,
     },
     {
       provide: APP_GUARD,
-      useClass: VerifiedEmailGuard
-    }
-  ]
+      useClass: VerifiedEmailGuard,
+    },
+  ],
 })
 export class AuthModule {}

@@ -1,6 +1,6 @@
-import { HttpStatus } from "@nestjs/common";
+import { HttpStatus } from '@nestjs/common';
 
-import { ApiException } from "./api.exception";
+import { ApiException } from './api.exception';
 
 const authErrors = {
   AUTH_REQUIRED: {
@@ -29,16 +29,14 @@ const authErrors = {
   },
   AUTH_EMAIL_NOT_VERIFIED: {
     status: HttpStatus.FORBIDDEN,
-    message: 'Verify your email address before performing this action.'
-  }
-}
+    message: 'Verify your email address before performing this action.',
+  },
+};
 
 export type AuthErrorCode = keyof typeof authErrors;
 
 export class AuthException extends ApiException {
-  constructor(
-    code: AuthErrorCode
-  ) {
+  constructor(code: AuthErrorCode) {
     const error = authErrors[code];
 
     super(error.status, code, error.message);

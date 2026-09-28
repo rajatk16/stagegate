@@ -1,17 +1,17 @@
-import { Reflector } from "@nestjs/core";
-import { DecodedIdToken } from "firebase-admin/auth";
-import { 
-  Logger, 
-  Injectable, 
-  CanActivate, 
-  ExecutionContext, 
-} from "@nestjs/common";
+import { Reflector } from '@nestjs/core';
+import { DecodedIdToken } from 'firebase-admin/auth';
+import {
+  Logger,
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+} from '@nestjs/common';
 
-import { AuthException } from "../../common";
-import { IS_PUBLIC_KEY } from "../constants";
-import { AuthenticatedRequest } from "../types";
-import { FirebaseService } from "../../firebase/services";
-import { getFirebaseErrorCode, toAuthException } from "../mappers";
+import { AuthException } from '../../common';
+import { IS_PUBLIC_KEY } from '../constants';
+import { AuthenticatedRequest } from '../types';
+import { FirebaseService } from '../../firebase/services';
+import { getFirebaseErrorCode, toAuthException } from '../mappers';
 
 @Injectable()
 export class FirebaseTokenGuard implements CanActivate {
@@ -19,7 +19,7 @@ export class FirebaseTokenGuard implements CanActivate {
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly firebase: FirebaseService
+    private readonly firebase: FirebaseService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -32,16 +32,14 @@ export class FirebaseTokenGuard implements CanActivate {
       return true;
     }
 
-    const request = context
-      .switchToHttp()
-      .getRequest<AuthenticatedRequest>();
+    const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
 
     const authorization = request.headers.authorization;
 
     if (authorization === undefined) {
-      throw new AuthException("AUTH_REQUIRED");
+      throw new AuthException('AUTH_REQUIRED');
     }
-    
+
     const match = /^Bearer ([^\s,]+)$/i.exec(authorization);
 
     if (!match) {
@@ -59,7 +57,7 @@ export class FirebaseTokenGuard implements CanActivate {
         this.logger.error(
           `Firebase verification unavailable: ${
             getFirebaseErrorCode(error) ?? 'unknown'
-          }`
+          }`,
         );
       }
 

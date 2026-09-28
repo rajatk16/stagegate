@@ -9,7 +9,7 @@ export const userProfileSchema = z.object({
   affiliation: z.string().max(120).nullable().default(null),
   timezone: z.string().nullable().default(null),
   createdAt: z.date(),
-  updatedAt: z.date()
+  updatedAt: z.date(),
 });
 
 export type UserProfile = z.infer<typeof userProfileSchema>;
