@@ -8,6 +8,7 @@ import { HealthModule } from './health';
 import { FirebaseModule } from './firebase';
 import { ApiExceptionFilter } from './common';
 import { validateEnvironment } from './config';
+import { ObservabilityModule } from './observalibility';
 
 @Module({
   imports: [
@@ -16,10 +17,11 @@ import { validateEnvironment } from './config';
       validate: validateEnvironment,
       ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
-    HealthModule,
-    FirebaseModule,
     AuthModule,
     UsersModule,
+    HealthModule,
+    FirebaseModule,
+    ObservabilityModule,
   ],
   providers: [
     {

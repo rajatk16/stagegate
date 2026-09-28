@@ -6,11 +6,12 @@ import { useAuthAction } from "@/hooks";
 import { verifyEmailCode } from "@/services";
 
 import { Button } from "../ui";
+import { InlineAlert } from "./alerts";
 
 type ActionProps = {
   code: string;
   returnTo: string;
-}
+};
 
 export const VerifyEmailAction = ({ code, returnTo }: ActionProps) => {
   const [complete, setComplete] = useState(false);
@@ -20,14 +21,15 @@ export const VerifyEmailAction = ({ code, returnTo }: ActionProps) => {
     const result = await run(() => verifyEmailCode(code));
 
     if (result.ok) setComplete(true);
-  }
+  };
 
   return (
     <div className="space-y-4">
       {complete ? (
         <>
           <p role="status">
-            Your email is verified. Return to StageGate and check your verification status to continue.
+            Your email is verified. Return to StageGate and check your
+            verification status to continue.
           </p>
 
           <Button asChild>
@@ -48,11 +50,14 @@ export const VerifyEmailAction = ({ code, returnTo }: ActionProps) => {
 
           {error && (
             <div className="space-y-3">
-              <p role="alert" className="text-sm text-destructive">
+              <InlineAlert tone="error" title="Could not continue">
                 {error}
-              </p>
+              </InlineAlert>
 
-              <Link to={getAuthUrl("/verify-email", returnTo)} className="text-sm text-primary underline">
+              <Link
+                to={getAuthUrl("/verify-email", returnTo)}
+                className="text-sm text-primary underline"
+              >
                 Request another verification email
               </Link>
             </div>
@@ -60,5 +65,5 @@ export const VerifyEmailAction = ({ code, returnTo }: ActionProps) => {
         </>
       )}
     </div>
-  )
-}
+  );
+};

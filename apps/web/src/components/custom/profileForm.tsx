@@ -4,7 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { getProfileErrorMessage, Profile, updateProfile } from "@/services";
 
-import { AuthField } from "./authField";
+import { SubmitButton } from "./form";
+import { InlineAlert } from "./alerts";
+import { ConfirmDialog } from "./dialogs";
+import { InputField, SelectField, TextareaField } from "./form";
 import { Button, Card, CardContent, CardDescription, CardHeader } from "../ui";
 
 type ProfileFormValues = {
@@ -12,27 +15,19 @@ type ProfileFormValues = {
   biography: string;
   affiliation: string;
   timezone: string;
-}
+};
 
 type ProfileFormProps = {
   user: User;
-  profile: Profile
-}
+  profile: Profile;
+};
 
 const toFormValues = (profile: Profile): ProfileFormValues => ({
   displayName: profile.displayName ?? "",
-  biography: profile.biography ?? '',
-  affiliation: profile.affiliation ?? '',
-  timezone: profile.timezone ?? ''
+  biography: profile.biography ?? "",
+  affiliation: profile.affiliation ?? "",
+  timezone: profile.timezone ?? "",
 });
-
-const controlClassName = `
-  w-full rounded-md border border-input bg-background px-3 py-2 
-  text-sm text-foreground shadow-sm outline-none
-  focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50
-  aria-invalid:border-destructive disabled:cursor-not-allowed
-  disabled:opacity-50
-`;
 
 export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
   const [pending, setPending] = useState(false);
@@ -41,19 +36,20 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
 
   const deviceTimezone = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-    []
+    [],
   );
 
   const timezones = useMemo(
-    () => Array.from(
-      new Set([
-        "UTC",
-        deviceTimezone,
-        ...(profile.timezone ? [profile.timezone] : []),
-        ...Intl.supportedValuesOf("timeZone")
-      ]),
-    ).sort(),
-    [deviceTimezone, profile.timezone]
+    () =>
+      Array.from(
+        new Set([
+          "UTC",
+          deviceTimezone,
+          ...(profile.timezone ? [profile.timezone] : []),
+          ...Intl.supportedValuesOf("timeZone"),
+        ]),
+      ).sort(),
+    [deviceTimezone, profile.timezone],
   );
 
   const {
@@ -63,10 +59,11 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
     setValue,
     setError,
     clearErrors,
-    formState: { errors, isDirty }
+    setFocus,
+    formState: { errors, isDirty },
   } = useForm<ProfileFormValues>({
     defaultValues: toFormValues(profile),
-    mode: 'onBlur'
+    mode: "onBlur",
   });
 
   useEffect(() => {
@@ -92,9 +89,9 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
           displayName: values.displayName.trim(),
           biography: values.biography.trim() || null,
           affiliation: values.affiliation.trim() || null,
-          timezone: values.timezone
+          timezone: values.timezone,
         },
-        controller.signal
+        controller.signal,
       );
 
       if (controller.signal.aborted) return;
@@ -104,9 +101,9 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
     } catch (error: unknown) {
       if (!controller.signal.aborted) {
         setError("root.server", {
-          type: 'server',
-          message: getProfileErrorMessage(error)
-        })
+          type: "server",
+          message: getProfileErrorMessage(error),
+        });
       }
     } finally {
       if (requestRef.current === controller) {
@@ -122,12 +119,8 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
   return (
     <Card className="max-w-3xl">
       <CardHeader>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Your profile
-        </h1>
-        <CardDescription>
-          Update how you appear in StageGate.
-        </CardDescription>
+        <h1 className="text-2xl font-semibold tracking-tight">Your profile</h1>
+        <CardDescription>Update how you appear in StageGate.</CardDescription>
         <p className="break-all text-sm text-muted-foreground">
           Signed in as {user.email ?? "your account"}
         </p>
@@ -144,14 +137,10 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
             disabled={pending}
             className="min-w-0 space-y-6 border-0 p-0"
           >
-            <legend
-              className="sr-only"
-            >
-              Profile details
-            </legend>
+            <legend className="sr-only">Profile details</legend>
 
             <div className="grid gap-6 sm:grid-cols-2">
-              <AuthField
+              <InputField
                 id="profile-name"
                 label="Name"
                 autoComplete="name"
@@ -164,15 +153,15 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
 
                     if (!name) return "Enter your name.";
                     if (name.length > 80) {
-                      return "Use 80 characters or fewer."
+                      return "Use 80 characters or fewer.";
                     }
 
                     return true;
-                  }
+                  },
                 })}
               />
 
-              <AuthField 
+              <InputField
                 id="profile-affiliation"
                 label="Affiliation (optional)"
                 autoComplete="organization"
@@ -180,85 +169,48 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
                 error={errors.affiliation?.message}
                 hint={"Up to 120 characters."}
                 {...register("affiliation", {
-                  validate: (value) => value.trim().length <= 120 || "Use 120 characters or fewer."
+                  validate: (value) =>
+                    value.trim().length <= 120 ||
+                    "Use 120 characters or fewer.",
                 })}
               />
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="profile-biography" className="text-sm font-medium">
-                Biography (optional)
-              </label>
+            <TextareaField
+              id="profile-biography"
+              label="Biography (optional)"
+              hint="Up to 1,000 characters."
+              error={errors.biography?.message}
+              rows={5}
+              placeholder="Tell us a little about yourself."
+              {...register("biography", {
+                validate: (value) =>
+                  value.trim().length <= 1000 ||
+                  "Use 1,000 characters or fewer.",
+              })}
+            />
 
-              <textarea 
-                id="profile-biography"
-                rows={5}
-                className={`${controlClassName} min-h-32 resize-y`}
-                placeholder="Tell us a little about yourself."
-                aria-invalid={Boolean(errors.biography)}
-                aria-describedby={
-                  errors.biography 
-                    ? "biography-hint biography-error" 
-                    : "biography-hint"
-                }
-                {...register("biography", {
-                  validate: (value) => 
-                    value.trim().length <= 1000 || 
-                  "Use 1,000 characters or fewer."
-                })}
-              />
-
-              <p
-                id="biography-hint"
-                className="text-xs text-muted-foreground"
-              >
-                Up to 1,000 characters.
-              </p>
-
-              {errors.biography && (
-                <p
-                  id="biography-error" 
-                  role="alert" 
-                  className="text-sm text-destructive"
-                >
-                  {errors.biography.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label 
-                htmlFor="profile-timezone" 
-                className="text-sm font-medium"
-              >
-                Timezone
-              </label>
-              <select
+            <div className="space-y-3">
+              <SelectField
                 id="profile-timezone"
+                label="Timezone"
                 required
-                className={`${controlClassName} h-11`}
-                aria-invalid={Boolean(errors.timezone)}
-                aria-describedby={
-                  errors.timezone 
-                    ? "timezone-hint timezone-error" 
-                    : "timezone-hint"
-                }
+                hint="Choose the timezone you want associated with your profile."
+                error={errors.timezone?.message}
                 {...register("timezone", {
                   required: "Choose your timezone.",
-                  validate: (value) => timezones.includes(value) || "Choose a valid timezone."
+                  validate: (value) =>
+                    timezones.includes(value) || "Choose a valid timezone.",
                 })}
               >
                 <option value="">Choose your timezone</option>
+
                 {timezones.map((timezone) => (
                   <option key={timezone} value={timezone}>
                     {timezone.replaceAll("_", " ")}
                   </option>
                 ))}
-              </select>
-
-              <p id="timezone-hint" className="text-xs text-muted-foreground">
-                Choose the timezone you want associated with your profile.
-              </p>
+              </SelectField>
 
               <Button
                 type="button"
@@ -267,66 +219,65 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
                   setSaved(false);
                   setValue("timezone", deviceTimezone, {
                     shouldDirty: true,
-                    shouldValidate: true
+                    shouldValidate: true,
                   });
                 }}
               >
                 Use device timezone: {deviceTimezone}
               </Button>
-
-              {errors.timezone && (
-                <p 
-                  role="alert" 
-                  id="timezone-error"
-                  className="text-sm text-destructive"
-                >
-                  {errors.timezone.message}
-                </p>
-              )}
             </div>
 
             <div className="flex flex-wrap gap-3 border-t pt-6">
-              <Button type="submit" disabled={pending || !isDirty}>
-                {pending ? "Saving..." : "Save changes"}
-              </Button>
-
-              <Button 
-                type="button" 
-                variant="outline" 
-                disabled={pending || !isDirty} 
-                onClick={() => {
-                  reset();
-                  setSaved(false)
-                }}
+              <SubmitButton
+                pending={pending}
+                pendingLabel="Saving…"
+                disabled={!isDirty}
               >
-                Discard changes
-              </Button>
+                Save changes
+              </SubmitButton>
+
+              <ConfirmDialog
+                triggerLabel="Discard changes"
+                title="Discard your changes?"
+                description="Your edits will be replaced with the last saved profile values."
+                confirmLabel="Discard changes"
+                cancelLabel="Keep editing"
+                destructive
+                disabled={pending || !isDirty}
+                onConfirm={() => {
+                  reset();
+                  setSaved(false);
+                }}
+                restoreFocus={() => setFocus("displayName")}
+              />
             </div>
           </fieldset>
 
           {errors.root?.server?.message && (
-            <p role="alert" className="text-sm text-destructive">
+            <InlineAlert tone="error" title="Profile was not saved">
               {errors.root.server.message}
-            </p>
+            </InlineAlert>
           )}
 
-          <p
+          <div
             role="status"
             aria-live="polite"
-            className="min-h-5 text-sm text-muted-foreground"
+            className="text-sm text-muted-foreground"
           >
-            {
-              pending
-                ? "Saving your profile..."
-                : isDirty
-                  ? "You have unsaved changes."
-                  : saved
-                    ? "Profile saved."
-                    : ""
-            }
-          </p>
+            {pending
+              ? "Saving your profile…"
+              : isDirty
+                ? "You have unsaved changes."
+                : ""}
+          </div>
+
+          {saved && !isDirty && !pending && (
+            <InlineAlert tone="success" title="Profile saved">
+              Your changes have been saved.
+            </InlineAlert>
+          )}
         </form>
       </CardContent>
     </Card>
-  )
-}
+  );
+};

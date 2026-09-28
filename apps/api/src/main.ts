@@ -1,44 +1,54 @@
-import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ConsoleLogger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { Environment } from './config';
 import { AppModule } from './app.module';
+import { SystemLogger } from './observalibility';
+import { configureHttpApp } from './configureHttpApp';
 import { installGracefulShutdown } from './installGracefulShutdown';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+const bootstrapLogger = new ConsoleLogger('Bootstrap', {
+  json: true,
+  colors: false,
+});
 
-  const config = app.get<ConfigService<Environment, true>>(ConfigService);
-
-  const port = config.getOrThrow('PORT', { infer: true });
-  const frontendOrigin = config.getOrThrow('FRONTEND_ORIGIN', {
-    infer: true,
+const bootstrap = async (): Promise<void> => {
+  const app = await NestFactory.create(AppModule, {
+    logger: new SystemLogger(),
+    abortOnError: false,
   });
 
-  app.setGlobalPrefix('api/v1');
+  try {
+    configureHttpApp(app);
 
-  app.enableCors({
-    origin: frontendOrigin,
-    exposedHeaders: ['Retry-After'],
-  });
+    const config = app.get<ConfigService<Environment, true>>(ConfigService);
 
-  installGracefulShutdown(
-    app,
-    config.getOrThrow('SHUTDOWN_TIMEOUT_MS', {
+    const port = config.getOrThrow('PORT', {
       infer: true,
-    }),
-  );
+    });
 
-  await app.listen(port, '0.0.0.0');
+    installGracefulShutdown(
+      app,
+      config.getOrThrow('SHUTDOWN_TIMEOUT_MS', {
+        infer: true,
+      }),
+    );
 
-  Logger.log(
-    `Health endpoint: http://localhost:${port}/api/v1/health`,
-    'Bootstrap',
-  );
-}
+    await app.listen(port, '0.0.0.0');
+    bootstrapLogger.log({
+      event: 'api.started',
+      port,
+    });
+  } catch (error: unknown) {
+    await app.close();
+    throw error;
+  }
+};
 
-bootstrap().catch((error: unknown) => {
-  console.error('Failed to start the API: ', error);
+void bootstrap().catch(() => {
+  bootstrapLogger.error({
+    event: 'api.startup.failed',
+  });
   process.exitCode = 1;
 });

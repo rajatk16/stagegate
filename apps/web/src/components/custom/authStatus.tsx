@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { LoaderCircle, UserRound } from "lucide-react";
 
-import { useAuth } from "@/hooks"
+import { useAuth } from "@/hooks";
 import { signOut } from "@/services";
 import { getAuthErrorMessage, getAuthUrl, getSafeReturnTo } from "@/lib";
 
@@ -13,8 +13,8 @@ export const AuthStatus = () => {
   const location = useLocation();
 
   const returnTo = getSafeReturnTo(
-    new URLSearchParams(location.search).get('returnTo') ?? 
-      `${location.pathname}${location.search}${location.hash}`
+    new URLSearchParams(location.search).get("returnTo") ??
+      `${location.pathname}${location.search}${location.hash}`,
   );
   const signOutLock = useRef(false);
   const [pending, setPending] = useState(false);
@@ -35,18 +35,16 @@ export const AuthStatus = () => {
       signOutLock.current = false;
       setPending(false);
     }
+  };
+
+  if (session.status === "loading") {
+    return <Badge variant="outline">Restoring session...</Badge>;
   }
 
-  if (session.status === 'loading') {
-    return <Badge variant="outline">Restoring session...</Badge>
-  }
-
-  if (session.status === 'unauthenticated') {
+  if (session.status === "unauthenticated") {
     return (
       <Button asChild variant="outline">
-        <Link to={getAuthUrl("/sign-in", returnTo)}>
-          Sign in
-        </Link>
+        <Link to={getAuthUrl("/sign-in", returnTo)}>Sign in</Link>
       </Button>
     );
   }
@@ -57,15 +55,23 @@ export const AuthStatus = () => {
     <div className="flex flex-col items-end gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="outline" role="status" className="max-w-48 gap-2 py-2">
-          <UserRound  className="size-3.5 shrink-0" aria-hidden="true" />
+          <UserRound className="size-3.5 shrink-0" aria-hidden="true" />
           <span className="truncate" title={label}>
             {label}
           </span>
         </Badge>
 
-        <Button type="button" variant="ghost" disabled={pending} onClick={handleSignOut}>
+        <Button
+          type="button"
+          variant="ghost"
+          disabled={pending}
+          onClick={handleSignOut}
+        >
           {pending && (
-            <LoaderCircle className="size-4 motion-safe:animate-spin" aria-hidden="true" />
+            <LoaderCircle
+              className="size-4 motion-safe:animate-spin"
+              aria-hidden="true"
+            />
           )}
 
           {pending ? "Signing out..." : "Sign out"}
@@ -79,4 +85,4 @@ export const AuthStatus = () => {
       )}
     </div>
   );
-}
+};

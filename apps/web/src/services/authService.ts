@@ -1,16 +1,16 @@
-import { 
+import {
   reload,
   getIdToken,
-  setPersistence, 
+  setPersistence,
   applyActionCode,
   checkActionCode,
-  confirmPasswordReset, 
+  confirmPasswordReset,
   sendEmailVerification,
   sendPasswordResetEmail,
   browserLocalPersistence,
   verifyPasswordResetCode,
-  signInWithEmailAndPassword, 
-  signOut as firebaseSignOut, 
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
 import { FirebaseError } from "firebase/app";
@@ -19,23 +19,15 @@ import { firebaseAuth, getAuthUrl } from "@/lib";
 
 export const registerAccount = async (email: string, password: string) => {
   await setPersistence(firebaseAuth, browserLocalPersistence);
-  
-  return createUserWithEmailAndPassword(
-    firebaseAuth,
-    email.trim(), 
-    password
-  );
-}
+
+  return createUserWithEmailAndPassword(firebaseAuth, email.trim(), password);
+};
 
 export const signIn = async (email: string, password: string) => {
   await setPersistence(firebaseAuth, browserLocalPersistence);
 
-  return signInWithEmailAndPassword(
-    firebaseAuth, 
-    email.trim(), 
-    password
-  );
-}
+  return signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+};
 
 export const signOut = () => firebaseSignOut(firebaseAuth);
 
@@ -44,18 +36,21 @@ export const emailActionSettings = (returnTo: string) => ({
     getAuthUrl("/sign-in", returnTo),
     window.location.origin,
   ).toString(),
-  handleCodeInApp: false
+  handleCodeInApp: false,
 });
 
 export const sendVerification = async (returnTo: string) => {
   const user = firebaseAuth.currentUser;
 
   if (!user) {
-    throw new FirebaseError("auth/requires-recent-login", "A signed-in user is required.");
+    throw new FirebaseError(
+      "auth/requires-recent-login",
+      "A signed-in user is required.",
+    );
   }
 
   await sendEmailVerification(user, emailActionSettings(returnTo));
-}
+};
 
 export const refreshVerification = async (): Promise<boolean> => {
   const user = firebaseAuth.currentUser;
@@ -63,7 +58,7 @@ export const refreshVerification = async (): Promise<boolean> => {
   if (!user) {
     throw new FirebaseError(
       "auth/requires-recent-login",
-      "A signed-in user is required."
+      "A signed-in user is required.",
     );
   }
 
@@ -74,24 +69,31 @@ export const refreshVerification = async (): Promise<boolean> => {
   if (firebaseAuth.currentUser !== user) {
     throw new FirebaseError(
       "auth/requires-recent-login",
-      "The active session changed."
+      "The active session changed.",
     );
   }
 
   return user.emailVerified;
-}
+};
 
 export const requestPasswordReset = async (email: string, returnTo: string) => {
   try {
-    await sendPasswordResetEmail(firebaseAuth, email.trim(), emailActionSettings(returnTo));
+    await sendPasswordResetEmail(
+      firebaseAuth,
+      email.trim(),
+      emailActionSettings(returnTo),
+    );
   } catch (error: unknown) {
-    if (error instanceof FirebaseError && error.code === "auth/user-not-found") {
+    if (
+      error instanceof FirebaseError &&
+      error.code === "auth/user-not-found"
+    ) {
       return;
     }
 
     throw error;
   }
-} 
+};
 
 export const verifyEmailCode = async (code: string) => {
   const action = await checkActionCode(firebaseAuth, code);
@@ -99,13 +101,15 @@ export const verifyEmailCode = async (code: string) => {
   if (action.operation !== "VERIFY_EMAIL") {
     throw new FirebaseError(
       "auth/invalid-action-code",
-      "Expected an email verification link."
+      "Expected an email verification link.",
     );
   }
 
   await applyActionCode(firebaseAuth, code);
-}
+};
 
-export const checkPasswordResetCode = (code: string) => verifyPasswordResetCode(firebaseAuth, code);
+export const checkPasswordResetCode = (code: string) =>
+  verifyPasswordResetCode(firebaseAuth, code);
 
-export const resetPassword = (code: string, newPassword: string) => confirmPasswordReset(firebaseAuth, code, newPassword);
+export const resetPassword = (code: string, newPassword: string) =>
+  confirmPasswordReset(firebaseAuth, code, newPassword);

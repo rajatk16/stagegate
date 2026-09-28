@@ -12,8 +12,7 @@ export function EmailAction() {
   const returnTo = getEmailReturnTo(params.get("continueUrl"));
 
   const supported =
-    Boolean(code) &&
-    (mode === "verifyEmail" || mode === "resetPassword");
+    Boolean(code) && (mode === "verifyEmail" || mode === "resetPassword");
 
   return (
     <Card className="mx-auto max-w-md">
@@ -31,8 +30,8 @@ export function EmailAction() {
         {!supported ? (
           <div className="space-y-4">
             <p role="alert">
-              This link is incomplete or unsupported. Open the
-              full link from your email.
+              This link is incomplete or unsupported. Open the full link from
+              your email.
             </p>
 
             <Link
@@ -43,17 +42,9 @@ export function EmailAction() {
             </Link>
           </div>
         ) : mode === "verifyEmail" ? (
-          <VerifyEmailAction
-            key={code}
-            code={code}
-            returnTo={returnTo}
-          />
+          <VerifyEmailAction key={code} code={code} returnTo={returnTo} />
         ) : (
-          <ResetPasswordAction
-            key={code}
-            code={code}
-            returnTo={returnTo}
-          />
+          <ResetPasswordAction key={code} code={code} returnTo={returnTo} />
         )}
       </CardContent>
     </Card>

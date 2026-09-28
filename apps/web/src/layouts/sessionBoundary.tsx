@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks";
 export const SessionBoundary = (props: PropsWithChildren) => {
   const session = useAuth();
 
-  if (session.status === 'loading') {
+  if (session.status === "loading") {
     return (
       <main
         aria-busy="true"
@@ -31,11 +31,14 @@ export const SessionBoundary = (props: PropsWithChildren) => {
             </p>
           </div>
 
-          <LoaderCircle className="size-5 text-primary motion-safe:animate-spin" aria-hidden="true" />
+          <LoaderCircle
+            className="size-5 text-primary motion-safe:animate-spin"
+            aria-hidden="true"
+          />
         </div>
       </main>
-    )
+    );
   }
 
   return <>{props.children}</>;
-}
+};

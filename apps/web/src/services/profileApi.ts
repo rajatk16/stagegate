@@ -17,13 +17,11 @@ export type ProfileUpdate = {
   timezone: string;
 };
 
-const isRecord = (
-  value: unknown
-): value is Record<string, unknown> => 
-  typeof value === 'object' && value !== null && !Array.isArray(value);
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const isNullableString = (value: unknown): value is string | null =>
-  value === null || typeof value === 'string';
+  value === null || typeof value === "string";
 
 const parseProfile = (value: unknown, expectedUid: string): Profile => {
   if (
@@ -36,7 +34,7 @@ const parseProfile = (value: unknown, expectedUid: string): Profile => {
   ) {
     throw new ApiError(
       "The API returned an unexpected profile. Check the profile response fields.",
-      "response"
+      "response",
     );
   }
 
@@ -45,30 +43,30 @@ const parseProfile = (value: unknown, expectedUid: string): Profile => {
     displayName: value.displayName,
     biography: value.displayName,
     affiliation: value.affiliation,
-    timezone: value.timezone
+    timezone: value.timezone,
   };
 };
 
 export const getProfile = async (
   user: User,
-  signal: AbortSignal
+  signal: AbortSignal,
 ): Promise<Profile> => {
   const result = await authenticatedApiRequest(user, "/users/me", {
-    signal
+    signal,
   });
 
   return parseProfile(result, user.uid);
-}
+};
 
 export const updateProfile = async (
   user: User,
   changes: ProfileUpdate,
-  signal: AbortSignal
+  signal: AbortSignal,
 ): Promise<Profile> => {
   const result = await authenticatedApiRequest(user, "/users/me", {
-    method: 'PATCH',
+    method: "PATCH",
     json: changes,
-    signal
+    signal,
   });
 
   return parseProfile(result, user.uid);
@@ -77,7 +75,7 @@ export const updateProfile = async (
 export const getProfileErrorMessage = (error: unknown): string => {
   if (error instanceof ApiError) {
     if (error.status === 401) {
-      return "Your session could not be verified. Sign out and sign in again."
+      return "Your session could not be verified. Sign out and sign in again.";
     }
 
     if (error.status === 403) {
@@ -85,15 +83,15 @@ export const getProfileErrorMessage = (error: unknown): string => {
     }
 
     if (error.status === 400) {
-      return "The API rejected these values. Check the fields and profile validation rules."
+      return "The API rejected these values. Check the fields and profile validation rules.";
     }
 
     if (error.status === 429) {
-      return "Too many requests. Wait a moment and try again."
+      return "Too many requests. Wait a moment and try again.";
     }
 
     return error.message;
   }
 
-  return "We could not complete the profule request. Please try again."
+  return "We could not complete the profule request. Please try again.";
 };
