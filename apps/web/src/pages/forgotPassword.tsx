@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link, useSearchParams } from "react-router"
 
 import { useAuthAction } from "@/hooks";
-import { AuthField } from "@/components/custom";
+import { InputField } from "@/components/custom";
 import { requestPasswordReset } from "@/services";
 import { getAuthUrl, getSafeReturnTo } from "@/lib";
 import { Button, Card, CardContent, CardHeader } from "@/components/ui";
@@ -54,7 +54,7 @@ export const ForgotPassword = () => {
             <fieldset disabled={busy} className="space-y-4">
               <legend className="sr-only">Reset email</legend>
 
-              <AuthField 
+              <InputField 
                 required 
                 type="email" 
                 id="reset-email" 

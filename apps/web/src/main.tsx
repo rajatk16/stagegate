@@ -6,7 +6,7 @@ import { createRoot } from "react-dom/client";
 import "@/style.css";
 import { App } from '@/App';
 import { AuthProvider } from "@/providers";
-import { SessionBoundary } from "@/layouts";
+import { ErrorBoundary, SessionBoundary } from "@/layouts";
 
 const rootElement = document.getElementById('app');
 
@@ -16,20 +16,22 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      storageKey="stagegate-theme"
-      disableTransitionOnChange
-    >
-      <AuthProvider>
-        <BrowserRouter>
-          <SessionBoundary>
-            <App />
-          </SessionBoundary>
-        </BrowserRouter>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary scope="application">
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        storageKey="stagegate-theme"
+        disableTransitionOnChange
+      >
+        <AuthProvider>
+          <BrowserRouter>
+            <SessionBoundary>
+              <App />
+            </SessionBoundary>
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   </StrictMode>
 );

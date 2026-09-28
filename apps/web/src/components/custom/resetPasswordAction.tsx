@@ -7,7 +7,8 @@ import { getAuthErrorMessage, getAuthUrl } from "@/lib";
 import { checkPasswordResetCode, resetPassword } from "@/services";
 
 import { Button } from "../ui";
-import { AuthField } from "./authField";
+import { InputField } from "./form";
+import { InlineAlert } from "./alerts";
 
 type PasswordValues = {
   password: string;
@@ -116,7 +117,7 @@ export const ResetPasswordAction = ({ code, returnTo}: ActionProps) => {
       <fieldset disabled={busy} className="spae-y-4">
         <legend className="sr-only">New password</legend>
 
-        <AuthField 
+        <InputField 
           id="new-password"
           label="New password"
           type="password"
@@ -134,7 +135,7 @@ export const ResetPasswordAction = ({ code, returnTo}: ActionProps) => {
           })}
         />
 
-        <AuthField
+        <InputField
           id="confirm-new-password"
           label="Confirm new password"
           type="password"
@@ -155,9 +156,9 @@ export const ResetPasswordAction = ({ code, returnTo}: ActionProps) => {
 
         {error && (
           <div className="space-y-3">
-            <p role="alert" className="text-sm text-destructive">
+            <InlineAlert tone="error" title="Could not continue">
               {error}
-            </p>
+            </InlineAlert>
 
             <Link to={getAuthUrl("/forgot-password", returnTo)} className="text-sm text-primary underline">
               Request a new reset link

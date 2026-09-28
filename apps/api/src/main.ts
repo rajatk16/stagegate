@@ -1,35 +1,50 @@
-import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { ConsoleLogger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { Environment } from './config';
 import { AppModule } from './app.module';
+import { SystemLogger } from './observalibility';
+import { configureHttpApp } from './configureHttpApp';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  
-  app.enableShutdownHooks();
-  
-  const config = app.get<ConfigService<Environment, true>>(ConfigService);
+const bootstrapLogger = new ConsoleLogger('Bootstrap', {
+  json: true,
+  colors: false
+});
 
-  const port = config.getOrThrow('PORT', { infer: true });
-  const frontendOrigin = config.getOrThrow('FRONTEND_ORIGIN', {
-    infer: true,
+
+const bootstrap = async (): Promise<void> => {
+  const app = await NestFactory.create(AppModule, {
+    logger: new SystemLogger(),
+    abortOnError: false
   });
+  
+  try {
+    app.enableShutdownHooks();
 
-  app.setGlobalPrefix('api/v1');
+    configureHttpApp(app);
 
-  app.enableCors({
-    origin: frontendOrigin,
-    exposedHeaders: ['Retry-After']
-  });
+    const config = app.get<ConfigService<Environment, true>>(ConfigService);
+    
+    const port = config.getOrThrow('PORT', {
+      infer: true
+    });
 
-  await app.listen(port);
+    await app.listen(port);
 
-  Logger.log(`Health endpoint: http://localhost:${port}/api/v1/health`, 'Bootstrap');
+    bootstrapLogger.log({
+      event: 'api.started',
+      port
+    });
+  } catch (error: unknown) {
+    await app.close();
+    throw error;
+  }
 }
 
-bootstrap().catch((error: unknown) => {
-  console.error('Failed to start the API: ', error);
+void bootstrap().catch(() => {
+  bootstrapLogger.error({
+    event: 'api.startup.failed'
+  });
   process.exitCode = 1;
 });
