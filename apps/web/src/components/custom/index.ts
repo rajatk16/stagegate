@@ -1,6 +1,7 @@
 export * from "./form";
 export * from "./authForm";
 export * from "./authField";
+export * from './appVersion';
 export * from "./authStatus";
 export * from "./profileForm";
 export * from "./themeToggle";

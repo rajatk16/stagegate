@@ -2,8 +2,9 @@ import { useEffect, useRef } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router";
 import { Layers3, LayoutDashboard, Activity, UserRound } from "lucide-react";
 
-import { AuthStatus, ThemeToggle } from "@/components/custom";
 import { useAuth } from "@/hooks";
+import { AuthStatus, ThemeToggle, AppVersion } from "@/components/custom";
+
 import { ErrorBoundary } from "./errorBoundary";
 
 const navigation = [
@@ -124,8 +125,11 @@ export const AppShell = () => {
               <Outlet />
             </ErrorBoundary>
 
-            <footer className="border-t pt-6 text-xs text-muted-foreground">
-              StageGate - Built one stage at a time
+            <footer className="flex flex-wrap items-center justify-between gap-3 border-t pt-6 text-xs text-muted-foreground">
+              <span>
+                StageGate - Built one stage at a time
+              </span>
+              <AppVersion />
             </footer>
           </main>
         </div>

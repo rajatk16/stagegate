@@ -72,7 +72,7 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
     };
   }, []);
 
-  const submit = handleSubmit(async (values) => {
+  const submit = async (values: ProfileFormValues) => {
     if (requestRef.current) return;
 
     const controller = new AbortController();
@@ -114,7 +114,7 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
         setPending(false);
       }
     }
-  });
+  };
 
   return (
     <Card className="max-w-3xl">
@@ -129,7 +129,9 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
       <CardContent>
         <form
           noValidate
-          onSubmit={submit}
+          onSubmit={(event) => {
+            void handleSubmit(submit)(event);
+          }}
           aria-busy={pending}
           className="space-y-6"
         >
