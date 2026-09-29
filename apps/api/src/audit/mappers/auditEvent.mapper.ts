@@ -1,7 +1,7 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from 'node:crypto';
 
-import { ProfileField } from "../enums";
-import { AuditEvent, auditEventSchema } from "../models";
+import { ProfileField } from '../enums';
+import { AuditEvent, auditEventSchema } from '../models';
 
 interface ProfileUpdatedEventInput {
   actorUid: string;
@@ -11,8 +11,8 @@ interface ProfileUpdatedEventInput {
 }
 
 export const toProfileUpdatedAuditEvent = (
-  input: ProfileUpdatedEventInput
-): AuditEvent => 
+  input: ProfileUpdatedEventInput,
+): AuditEvent =>
   auditEventSchema.parse({
     schemaVersion: 1,
     eventId: randomUUID(),
@@ -26,5 +26,5 @@ export const toProfileUpdatedAuditEvent = (
     requestId: input.requestId,
     occurredAt: new Date(),
 
-    fields: [...new Set(input.fields)]
+    fields: [...new Set(input.fields)],
   });

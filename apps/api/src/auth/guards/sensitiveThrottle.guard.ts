@@ -1,11 +1,20 @@
-import { Response } from "express";
-import { ThrottlerGuard, ThrottlerLimitDetail, ThrottlerRequest } from "@nestjs/throttler";
-import { ExecutionContext, HttpStatus, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Response } from 'express';
+import {
+  ThrottlerGuard,
+  ThrottlerLimitDetail,
+  ThrottlerRequest,
+} from '@nestjs/throttler';
+import {
+  ExecutionContext,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
-import { AuthenticatedRequest } from "../types";
-import { ApiException, AuthException } from "../../common";
-import { IS_PUBLIC_KEY, SENSITIVE_ACTION_KEY } from "../constants";
-import { SensitiveActionName, sensitiveActionPolicies } from "../policies";
+import { AuthenticatedRequest } from '../types';
+import { ApiException, AuthException } from '../../common';
+import { IS_PUBLIC_KEY, SENSITIVE_ACTION_KEY } from '../constants';
+import { SensitiveActionName, sensitiveActionPolicies } from '../policies';
 
 abstract class SensitiveThrottleGuard extends ThrottlerGuard {
   protected abstract readonly bucket: 'ip' | 'user';
@@ -15,14 +24,14 @@ abstract class SensitiveThrottleGuard extends ThrottlerGuard {
 
     const action = this.reflector.get<SensitiveActionName>(
       SENSITIVE_ACTION_KEY,
-      handler
+      handler,
     );
 
     if (action === undefined) return true;
 
     if (this.reflector.get<boolean>(IS_PUBLIC_KEY, handler) === true) {
       throw new InternalServerErrorException(
-        'A sensitive action cannot be public.'
+        'A sensitive action cannot be public.',
       );
     }
 
@@ -30,14 +39,15 @@ abstract class SensitiveThrottleGuard extends ThrottlerGuard {
   }
 
   protected async handleRequest(
-    properties: ThrottlerRequest
+    properties: ThrottlerRequest,
   ): Promise<boolean> {
     if (properties.throttler.name !== this.bucket) {
       return true;
     }
 
     const action = this.reflector.get<SensitiveActionName>(
-      SENSITIVE_ACTION_KEY, properties.context.getHandler()
+      SENSITIVE_ACTION_KEY,
+      properties.context.getHandler(),
     );
 
     if (!action) return true;
@@ -47,7 +57,9 @@ abstract class SensitiveThrottleGuard extends ThrottlerGuard {
     let getTracker = properties.getTracker;
 
     if (this.bucket === 'user') {
-      const request = properties.context.switchToHttp().getRequest<AuthenticatedRequest>();
+      const request = properties.context
+        .switchToHttp()
+        .getRequest<AuthenticatedRequest>();
 
       const uid = request.firebaseUser?.uid;
 
@@ -61,26 +73,32 @@ abstract class SensitiveThrottleGuard extends ThrottlerGuard {
     return super.handleRequest({
       ...properties,
       ...policy,
-      getTracker
+      getTracker,
     });
   }
 
-  protected async throwThrottlingException(context: ExecutionContext, detail: ThrottlerLimitDetail): Promise<void> {
+  protected async throwThrottlingException(
+    context: ExecutionContext,
+    detail: ThrottlerLimitDetail,
+  ): Promise<void> {
     const response = context.switchToHttp().getResponse<Response>();
 
-    response.setHeader('Retry-After', String(Math.max(1, Math.ceil(detail.timeToBlockExpire))));
+    response.setHeader(
+      'Retry-After',
+      String(Math.max(1, Math.ceil(detail.timeToBlockExpire))),
+    );
 
     throw new ApiException(
-      HttpStatus.TOO_MANY_REQUESTS, 
-      'RATE_LIMIT_EXCEEDED', 
-      'Too many requests. Try again later.'
+      HttpStatus.TOO_MANY_REQUESTS,
+      'RATE_LIMIT_EXCEEDED',
+      'Too many requests. Try again later.',
     );
   }
 }
 
 @Injectable()
 export class SensitiveIpThrottleGuard extends SensitiveThrottleGuard {
-  protected readonly bucket: "ip";
+  protected readonly bucket: 'ip';
 }
 
 @Injectable()

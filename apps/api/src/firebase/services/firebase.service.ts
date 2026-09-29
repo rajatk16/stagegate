@@ -1,10 +1,15 @@
-import { ConfigService } from "@nestjs/config";
-import { Auth, getAuth } from "firebase-admin/auth";
-import { Firestore, getFirestore } from "firebase-admin/firestore";
-import { Injectable, Logger, OnApplicationShutdown } from "@nestjs/common";
-import { App, applicationDefault, deleteApp, initializeApp } from "firebase-admin";
+import { ConfigService } from '@nestjs/config';
+import { Auth, getAuth } from 'firebase-admin/auth';
+import { Firestore, getFirestore } from 'firebase-admin/firestore';
+import { Injectable, Logger, OnApplicationShutdown } from '@nestjs/common';
+import {
+  App,
+  applicationDefault,
+  deleteApp,
+  initializeApp,
+} from 'firebase-admin';
 
-import { Environment } from "../../config";
+import { Environment } from '../../config';
 
 @Injectable()
 export class FirebaseService implements OnApplicationShutdown {
@@ -17,30 +22,32 @@ export class FirebaseService implements OnApplicationShutdown {
   constructor(config: ConfigService<Environment, true>) {
     const mode = config.getOrThrow('FIREBASE_MODE', { infer: true });
     const projectId = config.getOrThrow('FIREBASE_PROJECT_ID', {
-      infer: true
+      infer: true,
     });
 
     if (mode === 'emulator') {
       const host = config.getOrThrow('FIRESTORE_EMULATOR_HOST', {
-        infer: true
+        infer: true,
       });
 
       process.env.FIRESTORE_EMULATOR_HOST = host;
-      process.env.FIREBASE_AUTH_EMULATOR_HOST = config.getOrThrow('FIREBASE_AUTH_EMULATOR_HOST', { infer: true });
-
-      this.app = initializeApp(
-        { projectId },
-        'stagegate-api'
+      process.env.FIREBASE_AUTH_EMULATOR_HOST = config.getOrThrow(
+        'FIREBASE_AUTH_EMULATOR_HOST',
+        { infer: true },
       );
 
-      this.logger.log(`Firestore configured for emulator ${host}, project ${projectId}`);
+      this.app = initializeApp({ projectId }, 'stagegate-api');
+
+      this.logger.log(
+        `Firestore configured for emulator ${host}, project ${projectId}`,
+      );
     } else {
       this.app = initializeApp(
         {
           projectId,
           credential: applicationDefault(),
         },
-        'stagegate-api'
+        'stagegate-api',
       );
 
       this.logger.log(`Firestore configured for live project ${projectId}`);
@@ -52,9 +59,21 @@ export class FirebaseService implements OnApplicationShutdown {
 
   async onApplicationShutdown(): Promise<void> {
     try {
-      await this.firestore.terminate();
-    } finally {
-      await deleteApp(this.app);
+      try {
+        await this.firestore.terminate();
+      } finally {
+        await deleteApp(this.app);
+      }
+
+      this.logger.log({
+        event: 'firebase.shutdown.completed',
+      });
+    } catch {
+      this.logger.error({
+        event: 'firebase.shutdown.failed',
+      });
+
+      process.exitCode = 1;
     }
   }
 }

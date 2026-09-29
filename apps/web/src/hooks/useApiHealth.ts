@@ -42,10 +42,13 @@ export function useApiHealth() {
 
         setState({
           status: "failure",
-          message: error instanceof Error ? error.message : 'An unexpected connection error occurred.'
+          message:
+            error instanceof Error
+              ? error.message
+              : "An unexpected connection error occurred.",
         });
       }
-    }
+    };
 
     void checkHealth();
 
@@ -58,7 +61,7 @@ export function useApiHealth() {
   const retry = () => {
     setState({ status: "loading" });
     setAttempt((current) => current + 1);
-  }
+  };
 
   return { state, retry };
 }

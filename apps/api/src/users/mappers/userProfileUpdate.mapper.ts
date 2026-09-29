@@ -1,9 +1,11 @@
-import { Timestamp } from "firebase-admin/firestore";
+import { Timestamp } from 'firebase-admin/firestore';
 
-import { UpdateProfileDto } from "../dtos";
-import { UserProfileChanges, UserProfileUpdateDocument } from "../types";
+import { UpdateProfileDto } from '../dtos';
+import { UserProfileChanges, UserProfileUpdateDocument } from '../types';
 
-export const toUserProfileChanges = (dto: UpdateProfileDto): UserProfileChanges => {
+export const toUserProfileChanges = (
+  dto: UpdateProfileDto,
+): UserProfileChanges => {
   const changes: UserProfileChanges = {};
 
   if (dto.displayName !== undefined) {
@@ -27,15 +29,15 @@ export const toUserProfileChanges = (dto: UpdateProfileDto): UserProfileChanges 
   }
 
   return changes;
-}
+};
 
 export const toUserProfileUpdateDocument = (
   changes: UserProfileChanges,
-  updatedAt: Date
+  updatedAt: Date,
 ): UserProfileUpdateDocument => {
   const document: UserProfileUpdateDocument = {
-    updatedAt: Timestamp.fromDate(updatedAt)
-  }
+    updatedAt: Timestamp.fromDate(updatedAt),
+  };
 
   if (changes.displayName !== undefined) {
     document.displayName = changes.displayName;
@@ -58,4 +60,4 @@ export const toUserProfileUpdateDocument = (
   }
 
   return document;
-}
+};

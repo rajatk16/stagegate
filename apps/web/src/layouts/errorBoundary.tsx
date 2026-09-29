@@ -1,25 +1,28 @@
-import { Component, createRef, ErrorInfo, ReactNode } from "react"
+import { Component, createRef, ErrorInfo, ReactNode } from "react";
 
 type ErrorBoundaryProps = {
   children: ReactNode;
   scope?: "page" | "application";
-}
+};
 
 type ErrorBoundaryState = {
   hasError: boolean;
-}
+};
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+export class ErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   state: ErrorBoundaryState = {
     hasError: false,
-  }
+  };
 
   private fallbackRef = createRef<HTMLElement>();
 
   static getDerivedStateFromError(): ErrorBoundaryState {
     return {
-      hasError: true
-    }
+      hasError: true,
+    };
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo): void {
@@ -32,16 +35,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   private retry = () => {
     this.setState({ hasError: false });
-  }
+  };
 
   render() {
     if (!this.state.hasError) {
       return this.props.children;
     }
 
-    const application = this.props.scope === 'application';
+    const application = this.props.scope === "application";
 
-    const buttonClassName = "inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-4 py-2 text-sm font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+    const buttonClassName =
+      "inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-4 py-2 text-sm font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
     return (
       <section
@@ -56,11 +60,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       >
         <div className="max-w-lg space-y-4">
           <h1 className="text-2xl font-semibold">
-            {application ? "StageGate could not display this screen": "This page could not be displayed"}
+            {application
+              ? "StageGate could not display this screen"
+              : "This page could not be displayed"}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Try again. If the problem continues, reload the application
-            or return to the overview.
+            Try again. If the problem continues, reload the application or
+            return to the overview.
           </p>
           <div className="flex flex-wrap gap-3">
             <button

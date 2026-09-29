@@ -1,6 +1,6 @@
-import { ComponentProps } from "react"
+import { ComponentProps } from "react";
 
-import { Input } from "../ui/input"
+import { Input } from "../ui/input";
 
 type AuthFieldProps = ComponentProps<typeof Input> & {
   id: string;
@@ -10,18 +10,16 @@ type AuthFieldProps = ComponentProps<typeof Input> & {
 };
 
 export const AuthField = ({
-  id, 
-  label, 
-  error, 
-  hint, 
-  ...inputProps 
+  id,
+  label,
+  error,
+  hint,
+  ...inputProps
 }: AuthFieldProps) => {
-  const descriptionId = [
-    hint ? `${id}-hint`: "",
-    error ? `${id}-error` : ""
-  ]
-  .filter(Boolean)
-  .join(" ") || undefined;
+  const descriptionId =
+    [hint ? `${id}-hint` : "", error ? `${id}-error` : ""]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <div className="space-y-2">
@@ -29,7 +27,7 @@ export const AuthField = ({
         {label}
       </label>
 
-      <Input 
+      <Input
         {...inputProps}
         id={id}
         className="h-11"
@@ -38,7 +36,9 @@ export const AuthField = ({
       />
 
       {hint && (
-        <p id={`${id}-hint`} className="text-xs text-muted-foreground">{hint}</p>
+        <p id={`${id}-hint`} className="text-xs text-muted-foreground">
+          {hint}
+        </p>
       )}
 
       {error && (
@@ -47,5 +47,5 @@ export const AuthField = ({
         </p>
       )}
     </div>
-  )
-}
+  );
+};

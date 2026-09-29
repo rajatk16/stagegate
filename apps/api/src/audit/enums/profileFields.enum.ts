@@ -6,4 +6,4 @@ export const PROFILE_FIELDS = [
   'timezone',
 ] as const;
 
-export type ProfileField = typeof PROFILE_FIELDS[number];
+export type ProfileField = (typeof PROFILE_FIELDS)[number];

@@ -1,1 +1,1 @@
-export * from './inlineAlert';
+export * from "./inlineAlert";

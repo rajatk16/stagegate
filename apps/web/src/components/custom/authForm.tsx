@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm } from "react-hook-form";
 import { FormEvent, useRef, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router";
 
@@ -6,13 +6,13 @@ import { useAuth } from "@/hooks";
 import { registerAccount, signIn } from "@/services";
 import { getAuthErrorMessage, getAuthUrl, getSafeReturnTo } from "@/lib";
 
-import { InlineAlert } from './alerts';
+import { InlineAlert } from "./alerts";
 import { InputField, SubmitButton } from "./form";
 import { Card, CardContent, CardDescription, CardHeader } from "../ui";
 
 type AuthFormProps = {
   mode: "register" | "sign-in";
-}
+};
 
 type FormValues = {
   email: string;
@@ -24,23 +24,23 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
   const session = useAuth();
   const submissionLock = useRef(false);
   const [searchParams] = useSearchParams();
-  const returnTo = getSafeReturnTo(searchParams.get('returnTo'));
+  const returnTo = getSafeReturnTo(searchParams.get("returnTo"));
   const [awaitingSession, setAwaitingSession] = useState(false);
 
-  const isRegistration = mode === 'register';
+  const isRegistration = mode === "register";
 
   const {
     register,
     handleSubmit,
     clearErrors,
     setError,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: {
       email: "",
       password: "",
-      confirmPassword: ""
-    }
+      confirmPassword: "",
+    },
   });
 
   const pending = isSubmitting || awaitingSession;
@@ -52,17 +52,17 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
       if (isRegistration) {
         await registerAccount(values.email, values.password);
       } else {
-        await signIn(values.email, values.password)
+        await signIn(values.email, values.password);
       }
 
       setAwaitingSession(true);
     } catch (error: unknown) {
       setError("root.server", {
         type: "server",
-        message: getAuthErrorMessage(error)
+        message: getAuthErrorMessage(error),
       });
     }
-  }
+  };
 
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -76,17 +76,17 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
     } finally {
       submissionLock.current = false;
     }
-  }
+  };
 
   if (session.status === "authenticated") {
     return (
-      <Navigate 
+      <Navigate
         to={
-          session.user.emailVerified 
+          session.user.emailVerified
             ? returnTo
             : getAuthUrl("/verify-email", returnTo)
-        } 
-        replace 
+        }
+        replace
       />
     );
   }
@@ -104,15 +104,12 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
   return (
     <Card className="mx-auto w-full max-w-md shadow-sm">
       <CardHeader className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {title}
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
 
         <CardDescription>
-          {isRegistration 
+          {isRegistration
             ? "Start your next stage with a StageGate account."
-            : "Sign in to continue to your StageGate workspace."
-          }
+            : "Sign in to continue to your StageGate workspace."}
         </CardDescription>
       </CardHeader>
 
@@ -125,7 +122,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
           className="space-y-5"
         >
           {errors.root?.server?.message && (
-            <InlineAlert tone="error" title='Could not continue'>
+            <InlineAlert tone="error" title="Could not continue">
               {errors.root.server.message}
             </InlineAlert>
           )}
@@ -133,7 +130,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
           <fieldset disabled={pending} className="space-y-5">
             <legend className="sr-only">{title}</legend>
 
-            <InputField 
+            <InputField
               id="auth-email"
               label="Email address"
               type="email"
@@ -145,11 +142,13 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
               error={errors.email?.message}
               {...register("email", {
                 required: "Enter your email address.",
-                validate: (value) =>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) || "Enter a valid email address."
+                validate: (value) =>
+                  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ||
+                  "Enter a valid email address.",
               })}
             />
 
-            <InputField 
+            <InputField
               id="auth-password"
               label="Password"
               type="password"
@@ -157,13 +156,14 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                 isRegistration ? "new-password" : "current-password"
               }
               required
-              hint={
-                isRegistration ? "Use at least 6 characters." : undefined
-              }
+              hint={isRegistration ? "Use at least 6 characters." : undefined}
               error={errors.password?.message}
               {...register("password", {
                 required: "Enter your password.",
-                validate: (value) => !isRegistration || value.length >= 6 || "Use at least 6 characters.",
+                validate: (value) =>
+                  !isRegistration ||
+                  value.length >= 6 ||
+                  "Use at least 6 characters.",
                 deps: isRegistration ? ["confirmPassword"] : [],
               })}
             />
@@ -179,8 +179,7 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
                 {...register("confirmPassword", {
                   required: "Confirm your password.",
                   validate: (value, values) =>
-                    value === values.password ||
-                    "The passwords do not match.",
+                    value === values.password || "The passwords do not match.",
                 })}
               />
             )}
@@ -212,9 +211,17 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
               <span>Please wait while we finish your request.</span>
             ) : (
               <>
-                {isRegistration ? "Already have an account?" : "New to StageGate?"}
+                {isRegistration
+                  ? "Already have an account?"
+                  : "New to StageGate?"}
 
-                <Link to={getAuthUrl(isRegistration ? '/sign-in' : '/register', returnTo)} className='font-medium text-primary underline underline-offset-4 hover:underline'>
+                <Link
+                  to={getAuthUrl(
+                    isRegistration ? "/sign-in" : "/register",
+                    returnTo,
+                  )}
+                  className="font-medium text-primary underline underline-offset-4 hover:underline"
+                >
                   {isRegistration ? "Sign in" : "Create an account"}
                 </Link>
               </>
@@ -223,5 +230,5 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
         </form>
       </CardContent>
     </Card>
-  )
-}
+  );
+};

@@ -1,17 +1,17 @@
-import { HttpException } from "@nestjs/common";
+import { HttpException } from '@nestjs/common';
 
 export class ApiException extends HttpException {
   constructor(
     statusCode: number,
     readonly code: string,
-    readonly publicMessage: string
+    readonly publicMessage: string,
   ) {
     super(
       {
         code,
-        message: [publicMessage]
+        message: [publicMessage],
       },
-      statusCode
+      statusCode,
     );
   }
 }

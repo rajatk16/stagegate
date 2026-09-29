@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useSearchParams } from "react-router"
+import { Link, useSearchParams } from "react-router";
 
 import { useAuthAction } from "@/hooks";
 import { InputField } from "@/components/custom";
@@ -10,7 +10,7 @@ import { Button, Card, CardContent, CardHeader } from "@/components/ui";
 
 export const ForgotPassword = () => {
   const [params] = useSearchParams();
-  
+
   const returnTo = getSafeReturnTo(params.get("returnTo"));
 
   const [sent, setSent] = useState(false);
@@ -19,34 +19,41 @@ export const ForgotPassword = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
   } = useForm<{ email: string }>({
-    defaultValues: { email: "" }
+    defaultValues: { email: "" },
   });
 
   const busy = pending || isSubmitting;
 
   const submit = async (values: { email: string }) => {
-    const result = await run(() => requestPasswordReset(values.email, returnTo));
+    const result = await run(() =>
+      requestPasswordReset(values.email, returnTo),
+    );
 
     if (result.ok) setSent(true);
-  }
+  };
 
   return (
     <Card className="mx-auto max-w-md">
       <CardHeader>
-        <h1 className="text-2xl font-semibold">
-          Reset your password
-        </h1>
+        <h1 className="text-2xl font-semibold">Reset your password</h1>
       </CardHeader>
 
       <CardContent className="space-y-5">
         {sent ? (
           <p role="status" className="text-sm">
-            If an account exists for that email, a password reset link has been requested. Check your inbox.
+            If an account exists for that email, a password reset link has been
+            requested. Check your inbox.
           </p>
         ) : (
-          <form noValidate onSubmit={handleSubmit(submit)} onChange={clearError} aria-busy={busy} className="space-y-4">
+          <form
+            noValidate
+            onSubmit={handleSubmit(submit)}
+            onChange={clearError}
+            aria-busy={busy}
+            className="space-y-4"
+          >
             <p className="text-sm text-muted-foreground">
               Enter your email to receive a password reset link.
             </p>
@@ -54,18 +61,19 @@ export const ForgotPassword = () => {
             <fieldset disabled={busy} className="space-y-4">
               <legend className="sr-only">Reset email</legend>
 
-              <InputField 
-                required 
-                type="email" 
-                id="reset-email" 
-                label="Email address" 
-                autoComplete="email" 
-                error={errors.email?.message} 
+              <InputField
+                required
+                type="email"
+                id="reset-email"
+                label="Email address"
+                autoComplete="email"
+                error={errors.email?.message}
                 {...register("email", {
                   required: "Enter your email address",
-                  validate: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) 
-                    || "Enter a valid email address."
-                })} 
+                  validate: (value) =>
+                    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()) ||
+                    "Enter a valid email address.",
+                })}
               />
 
               <Button type="submit" disabled={busy}>
@@ -81,7 +89,7 @@ export const ForgotPassword = () => {
           </form>
         )}
 
-        <Link 
+        <Link
           to={getAuthUrl("/sign-in", returnTo)}
           className="text-sm text-primary underline"
         >
@@ -90,4 +98,4 @@ export const ForgotPassword = () => {
       </CardContent>
     </Card>
   );
-}
+};

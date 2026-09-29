@@ -1,16 +1,11 @@
 import { User } from "firebase/auth";
 
-import {
-  ApiError,
-  apiRequest,
-  firebaseAuth,
-  ApiRequestOptions
-} from '@/lib'
+import { ApiError, apiRequest, firebaseAuth, ApiRequestOptions } from "@/lib";
 
 export const authenticatedApiRequest = async (
   user: User,
   path: string,
-  options: ApiRequestOptions = {}
+  options: ApiRequestOptions = {},
 ): Promise<unknown> => {
   const assertCurrentSession = () => {
     options.signal?.throwIfAborted();
@@ -19,7 +14,7 @@ export const authenticatedApiRequest = async (
       throw new ApiError(
         "Your session changed. Sign in again to continue.",
         "http",
-        401
+        401,
       );
     }
   };
@@ -35,10 +30,10 @@ export const authenticatedApiRequest = async (
 
   const result = await apiRequest(path, {
     ...options,
-    headers
+    headers,
   });
 
   assertCurrentSession();
 
   return result;
-}
+};

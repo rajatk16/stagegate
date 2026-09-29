@@ -18,7 +18,7 @@ type ConfirmDialogProps = {
   disabled?: boolean;
   restoreFocus?: () => void;
   onConfirm: () => void | Promise<void>;
-}
+};
 
 export const ConfirmDialog = ({
   triggerLabel,
@@ -31,7 +31,7 @@ export const ConfirmDialog = ({
   destructive = false,
   disabled = false,
   onConfirm,
-  restoreFocus
+  restoreFocus,
 }: ConfirmDialogProps) => {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
@@ -45,7 +45,7 @@ export const ConfirmDialog = ({
 
     return () => {
       mounted.current = false;
-    }
+    };
   }, []);
 
   const confirm = async () => {
@@ -85,9 +85,7 @@ export const ConfirmDialog = ({
       }}
     >
       <AlertDialog.Trigger asChild>
-        <Button
-          type="button" variant="outline" disabled={disabled}
-        >
+        <Button type="button" variant="outline" disabled={disabled}>
           {triggerLabel}
         </Button>
       </AlertDialog.Trigger>
@@ -126,7 +124,7 @@ export const ConfirmDialog = ({
                 </Button>
               </AlertDialog.Cancel>
 
-              <Button 
+              <Button
                 type="button"
                 variant={destructive ? "destructive" : "default"}
                 aria-disabled={pending}
@@ -134,7 +132,7 @@ export const ConfirmDialog = ({
                 onClick={() => void confirm()}
               >
                 {pending && (
-                  <LoaderCircle 
+                  <LoaderCircle
                     aria-hidden="true"
                     className="size-4 motion-safe:animate-spin"
                   />
@@ -149,5 +147,5 @@ export const ConfirmDialog = ({
         </AlertDialog.Overlay>
       </AlertDialog.Portal>
     </AlertDialog.Root>
-  )
-}
+  );
+};

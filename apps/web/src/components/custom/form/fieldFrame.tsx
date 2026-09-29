@@ -6,11 +6,14 @@ export const FieldFrame = (props: FieldFrameProps) => {
   const generatedId = useId();
   const fieldId = props.id ?? generatedId;
 
-  const descriptionIds = [
-    props.describedBy,
-    props.hint ? `${fieldId}-hint` : undefined,
-    props.error ? `${fieldId}-error` : undefined
-  ].filter(Boolean).join(' ') || undefined;
+  const descriptionIds =
+    [
+      props.describedBy,
+      props.hint ? `${fieldId}-hint` : undefined,
+      props.error ? `${fieldId}-error` : undefined,
+    ]
+      .filter(Boolean)
+      .join(" ") || undefined;
 
   return (
     <div className="space-y-2">
@@ -21,14 +24,11 @@ export const FieldFrame = (props: FieldFrameProps) => {
       {props.children({
         id: fieldId,
         "aria-invalid": Boolean(props.error),
-        "aria-describedby": descriptionIds
+        "aria-describedby": descriptionIds,
       })}
 
       {props.hint && (
-        <p
-          id={`${fieldId}-hint`}
-          className="text-xs text-muted-foreground"
-        >
+        <p id={`${fieldId}-hint`} className="text-xs text-muted-foreground">
           {props.hint}
         </p>
       )}

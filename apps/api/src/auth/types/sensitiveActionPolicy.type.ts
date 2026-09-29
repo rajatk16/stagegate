@@ -1,4 +1,4 @@
-import { RateLimitPolicy } from "./rateLimitPolicy.type";
+import { RateLimitPolicy } from './rateLimitPolicy.type';
 
 export interface SensitiveActionPolicy {
   ip: RateLimitPolicy;

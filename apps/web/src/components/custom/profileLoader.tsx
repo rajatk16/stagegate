@@ -7,15 +7,15 @@ import { Button } from "../ui";
 import { ProfileForm } from "./profileForm";
 import { InlineAlert } from "./alerts";
 
-type ProfileState = 
-  | { status: "loading" } 
-  | { status: "error"; message: string } 
+type ProfileState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
   | { status: "ready"; profile: Profile };
 
-export const ProfileLoader = ({ user }: { user: User}) => {
+export const ProfileLoader = ({ user }: { user: User }) => {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<ProfileState>({
-    status: "loading"
+    status: "loading",
   });
 
   useEffect(() => {
@@ -26,13 +26,13 @@ export const ProfileLoader = ({ user }: { user: User}) => {
         const profile = await getProfile(user, controller.signal);
 
         if (!controller.signal.aborted) {
-          setState({ status: 'ready', profile });
+          setState({ status: "ready", profile });
         }
       } catch (error: unknown) {
         if (!controller.signal.aborted) {
           setState({
-            status: 'error',
-            message: getProfileErrorMessage(error)
+            status: "error",
+            message: getProfileErrorMessage(error),
           });
         }
       }
@@ -45,9 +45,13 @@ export const ProfileLoader = ({ user }: { user: User}) => {
     };
   }, [user, attempt]);
 
-  if (state.status === 'loading') {
+  if (state.status === "loading") {
     return (
-      <div role="status" aria-live="polite" className="rounded-xl border bg-card p-6 text-muted-foreground">
+      <div
+        role="status"
+        aria-live="polite"
+        className="rounded-xl border bg-card p-6 text-muted-foreground"
+      >
         Loading your profile...
       </div>
     );
@@ -75,4 +79,4 @@ export const ProfileLoader = ({ user }: { user: User}) => {
   }
 
   return <ProfileForm user={user} profile={state.profile} />;
-}
+};

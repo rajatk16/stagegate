@@ -1,10 +1,10 @@
-import { Module } from "@nestjs/common";
+import { Module } from '@nestjs/common';
 
-import { UsersService } from "./services";
-import { FirebaseModule } from "../firebase";
-import { UsersController } from "./controllers";
-import { UsersRepository } from "./repositories";
-import { AuditModule } from "../audit";
+import { AuditModule } from '../audit';
+import { UsersService } from './services';
+import { FirebaseModule } from '../firebase';
+import { UsersController } from './controllers';
+import { UsersRepository } from './repositories';
 
 @Module({
   exports: [UsersService],

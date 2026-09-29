@@ -12,7 +12,7 @@ export const TextareaField = (props: TextareaFieldProps) => (
     describedBy={props["aria-describedby"]}
   >
     {(accessibility) => (
-      <textarea 
+      <textarea
         {...props}
         {...accessibility}
         className={cn(controlStyles, "min-h-32 resize-y", props.className)}

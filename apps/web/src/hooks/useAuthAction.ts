@@ -7,9 +7,10 @@ export const useAuthAction = () => {
   const [error, setError] = useState<string | null>(null);
 
   const run = async <T>(operation: () => Promise<T>) => {
-    if (lock.current) return {
-      ok: false
-    };
+    if (lock.current)
+      return {
+        ok: false,
+      };
 
     lock.current = true;
     setPending(true);
@@ -18,23 +19,23 @@ export const useAuthAction = () => {
     try {
       return {
         ok: true,
-        value: await operation()
-      }
+        value: await operation(),
+      };
     } catch (error: unknown) {
       setError(getAuthErrorMessage(error));
       return {
-        ok: false
-      }
+        ok: false,
+      };
     } finally {
       lock.current = false;
       setPending(false);
     }
-  }
+  };
 
   return {
     pending,
     error,
     run,
-    clearError: () => setError(null)
+    clearError: () => setError(null),
   };
-}
+};

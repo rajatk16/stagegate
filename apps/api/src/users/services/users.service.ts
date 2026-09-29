@@ -1,11 +1,11 @@
-import { DecodedIdToken } from "firebase-admin/auth";
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { DecodedIdToken } from 'firebase-admin/auth';
+import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { UserProfile } from "../models";
-import { UpdateProfileDto } from "../dtos";
-import { ApiException } from "../../common";
-import { UsersRepository } from "../repositories";
-import { toNewUserProfile, toUserProfileChanges } from "../mappers";
+import { UserProfile } from '../models';
+import { UpdateProfileDto } from '../dtos';
+import { ApiException } from '../../common';
+import { UsersRepository } from '../repositories';
+import { toNewUserProfile, toUserProfileChanges } from '../mappers';
 
 @Injectable()
 export class UsersService {
@@ -19,7 +19,7 @@ export class UsersService {
 
   updateProfile(
     user: DecodedIdToken,
-    dto: UpdateProfileDto
+    dto: UpdateProfileDto,
   ): Promise<UserProfile> {
     const changes = toUserProfileChanges(dto);
 
@@ -27,7 +27,7 @@ export class UsersService {
       throw new ApiException(
         HttpStatus.BAD_REQUEST,
         'PROFILE_UPDATE_EMPTY',
-        'Provide at least one profile field to update.'
+        'Provide at least one profile field to update.',
       );
     }
 

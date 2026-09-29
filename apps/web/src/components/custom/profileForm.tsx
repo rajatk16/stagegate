@@ -15,18 +15,18 @@ type ProfileFormValues = {
   biography: string;
   affiliation: string;
   timezone: string;
-}
+};
 
 type ProfileFormProps = {
   user: User;
-  profile: Profile
-}
+  profile: Profile;
+};
 
 const toFormValues = (profile: Profile): ProfileFormValues => ({
   displayName: profile.displayName ?? "",
-  biography: profile.biography ?? '',
-  affiliation: profile.affiliation ?? '',
-  timezone: profile.timezone ?? ''
+  biography: profile.biography ?? "",
+  affiliation: profile.affiliation ?? "",
+  timezone: profile.timezone ?? "",
 });
 
 export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
@@ -36,19 +36,20 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
 
   const deviceTimezone = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-    []
+    [],
   );
 
   const timezones = useMemo(
-    () => Array.from(
-      new Set([
-        "UTC",
-        deviceTimezone,
-        ...(profile.timezone ? [profile.timezone] : []),
-        ...Intl.supportedValuesOf("timeZone")
-      ]),
-    ).sort(),
-    [deviceTimezone, profile.timezone]
+    () =>
+      Array.from(
+        new Set([
+          "UTC",
+          deviceTimezone,
+          ...(profile.timezone ? [profile.timezone] : []),
+          ...Intl.supportedValuesOf("timeZone"),
+        ]),
+      ).sort(),
+    [deviceTimezone, profile.timezone],
   );
 
   const {
@@ -59,10 +60,10 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
     setError,
     clearErrors,
     setFocus,
-    formState: { errors, isDirty }
+    formState: { errors, isDirty },
   } = useForm<ProfileFormValues>({
     defaultValues: toFormValues(profile),
-    mode: 'onBlur'
+    mode: "onBlur",
   });
 
   useEffect(() => {
@@ -71,7 +72,7 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
     };
   }, []);
 
-  const submit = handleSubmit(async (values) => {
+  const submit = async (values: ProfileFormValues) => {
     if (requestRef.current) return;
 
     const controller = new AbortController();
@@ -88,9 +89,9 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
           displayName: values.displayName.trim(),
           biography: values.biography.trim() || null,
           affiliation: values.affiliation.trim() || null,
-          timezone: values.timezone
+          timezone: values.timezone,
         },
-        controller.signal
+        controller.signal,
       );
 
       if (controller.signal.aborted) return;
@@ -100,9 +101,9 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
     } catch (error: unknown) {
       if (!controller.signal.aborted) {
         setError("root.server", {
-          type: 'server',
-          message: getProfileErrorMessage(error)
-        })
+          type: "server",
+          message: getProfileErrorMessage(error),
+        });
       }
     } finally {
       if (requestRef.current === controller) {
@@ -113,17 +114,13 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
         setPending(false);
       }
     }
-  });
+  };
 
   return (
     <Card className="max-w-3xl">
       <CardHeader>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Your profile
-        </h1>
-        <CardDescription>
-          Update how you appear in StageGate.
-        </CardDescription>
+        <h1 className="text-2xl font-semibold tracking-tight">Your profile</h1>
+        <CardDescription>Update how you appear in StageGate.</CardDescription>
         <p className="break-all text-sm text-muted-foreground">
           Signed in as {user.email ?? "your account"}
         </p>
@@ -132,7 +129,9 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
       <CardContent>
         <form
           noValidate
-          onSubmit={submit}
+          onSubmit={(event) => {
+            void handleSubmit(submit)(event);
+          }}
           aria-busy={pending}
           className="space-y-6"
         >
@@ -140,11 +139,7 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
             disabled={pending}
             className="min-w-0 space-y-6 border-0 p-0"
           >
-            <legend
-              className="sr-only"
-            >
-              Profile details
-            </legend>
+            <legend className="sr-only">Profile details</legend>
 
             <div className="grid gap-6 sm:grid-cols-2">
               <InputField
@@ -160,11 +155,11 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
 
                     if (!name) return "Enter your name.";
                     if (name.length > 80) {
-                      return "Use 80 characters or fewer."
+                      return "Use 80 characters or fewer.";
                     }
 
                     return true;
-                  }
+                  },
                 })}
               />
 
@@ -176,7 +171,9 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
                 error={errors.affiliation?.message}
                 hint={"Up to 120 characters."}
                 {...register("affiliation", {
-                  validate: (value) => value.trim().length <= 120 || "Use 120 characters or fewer."
+                  validate: (value) =>
+                    value.trim().length <= 120 ||
+                    "Use 120 characters or fewer.",
                 })}
               />
             </div>
@@ -264,7 +261,11 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
             </InlineAlert>
           )}
 
-          <div role="status" aria-live="polite" className="text-sm text-muted-foreground">
+          <div
+            role="status"
+            aria-live="polite"
+            className="text-sm text-muted-foreground"
+          >
             {pending
               ? "Saving your profile…"
               : isDirty
@@ -280,5 +281,5 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
         </form>
       </CardContent>
     </Card>
-  )
-}
+  );
+};

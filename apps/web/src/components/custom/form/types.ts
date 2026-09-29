@@ -7,20 +7,21 @@ export type FieldDetails = {
   label: string;
   hint?: string;
   error?: string;
-}
+};
 
 export type AccessibilityProps = {
   id: string;
   "aria-invalid": boolean;
   "aria-describedby": string | undefined;
-}
+};
 
 export type FieldFrameProps = FieldDetails & {
   describedBy?: string;
   children: (props: AccessibilityProps) => ReactNode;
-}
+};
 
-export type InputFieldProps = FieldDetails & Omit<ComponentProps<typeof Input>, "id" | "aria-invalid">;
+export type InputFieldProps = FieldDetails &
+  Omit<ComponentProps<typeof Input>, "id" | "aria-invalid">;
 
 export const controlStyles =
   "w-full min-w-0 rounded-2xl border border-input bg-background " +

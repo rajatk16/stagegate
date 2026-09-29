@@ -36,7 +36,7 @@ export const InlineAlert = ({
   tone = "info",
   title,
   children,
-  className
+  className,
 }: InlineAlertProps) => {
   const { icon: Icon, classes } = appearances[tone];
 
@@ -44,13 +44,11 @@ export const InlineAlert = ({
     <div
       role={tone === "error" ? "alert" : "status"}
       aria-atomic="true"
-      className={
-        cn(
-          "flex items-start gap-3 rounded-xl border p-4 text-sm",
-          classes,
-          className
-        )
-      }
+      className={cn(
+        "flex items-start gap-3 rounded-xl border p-4 text-sm",
+        classes,
+        className,
+      )}
     >
       <Icon aria-hidden="true" className="mt-0.5 size-5 shrink-0" />
 
@@ -59,5 +57,5 @@ export const InlineAlert = ({
         <div className="wrap-break-word">{children}</div>
       </div>
     </div>
-  )
-}
+  );
+};

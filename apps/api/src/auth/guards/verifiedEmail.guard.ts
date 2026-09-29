@@ -1,9 +1,14 @@
-import { Reflector } from "@nestjs/core";
-import { CanActivate, ExecutionContext, Injectable, InternalServerErrorException } from "@nestjs/common";
+import { Reflector } from '@nestjs/core';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 
-import { AuthException } from "../../common";
-import { AuthenticatedRequest } from "../types";
-import { IS_PUBLIC_KEY, REQUIRES_VERIFIED_EMAIL_KEY } from "../constants";
+import { AuthException } from '../../common';
+import { AuthenticatedRequest } from '../types';
+import { IS_PUBLIC_KEY, REQUIRES_VERIFIED_EMAIL_KEY } from '../constants';
 
 @Injectable()
 export class VerifiedEmailGuard implements CanActivate {
@@ -14,14 +19,16 @@ export class VerifiedEmailGuard implements CanActivate {
 
     const required = this.reflector.get<boolean>(
       REQUIRES_VERIFIED_EMAIL_KEY,
-      handler
+      handler,
     );
     if (required !== true) {
       return true;
     }
 
     if (this.reflector.get<boolean>(IS_PUBLIC_KEY, handler) === true) {
-      throw new InternalServerErrorException('A verified email endpoint cannot be public');
+      throw new InternalServerErrorException(
+        'A verified email endpoint cannot be public',
+      );
     }
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
@@ -32,7 +39,11 @@ export class VerifiedEmailGuard implements CanActivate {
       throw new AuthException('AUTH_REQUIRED');
     }
 
-    if (user.email_verified !== true || typeof user.email !== 'string' || user.email.trim().length === 0) {
+    if (
+      user.email_verified !== true ||
+      typeof user.email !== 'string' ||
+      user.email.trim().length === 0
+    ) {
       throw new AuthException('AUTH_EMAIL_NOT_VERIFIED');
     }
 

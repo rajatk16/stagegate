@@ -7,20 +7,20 @@ import { AuthSession, AuthContext } from "@/context";
 export const AuthProvider = (props: PropsWithChildren) => {
   const [session, setSession] = useState<AuthSession>({
     status: "loading",
-    user: null
+    user: null,
   });
 
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(firebaseAuth, (user) => {
       if (user) {
         setSession({
-          status: 'authenticated',
-          user
+          status: "authenticated",
+          user,
         });
       } else {
         setSession({
-          status: 'unauthenticated',
-          user: null
+          status: "unauthenticated",
+          user: null,
         });
       }
     });
@@ -32,5 +32,5 @@ export const AuthProvider = (props: PropsWithChildren) => {
     <AuthContext.Provider value={session}>
       {props.children}
     </AuthContext.Provider>
-  )
-}
+  );
+};

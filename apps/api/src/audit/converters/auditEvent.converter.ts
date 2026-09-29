@@ -1,18 +1,22 @@
-import z from "zod";
-import { FirestoreDataConverter, Timestamp, SetOptions } from "firebase-admin/firestore";
+import z from 'zod';
+import {
+  FirestoreDataConverter,
+  Timestamp,
+  SetOptions,
+} from 'firebase-admin/firestore';
 
-import { AuditEventDocument } from "../types";
-import { AuditEvent, auditEventSchema } from "../models";
+import { AuditEventDocument } from '../types';
+import { AuditEvent, auditEventSchema } from '../models';
 
 const documentSchema = auditEventSchema.extend({
-  occurredAt: z.instanceof(Timestamp)
+  occurredAt: z.instanceof(Timestamp),
 });
 
-export const auditEventConverter: FirestoreDataConverter<AuditEvent, AuditEventDocument> = {
-  toFirestore(
-    value: unknown,
-    options?: SetOptions
-  ): AuditEventDocument {
+export const auditEventConverter: FirestoreDataConverter<
+  AuditEvent,
+  AuditEventDocument
+> = {
+  toFirestore(value: unknown, options?: SetOptions): AuditEventDocument {
     if (options !== undefined) {
       throw new Error('Partial audit writes are not supported');
     }
@@ -21,7 +25,7 @@ export const auditEventConverter: FirestoreDataConverter<AuditEvent, AuditEventD
 
     return {
       ...event,
-      occurredAt: Timestamp.fromDate(event.occurredAt)
+      occurredAt: Timestamp.fromDate(event.occurredAt),
     };
   },
   fromFirestore(snapshot): AuditEvent {
@@ -33,7 +37,7 @@ export const auditEventConverter: FirestoreDataConverter<AuditEvent, AuditEventD
 
     return {
       ...document,
-      occurredAt: document.occurredAt.toDate()
+      occurredAt: document.occurredAt.toDate(),
     };
-  }
+  },
 };

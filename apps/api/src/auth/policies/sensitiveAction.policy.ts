@@ -1,17 +1,17 @@
-import { HOUR, MINUTE } from "../constants";
+import { HOUR, MINUTE } from '../constants';
 
 export const sensitiveActionPolicies = {
   createOrganization: {
     ip: {
       limit: 30,
       ttl: MINUTE,
-      blockDuration: MINUTE
+      blockDuration: MINUTE,
     },
     user: {
       limit: 3,
       ttl: HOUR,
-      blockDuration: HOUR
-    }
+      blockDuration: HOUR,
+    },
   },
   finalSubmission: {
     ip: {
@@ -25,6 +25,6 @@ export const sensitiveActionPolicies = {
       blockDuration: MINUTE,
     },
   },
-}
+};
 
 export type SensitiveActionName = keyof typeof sensitiveActionPolicies;

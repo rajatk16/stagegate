@@ -6,16 +6,16 @@ import { AuthModule } from './auth';
 import { UsersModule } from './users';
 import { HealthModule } from './health';
 import { FirebaseModule } from './firebase';
+import { ApiExceptionFilter } from './common';
 import { validateEnvironment } from './config';
 import { ObservabilityModule } from './observalibility';
-import { ApiException, ApiExceptionFilter } from './common';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       validate: validateEnvironment,
-      ignoreEnvFile: process.env.NODE_ENV === 'production'
+      ignoreEnvFile: process.env.NODE_ENV === 'production',
     }),
     AuthModule,
     UsersModule,
@@ -26,29 +26,25 @@ import { ApiException, ApiExceptionFilter } from './common';
   providers: [
     {
       provide: APP_PIPE,
-      useFactory: () => new ValidationPipe({
-        transform: true,
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        forbidUnknownValues: true,
-        transformOptions: {
-          enableImplicitConversion: false
-        },
-        validationError: {
-          target: false,
-          value: false
-        },
-        exceptionFactory: () => new ApiException(
-          400,
-          'VALIDATION_FAILED',
-          'Request validation failed.'
-        )
-      })
+      useFactory: () =>
+        new ValidationPipe({
+          transform: true,
+          whitelist: true,
+          forbidNonWhitelisted: true,
+          forbidUnknownValues: true,
+          transformOptions: {
+            enableImplicitConversion: false,
+          },
+          validationError: {
+            target: false,
+            value: false,
+          },
+        }),
     },
     {
       provide: APP_FILTER,
-      useClass: ApiExceptionFilter
-    }
-  ]
+      useClass: ApiExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

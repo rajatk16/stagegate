@@ -1,7 +1,15 @@
-import { Link} from 'react-router';
+import { Link } from "react-router";
 import { ArrowRight, Layers3 } from "lucide-react";
 
-import { Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui";
 
 export const Overview = () => (
   <div className="space-y-8">
@@ -12,15 +20,13 @@ export const Overview = () => (
       </h1>
 
       <p className="max-w-xl leading-7 text-muted-foreground">
-        A focused workspace for moving projects forward.
-        Check your connection and prepare for your next stage.
+        A focused workspace for moving projects forward. Check your connection
+        and prepare for your next stage.
       </p>
 
       <Card className="border-dashed bg-card/60 shadow-none">
         <CardHeader>
-          <CardTitle>
-            Your workspace starts here
-          </CardTitle>
+          <CardTitle>Your workspace starts here</CardTitle>
           <CardDescription>
             The foundation for your project dashboard.
           </CardDescription>
@@ -28,7 +34,7 @@ export const Overview = () => (
 
         <CardContent className="space-y-6">
           <div className="rounded-xl border border-dashed px-6 py-10 text-center">
-            <Layers3 
+            <Layers3
               className="mx-auto mb-4 size-8 text-primary"
               aria-hidden="true"
             />
@@ -43,7 +49,7 @@ export const Overview = () => (
           <Button asChild>
             <Link to="/connection">
               Check API connection
-              <ArrowRight className='size-4' aria-hidden="true" />
+              <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </Button>
         </CardContent>

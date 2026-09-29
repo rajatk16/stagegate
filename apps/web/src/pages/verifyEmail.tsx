@@ -1,28 +1,31 @@
 import { useEffect, useState } from "react";
 import { Navigate, useSearchParams } from "react-router";
 
-import { useAuth, useAuthAction } from "@/hooks"
+import { useAuth, useAuthAction } from "@/hooks";
 import { getAuthUrl, getSafeReturnTo } from "@/lib";
 import { refreshVerification, sendVerification } from "@/services";
 import { Button, Card, CardContent, CardHeader } from "@/components/ui";
 
 export const VerifyEmail = () => {
   const session = useAuth();
-  
+
   const [params] = useSearchParams();
-  
+
   const [sent, setSent] = useState(false);
   const [message, setMessage] = useState("");
   const [cooldown, setCooldown] = useState(0);
-  
+
   const { pending, error, run } = useAuthAction();
-  
+
   const returnTo = getSafeReturnTo(params.get("returnTo"));
 
   useEffect(() => {
     if (cooldown === 0) return;
 
-    const timer = window.setTimeout(() => setCooldown((seconds) => Math.max(0, seconds - 1)), 1_000);
+    const timer = window.setTimeout(
+      () => setCooldown((seconds) => Math.max(0, seconds - 1)),
+      1_000,
+    );
 
     return () => window.clearTimeout(timer);
   }, [cooldown]);
@@ -37,28 +40,28 @@ export const VerifyEmail = () => {
     if (result.ok) {
       setSent(true);
       setCooldown(60);
-      setMessage("Verification email requested. Open its link, then check your status here.")
+      setMessage(
+        "Verification email requested. Open its link, then check your status here.",
+      );
     }
-  }
+  };
 
   const handleCheck = async () => {
     setMessage("");
-    
+
     const result = await run(refreshVerification);
 
     if (result.ok && !result.value) {
       setMessage(
-        "Your email is not verified yet. Open the verification link and try again."
+        "Your email is not verified yet. Open the verification link and try again.",
       );
     }
-  }
+  };
 
   if (session.status === "loading") return null;
 
   if (session.status === "unauthenticated") {
-    return (
-      <Navigate to={getAuthUrl("/sign-in", returnTo)} replace />
-    );
+    return <Navigate to={getAuthUrl("/sign-in", returnTo)} replace />;
   }
 
   if (session.user.emailVerified) {
@@ -68,14 +71,13 @@ export const VerifyEmail = () => {
   return (
     <Card className="mx-auto max-w-md">
       <CardHeader>
-        <h1 className="text-2xl font-semibold">
-          Verify your email
-        </h1>
+        <h1 className="text-2xl font-semibold">Verify your email</h1>
       </CardHeader>
 
       <CardContent className="space-y-5">
         <p className="text-sm text-muted-foreground">
-          Verify <strong>{session.user.email}</strong> to continue to your workspace.
+          Verify <strong>{session.user.email}</strong> to continue to your
+          workspace.
         </p>
 
         {error && (
@@ -94,12 +96,11 @@ export const VerifyEmail = () => {
             onClick={handleSend}
             disabled={pending || cooldown > 0}
           >
-            {cooldown > 0 
-              ? `Resend available in ${cooldown}s` 
+            {cooldown > 0
+              ? `Resend available in ${cooldown}s`
               : sent
                 ? "Resend verification email"
-                : "Send verification email"
-            }
+                : "Send verification email"}
           </Button>
 
           <Button
@@ -113,5 +114,5 @@ export const VerifyEmail = () => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};

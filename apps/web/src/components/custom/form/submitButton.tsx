@@ -12,7 +12,7 @@ export const SubmitButton = (props: SubmitButtonProps) => (
     aria-busy={props.pending}
   >
     {props.pending && (
-      <LoaderCircle 
+      <LoaderCircle
         aria-hidden="true"
         className="size-4 motion-safe:animate-spin"
       />

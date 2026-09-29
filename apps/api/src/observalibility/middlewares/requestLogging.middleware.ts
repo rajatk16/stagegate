@@ -1,9 +1,9 @@
-import { randomUUID } from "node:crypto";
-import { NextFunction, Request, Response } from "express";
-import { ConsoleLogger, Injectable, NestMiddleware } from "@nestjs/common";
+import { randomUUID } from 'node:crypto';
+import { NextFunction, Request, Response } from 'express';
+import { ConsoleLogger, Injectable, NestMiddleware } from '@nestjs/common';
 
-import { RequestContext } from "../types";
-import { RequestContextService } from "../services";
+import { RequestContext } from '../types';
+import { RequestContextService } from '../services';
 
 const METHODS = new Set([
   'GET',
@@ -19,14 +19,14 @@ const METHODS = new Set([
 export class RequestLogginMiddleware implements NestMiddleware {
   private readonly logger = new ConsoleLogger('HTTP', {
     json: true,
-    colors: false
+    colors: false,
   });
 
   constructor(private readonly contexts: RequestContextService) {}
 
   use(request: Request, response: Response, next: NextFunction): void {
     const context: RequestContext = {
-      requestId: randomUUID()
+      requestId: randomUUID(),
     };
 
     const startedAt = performance.now();
@@ -41,9 +41,8 @@ export class RequestLogginMiddleware implements NestMiddleware {
 
         recorded = true;
 
-        const route: unknown = (
-          request.route as { path?: unknown } | undefined
-        )?.path;
+        const route: unknown = (request.route as { path?: unknown } | undefined)
+          ?.path;
 
         const statusCode = response.headersSent ? response.statusCode : null;
 
@@ -53,16 +52,20 @@ export class RequestLogginMiddleware implements NestMiddleware {
           method: METHODS.has(request.method) ? request.method : 'OTHER',
           route: typeof route === 'string' ? route : '<unmatched>',
           statusCode,
-          durationMs: Math.round(
-            (performance.now() - startedAt) * 100
-          ) / 100,
+          durationMs: Math.round((performance.now() - startedAt) * 100) / 100,
           errorCode: context.errorCode,
-          errorKind: context.errorKind
+          errorKind: context.errorKind,
         };
 
-        if ((statusCode !== null && statusCode >= 500) || context.errorKind === 'unexpected') {
+        if (
+          (statusCode !== null && statusCode >= 500) ||
+          context.errorKind === 'unexpected'
+        ) {
           this.logger.error(entry);
-        } else if (outcome !== null || (statusCode !== null && statusCode >= 400)) {
+        } else if (
+          outcome !== null ||
+          (statusCode !== null && statusCode >= 400)
+        ) {
           this.logger.warn(entry);
         } else {
           this.logger.log(entry);

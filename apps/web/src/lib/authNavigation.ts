@@ -1,13 +1,9 @@
 const DEFAULT_RETURN_TO = "/";
 
-const allowedReturnPaths = new Set([
-  "/",
-  "/connection",
-  "/profile"
-]);
+const allowedReturnPaths = new Set(["/", "/connection", "/profile"]);
 
 export const getSafeReturnTo = (value: string | null | undefined): string => {
-  if (!value || !value.startsWith('/') || value.startsWith("//")) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
     return DEFAULT_RETURN_TO;
   }
 
@@ -28,18 +24,18 @@ export const getSafeReturnTo = (value: string | null | undefined): string => {
   } catch {
     return DEFAULT_RETURN_TO;
   }
-}
+};
 
 export const getAuthUrl = (
   page: "/sign-in" | "/register" | "/verify-email" | "/forgot-password",
-  returnTo: string
+  returnTo: string,
 ): string => {
   const search = new URLSearchParams({
-    returnTo: getSafeReturnTo(returnTo)
+    returnTo: getSafeReturnTo(returnTo),
   });
 
   return `${page}?${search.toString()}`;
-}
+};
 
 export const getEmailReturnTo = (continueUrl: string | null): string => {
   if (!continueUrl) return "/";
@@ -55,4 +51,4 @@ export const getEmailReturnTo = (continueUrl: string | null): string => {
   } catch {
     return "/";
   }
-}
+};

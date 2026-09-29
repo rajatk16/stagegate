@@ -7,10 +7,10 @@ import {
 } from "lucide-react";
 
 import { useApiHealth } from "@/hooks";
-import { 
+import {
   Card,
-  Badge, 
-  Button, 
+  Badge,
+  Button,
   CardTitle,
   CardHeader,
   CardContent,
@@ -92,18 +92,12 @@ export function ApiConnection() {
         {state.status === "success" && (
           <dl className="grid grid-cols-2 gap-4 rounded-xl bg-muted/60 p-4">
             <div>
-              <dt className="text-xs text-muted-foreground">
-                Response time
-              </dt>
-              <dd className="mt-1 text-sm font-medium">
-                {state.latencyMs} ms
-              </dd>
+              <dt className="text-xs text-muted-foreground">Response time</dt>
+              <dd className="mt-1 text-sm font-medium">{state.latencyMs} ms</dd>
             </div>
 
             <div>
-              <dt className="text-xs text-muted-foreground">
-                Last checked
-              </dt>
+              <dt className="text-xs text-muted-foreground">Last checked</dt>
               <dd className="mt-1 text-sm font-medium">
                 {state.checkedAt.toLocaleTimeString()}
               </dd>

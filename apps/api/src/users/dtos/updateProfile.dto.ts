@@ -1,11 +1,20 @@
-import { Transform, TransformFnParams } from "class-transformer";
-import { IsOptional, IsString, IsTimeZone, IsUrl, Length, MaxLength } from "class-validator";
+import { Transform, TransformFnParams } from 'class-transformer';
+import {
+  IsOptional,
+  IsString,
+  IsTimeZone,
+  IsUrl,
+  Length,
+  MaxLength,
+} from 'class-validator';
 
-const normalizeOptionalText = ({ value }: TransformFnParams): unknown => 
+const normalizeOptionalText = ({ value }: TransformFnParams): unknown =>
   typeof value === 'string' ? value.trim() || null : value;
 
 export class UpdateProfileDto {
-  @Transform(({ value }: TransformFnParams) => typeof value === 'string' ? value.trim() : value)
+  @Transform(({ value }: TransformFnParams) =>
+    typeof value === 'string' ? value.trim() : value,
+  )
   @IsOptional()
   @IsString()
   @Length(1, 80)
@@ -18,7 +27,7 @@ export class UpdateProfileDto {
     protocols: ['https'],
     require_protocol: true,
     require_valid_protocol: true,
-    disallow_auth: true
+    disallow_auth: true,
   })
   photoURL?: string | null;
 

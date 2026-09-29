@@ -9,11 +9,7 @@ export class ApiError extends Error {
   readonly kind: ApiErrorKind;
   readonly status: number | undefined;
 
-  constructor(
-    message: string,
-    kind: ApiErrorKind,
-    status?: number,
-  ) {
+  constructor(message: string, kind: ApiErrorKind, status?: number) {
     super(message);
     this.name = "ApiError";
     this.kind = kind;
@@ -27,7 +23,10 @@ export type ApiRequestOptions = Omit<RequestInit, "body" | "method"> & {
   timeoutMs?: number;
 };
 
-export const apiRequest = async (path: string, options: ApiRequestOptions = {}): Promise<unknown> => {
+export const apiRequest = async (
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<unknown> => {
   const {
     json,
     timeoutMs = 8_000,
@@ -44,7 +43,7 @@ export const apiRequest = async (path: string, options: ApiRequestOptions = {}):
   const url = `${API_BASE_URL}/${path.replace(/^\/+/, "")}`;
   const headers = new Headers(customHeaders);
 
-  if (!headers.has('Accept')) {
+  if (!headers.has("Accept")) {
     headers.set("Accept", "application/json");
   }
 
@@ -55,7 +54,9 @@ export const apiRequest = async (path: string, options: ApiRequestOptions = {}):
   }
 
   const timeoutSignal = AbortSignal.timeout(timeoutMs);
-  const signal = callerSignal ? AbortSignal.any([callerSignal, timeoutSignal]) : timeoutSignal;
+  const signal = callerSignal
+    ? AbortSignal.any([callerSignal, timeoutSignal])
+    : timeoutSignal;
 
   try {
     const response = await fetch(url, {
@@ -64,13 +65,14 @@ export const apiRequest = async (path: string, options: ApiRequestOptions = {}):
       method,
       headers,
       body,
-      signal
+      signal,
     });
 
     if (!response.ok) {
-      const message = response.status === 502
-        ? "The gateway could not reach the API. Check that the backend is running."
-        : `The API returned HTTP ${response.status}.`;
+      const message =
+        response.status === 502
+          ? "The gateway could not reach the API. Check that the backend is running."
+          : `The API returned HTTP ${response.status}.`;
 
       throw new ApiError(message, "http", response.status);
     }
@@ -89,7 +91,11 @@ export const apiRequest = async (path: string, options: ApiRequestOptions = {}):
       const data: unknown = JSON.parse(text);
       return data;
     } catch {
-      throw new ApiError("The API returned invalid JSON.", "response", response.status);
+      throw new ApiError(
+        "The API returned invalid JSON.",
+        "response",
+        response.status,
+      );
     }
   } catch (error: unknown) {
     if (callerSignal?.aborted) {
@@ -99,8 +105,8 @@ export const apiRequest = async (path: string, options: ApiRequestOptions = {}):
     if (timeoutSignal.aborted) {
       throw new ApiError(
         `The API did not response within ${timeoutMs / 1000} seconds.`,
-        'timeout'
-      )
+        "timeout",
+      );
     }
 
     if (error instanceof ApiError) {
@@ -110,10 +116,10 @@ export const apiRequest = async (path: string, options: ApiRequestOptions = {}):
     if (error instanceof TypeError) {
       throw new ApiError(
         "Could not reach the API. Check your connection and the server.",
-        "network"
+        "network",
       );
     }
 
     throw error;
   }
-}
+};

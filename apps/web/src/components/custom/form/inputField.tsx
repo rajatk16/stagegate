@@ -14,7 +14,7 @@ export const InputField = (props: InputFieldProps) => (
     describedBy={props["aria-describedby"]}
   >
     {(accessibility) => (
-      <Input 
+      <Input
         {...props}
         {...accessibility}
         className={cn("h-11", props.className)}

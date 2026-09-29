@@ -1,13 +1,17 @@
-import { AuthException } from "../../common";
+import { AuthException } from '../../common';
 
 export const getFirebaseErrorCode = (error: unknown): string | undefined => {
-  if (typeof error === 'object' && error !== null && 'code' in error && typeof error.code === 'string') {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof error.code === 'string'
+  ) {
     return error.code;
   }
 
   return undefined;
-}
-
+};
 
 export const toAuthException = (error: unknown): AuthException => {
   switch (getFirebaseErrorCode(error)) {
@@ -29,4 +33,4 @@ export const toAuthException = (error: unknown): AuthException => {
     default:
       return new AuthException('AUTH_UNAVAILABLE');
   }
-}
+};
