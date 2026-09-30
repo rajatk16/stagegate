@@ -15,6 +15,7 @@ import { AuthenticatedRequest } from '../types';
 import { ApiException, AuthException } from '../../common';
 import { IS_PUBLIC_KEY, SENSITIVE_ACTION_KEY } from '../constants';
 import { SensitiveActionName, sensitiveActionPolicies } from '../policies';
+import { isIP } from 'node:net';
 
 abstract class SensitiveThrottleGuard extends ThrottlerGuard {
   protected abstract readonly bucket: 'ip' | 'user';
@@ -55,6 +56,24 @@ abstract class SensitiveThrottleGuard extends ThrottlerGuard {
     const policy = sensitiveActionPolicies[action][this.bucket];
 
     let getTracker = properties.getTracker;
+
+    if (this.bucket === 'ip' && process.env.FLY_APP_NAME) {
+      const request = properties.context
+        .switchToHttp()
+        .getRequest<AuthenticatedRequest>();
+
+      const clientIp = request.headers['fly-client-ip'];
+
+      if (typeof clientIp !== 'string' || isIP(clientIp) === 0) {
+        throw new ApiException(
+          HttpStatus.SERVICE_UNAVAILABLE,
+          'CLIENT_IP_UNAVAILABLE',
+          'Unable to process this request.',
+        );
+      }
+
+      getTracker = async () => `ip:${clientIp}`;
+    }
 
     if (this.bucket === 'user') {
       const request = properties.context
@@ -98,7 +117,7 @@ abstract class SensitiveThrottleGuard extends ThrottlerGuard {
 
 @Injectable()
 export class SensitiveIpThrottleGuard extends SensitiveThrottleGuard {
-  protected readonly bucket: 'ip';
+  protected readonly bucket = 'ip';
 }
 
 @Injectable()

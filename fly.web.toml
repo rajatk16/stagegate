@@ -1,0 +1,39 @@
+app = "stagegate-web"
+primary_region = "sin"
+
+kill_signal = "SIGQUIT"
+kill_timeout = 10
+
+[build]
+  dockerfile = "apps/web/Dockerfile"
+
+  [build.args]
+    VITE_API_BASE_URL = "https://stagegate-api.fly.dev/api/v1"
+    VITE_FIREBASE_MODE = "live"
+    VITE_FIREBASE_PROJECT_ID = "stagegate-c6df0"
+
+    VITE_FIREBASE_API_KEY = "AIzaSyAaHw6dR2jyfjqjth2XAVqk-NDQPVJVHMg"
+    VITE_FIREBASE_AUTH_DOMAIN = "stagegate-c6df0.firebaseapp.com"
+    VITE_FIREBASE_APP_ID = "1:439485880473:web:cb9d5b60600dba37368008"
+
+[deploy]
+  strategy = "rolling"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/healthz"
+    interval = "15s"
+    timeout = "3s"
+    grace_period = "10s"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "256mb"

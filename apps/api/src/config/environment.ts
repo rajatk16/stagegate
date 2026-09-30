@@ -56,7 +56,7 @@ export const environmentSchema = z
       .int()
       .min(1000)
       .max(300000)
-      .default(25000),
+      .default(8000),
   })
   .superRefine((env, context) => {
     const issue = (field: string, message: string) => {

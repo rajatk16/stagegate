@@ -42,6 +42,6 @@ export const configureHttpApp = (app: INestApplication): void => {
     origin: config.getOrThrow('FRONTEND_ORIGIN', {
       infer: true,
     }),
-    exposeHeaders: ['Retry-After', 'X-Request-ID'],
+    exposedHeaders: ['Retry-After', 'X-Request-ID'],
   });
 };
