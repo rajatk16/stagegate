@@ -25,7 +25,7 @@ export const AuthStatus = () => {
 
     try {
       await signOut();
-      navigate('/', { replace: true });
+      navigate("/", { replace: true });
     } catch (error: unknown) {
       setError(getAuthErrorMessage(error));
     } finally {
@@ -41,7 +41,10 @@ export const AuthStatus = () => {
   return (
     <div className="flex flex-col items-end gap-2">
       <div className="flex flex-wrap items-center gap-3">
-        <Link to="/profile" className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm focus-visible:outline-2 focus-visible:outline-ring">
+        <Link
+          to="/profile"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm focus-visible:outline-2 focus-visible:outline-ring"
+        >
           <UserRound aria-hidden="true" className="size-4" />
           <span className="max-w-40 truncate">
             {session.user.email ?? "Your profile"}

@@ -7,7 +7,7 @@ import { ErrorBoundary } from "./errorBoundary";
 
 interface Props {
   className: string;
-};
+}
 
 const pageTitles: Record<string, string> = {
   "/": "Home",
@@ -25,7 +25,7 @@ export const PageContent = (props: PropsWithChildren<Props>) => {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
-  const title = pageTitles[location.pathname] ?? 'Page not found.';
+  const title = pageTitles[location.pathname] ?? "Page not found.";
   const boundaryKey = `${location.key}:${session.user?.uid ?? session.status}`;
 
   useEffect(() => {
@@ -50,10 +50,7 @@ export const PageContent = (props: PropsWithChildren<Props>) => {
       tabIndex={-1}
       className={`min-w-0 flex-1 outline-none ${props.className}`}
     >
-      <ErrorBoundary
-        key={boundaryKey}
-        scope="page"
-      >
+      <ErrorBoundary key={boundaryKey} scope="page">
         {props.children ?? <Outlet />}
       </ErrorBoundary>
     </main>

@@ -6,11 +6,7 @@ import { ArrowRight, Check, Circle } from "lucide-react";
 import { useAuth } from "@/hooks";
 import { Button, Badge } from "@/components/ui";
 import { InlineAlert } from "@/components/custom";
-import {
-  getProfile,
-  type Profile,
-  getProfileErrorMessage,
-} from "@/services";
+import { getProfile, type Profile, getProfileErrorMessage } from "@/services";
 
 type ProfileState =
   | { status: "loading" }
@@ -180,8 +176,8 @@ const DashboardContent = ({ user }: { user: User }) => {
           Your projects will have a home here.
         </h2>
         <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-          Project workflows are the next stage of StageGate. For now,
-          your account and profile are ready to support what comes next.
+          Project workflows are the next stage of StageGate. For now, your
+          account and profile are ready to support what comes next.
         </p>
       </section>
     </div>
@@ -198,9 +194,7 @@ export const Dashboard = () => {
   return (
     <div className="space-y-8">
       <header>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          Dashboard
-        </h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
         <p className="mt-2 text-muted-foreground">
           Your profile, account, and next steps.
         </p>

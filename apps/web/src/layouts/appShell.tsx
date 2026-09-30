@@ -24,14 +24,12 @@ const navigation = [
 export const AppShell = () => (
   <div className="stagegate-surface min-h-screen bg-background text-foreground">
     <SkipLink />
-    
+
     <div className="mx-auto min-h-screen md:grid md:grid-cols-[240px_minmax(0,1fr)]">
       <aside className="border-b bg-card/70 p-5 md:sticky md:top-0 md:h-screen md:border-b-0 md:border-r md:p-6">
         <SiteBrand to="/dashboard" />
 
-        <p className="mt-3 text-xs text-muted-foreground">
-          Your workspace
-        </p>
+        <p className="mt-3 text-xs text-muted-foreground">Your workspace</p>
 
         <nav
           aria-label="Workspace navigation"
@@ -62,9 +60,7 @@ export const AppShell = () => (
 
       <div className="flex min-w-0 flex-col">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b bg-background/80 px-6 py-4 md:px-10">
-          <p className="text-sm font-medium">
-            StageGate workspace
-          </p>
+          <p className="text-sm font-medium">StageGate workspace</p>
 
           <div className="flex flex-wrap items-center gap-3">
             <AuthStatus />

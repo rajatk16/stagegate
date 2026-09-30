@@ -10,9 +10,7 @@ export const NotFound = () => {
 
   return (
     <section className="flex min-h-[50vh] flex-col items-center justify-center space-y-5 text-center">
-      <p className="text-7xl font-semibold tracking-tight text-primary">
-        404
-      </p>
+      <p className="text-7xl font-semibold tracking-tight text-primary">404</p>
 
       <h1 className="text-2xl font-semibold">Page not found</h1>
 

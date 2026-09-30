@@ -14,22 +14,17 @@ export const SessionBoundary = (props: PropsWithChildren) => {
         aria-busy="true"
         className="flex min-h-[60vh] flex-1 items-center justify-center bg-background px-6 text-foreground outline-none"
       >
-        <div
-          role="status"
-          className="space-y-4 text-center"
-        >
-          <LoaderCircle 
+        <div role="status" className="space-y-4 text-center">
+          <LoaderCircle
             aria-hidden="true"
             className="mx-auto size-6 text-primary motion-safe:animate-spin"
           />
-          <h1 className="text-xl font-semibold">
-            Opening StageGate
-          </h1>
+          <h1 className="text-xl font-semibold">Opening StageGate</h1>
 
           <p className="text-sm text-muted-foreground">
             Restoring your session...
           </p>
-          </div>
+        </div>
       </main>
     );
   }

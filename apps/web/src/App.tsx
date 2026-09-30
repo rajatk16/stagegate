@@ -1,7 +1,13 @@
 import { Navigate, Route, Routes } from "react-router";
 
 import { AuthForm } from "@/components/custom";
-import { AppShell, RequireAuth, PublicLayout, AuthLayout, SessionBoundary } from "@/layouts";
+import {
+  AppShell,
+  RequireAuth,
+  PublicLayout,
+  AuthLayout,
+  SessionBoundary,
+} from "@/layouts";
 import {
   Landing,
   Profile,
@@ -46,9 +52,6 @@ export const App = () => (
       </Route>
     </Route>
 
-    <Route
-      path="/connection"
-      element={<Navigate to="/dashboard" replace />}
-    />
+    <Route path="/connection" element={<Navigate to="/dashboard" replace />} />
   </Routes>
 );

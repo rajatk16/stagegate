@@ -1,10 +1,4 @@
-import {
-  Check,
-  Layers3,
-  MailCheck,
-  UserRound,
-  ArrowRight,
-} from "lucide-react";
+import { Check, Layers3, MailCheck, UserRound, ArrowRight } from "lucide-react";
 
 import { Badge, Button } from "@/components/ui";
 import { PublicAuthActions } from "@/components/custom";
@@ -14,22 +8,19 @@ const steps = [
     number: "01",
     icon: UserRound,
     title: "Create your account",
-    description:
-      "Get started with your email and password.",
+    description: "Get started with your email and password.",
   },
   {
     number: "02",
     icon: MailCheck,
     title: "Verify your email",
-    description:
-      "Confirm your email address to open your workspace.",
+    description: "Confirm your email address to open your workspace.",
   },
   {
     number: "03",
     icon: Layers3,
     title: "Make it yours",
-    description:
-      "Add your name, affiliation, biography, and timezone.",
+    description: "Add your name, affiliation, biography, and timezone.",
   },
 ];
 
@@ -44,9 +35,8 @@ export const Landing = () => (
         </h1>
 
         <p className="max-w-xl text-lg leading-8 text-muted-foreground">
-          A focused workspace for moving forward, one stage at a time.
-          Start with your account and profile. Project workflows are
-          coming next.
+          A focused workspace for moving forward, one stage at a time. Start
+          with your account and profile. Project workflows are coming next.
         </p>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -179,8 +169,8 @@ export const Landing = () => (
           Next: bringing your projects into the workspace.
         </p>
         <p className="leading-7 text-muted-foreground">
-          Project workflows are still being built. Create your account
-          and set up your profile to get started with what is available now.
+          Project workflows are still being built. Create your account and set
+          up your profile to get started with what is available now.
         </p>
 
         <PublicAuthActions includeSignIn={false} />

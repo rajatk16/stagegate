@@ -8,7 +8,11 @@ import { HealthModule } from './health';
 import { FirebaseModule } from './firebase';
 import { validateEnvironment } from './config';
 import { ObservabilityModule } from './observalibility';
-import { ApiExceptionFilter, RequestValidationException, toValidationIssues } from './common';
+import {
+  ApiExceptionFilter,
+  RequestValidationException,
+  toValidationIssues,
+} from './common';
 
 @Module({
   imports: [

@@ -5,11 +5,11 @@ import { fileURLToPath, URL } from "node:url";
 import { readFileSync } from "node:fs";
 
 const packageJson = JSON.parse(
-  readFileSync(new URL('./package.json', import.meta.url), "utf8"),
+  readFileSync(new URL("./package.json", import.meta.url), "utf8"),
 ) as { version?: unknown };
 
-if (typeof packageJson.version !== 'string' || !packageJson.version.trim()) {
-  throw new Error('The frontend package must define a version.');
+if (typeof packageJson.version !== "string" || !packageJson.version.trim()) {
+  throw new Error("The frontend package must define a version.");
 }
 
 export default defineConfig({
@@ -36,8 +36,8 @@ export default defineConfig({
     proxy: {
       "/api": {
         target: "http://localhost:3000",
-        changeOrigin: true
-      }
-    }
-  }
+        changeOrigin: true,
+      },
+    },
+  },
 });
