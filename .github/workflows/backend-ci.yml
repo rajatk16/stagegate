@@ -61,7 +61,7 @@ jobs:
             --env FRONTEND_ORIGIN=http://localhost:5173 \
             --env FIREBASE_MODE=live \
             --env FIREBASE_PROJECT_ID=stagegate-ci-smoke \
-            --env SHUTDOWN_TIMEOUT_MS=25000 \
+            --env SHUTDOWN_TIMEOUT_MS=8000 \
             stagegate-api:ci
 
           ready=0

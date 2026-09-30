@@ -12,15 +12,27 @@
 !apps/api/tsconfig.build.json
 !apps/api/src/
 !apps/api/src/**
+!apps/api/Dockerfile
 
 !apps/web/
 !apps/web/package.json
+!apps/web/index.html
+!apps/web/vite.config.ts
+!apps/web/tsconfig.json
+!apps/web/tsconfig.node.json
+!apps/web/.oxlintrc.json
 
-!packages/
-!packages/ui/
-!packages/ui/package.json
-!packages/eslint-config/
-!packages/eslint-config/package.json
+!apps/web/src/
+!apps/web/src/**
+
+!apps/web/public/
+!apps/web/public/**
+
+!apps/web/Dockerfile
+!apps/web/nginx.conf
+
+!packages/typescript-config/*.json
+
 !packages/typescript-config/
 !packages/typescript-config/package.json
 
