@@ -66,7 +66,7 @@ export class ErrorBoundary extends Component<
           </h1>
           <p className="text-sm text-muted-foreground">
             Try again. If the problem continues, reload the application or
-            return to the overview.
+            return to the home page.
           </p>
           <div className="flex flex-wrap gap-3">
             <button
@@ -86,7 +86,7 @@ export class ErrorBoundary extends Component<
             </button>
 
             <a href="/" className={buttonClassName}>
-              Go to overview
+              Go to home
             </a>
           </div>
         </div>

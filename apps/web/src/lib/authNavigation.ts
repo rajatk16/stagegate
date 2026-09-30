@@ -1,6 +1,6 @@
-const DEFAULT_RETURN_TO = "/";
+const DEFAULT_RETURN_TO = "/dashboard";
 
-const allowedReturnPaths = new Set(["/", "/connection", "/profile"]);
+const allowedReturnPaths = new Set(["/dashboard", "/profile"]);
 
 export const getSafeReturnTo = (value: string | null | undefined): string => {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
@@ -38,17 +38,17 @@ export const getAuthUrl = (
 };
 
 export const getEmailReturnTo = (continueUrl: string | null): string => {
-  if (!continueUrl) return "/";
+  if (!continueUrl) return DEFAULT_RETURN_TO;
 
   try {
     const url = new URL(continueUrl);
 
     if (url.origin !== window.location.origin) {
-      return "/";
+      return DEFAULT_RETURN_TO;
     }
 
     return getSafeReturnTo(url.searchParams.get("returnTo"));
   } catch {
-    return "/";
+    return DEFAULT_RETURN_TO;
   }
 };

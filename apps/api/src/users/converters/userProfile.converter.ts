@@ -1,11 +1,12 @@
 import z from 'zod';
 import {
-  FirestoreDataConverter,
   Timestamp,
   SetOptions,
+  FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
 import { UserProfileDocument } from '../types';
+import { DiagnosticError } from '../../observalibility';
 import { UserProfile, userProfileSchema } from '../models';
 
 const userProfileDocumentSchema = userProfileSchema.extend({
@@ -19,7 +20,7 @@ export const userProfileConverter: FirestoreDataConverter<
 > = {
   toFirestore(value: unknown, options?: SetOptions): UserProfileDocument {
     if (options !== undefined) {
-      throw new Error('Partial profile writes are not supported');
+      throw new DiagnosticError('PROFILE_PARTIAL_WRITE_UNSUPPORTED');
     }
 
     const profile = userProfileSchema.parse(value);
@@ -41,15 +42,13 @@ export const userProfileConverter: FirestoreDataConverter<
     const result = userProfileDocumentSchema.safeParse(snapshot.data());
 
     if (!result.success) {
-      throw new Error(`Invalid user profile document: ${snapshot.ref.path}`);
+      throw new DiagnosticError('PROFILE_DOCUMENT_INVALID');
     }
 
     const document = result.data;
 
     if (document.uid !== snapshot.id) {
-      throw new Error(
-        `User profile UID does not match document ID: ${snapshot.ref.path}`,
-      );
+      throw new DiagnosticError('PROFILE_IDENTITY_MISMATCH');
     }
 
     return {

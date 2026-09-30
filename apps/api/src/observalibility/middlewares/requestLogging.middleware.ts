@@ -63,7 +63,7 @@ export class RequestLogginMiddleware implements NestMiddleware {
         ) {
           this.logger.error(entry);
         } else if (
-          outcome !== null ||
+          outcome === 'aborted' ||
           (statusCode !== null && statusCode >= 400)
         ) {
           this.logger.warn(entry);

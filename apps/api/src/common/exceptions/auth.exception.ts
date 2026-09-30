@@ -36,9 +36,9 @@ const authErrors = {
 export type AuthErrorCode = keyof typeof authErrors;
 
 export class AuthException extends ApiException {
-  constructor(code: AuthErrorCode) {
+  constructor(code: AuthErrorCode, cause?: unknown) {
     const error = authErrors[code];
 
-    super(error.status, code, error.message);
+    super(error.status, code, error.message, { cause });
   }
 }

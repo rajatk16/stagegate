@@ -1,5 +1,7 @@
 import { ConsoleLogger } from '@nestjs/common';
 
+import { toDiagnostic } from '../mappers';
+
 export class SystemLogger extends ConsoleLogger {
   constructor() {
     super({
@@ -8,15 +10,25 @@ export class SystemLogger extends ConsoleLogger {
     });
   }
 
-  override error(_message: unknown, ..._optionalParams: unknown[]): void {
+  override error(message: unknown, ...optionalParams: unknown[]): void {
+    const source =
+      message instanceof Error
+        ? message
+        : (optionalParams.find((value) => value instanceof Error) ?? message);
     super.error({
       event: 'framework.error',
+      ...toDiagnostic(source),
     });
   }
 
-  override fatal(_message: unknown, ..._optionalParams: unknown[]): void {
+  override fatal(message: unknown, ...optionalParams: unknown[]): void {
+    const source =
+      message instanceof Error
+        ? message
+        : (optionalParams.find((value) => value instanceof Error) ?? message);
     super.fatal({
       event: 'framework.fatal',
+      ...toDiagnostic(source),
     });
   }
 }

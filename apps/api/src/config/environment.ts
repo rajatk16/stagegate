@@ -1,5 +1,7 @@
 import z from 'zod';
 
+import { DiagnosticError } from '../observalibility';
+
 const isHttpOrigin = (value: string): boolean => {
   try {
     const url = new URL(value);
@@ -123,20 +125,36 @@ export const validateEnvironment = (
     );
 
     if (emulatorKeys.length > 0) {
-      throw new Error(
-        `Production forbids emulator configuration: ${emulatorKeys.join(', ')}`,
-      );
+      throw new DiagnosticError('EMULATOR_CONFIG_FORBIDDEN');
     }
   }
 
   const result = environmentSchema.safeParse(raw);
 
   if (!result.success) {
-    const messages = result.error.issues.map(
-      (issue) => `${issue.path.join('.')}: ${issue.message}`,
-    );
+    const knownFields = new Set([
+      'NODE_ENV',
+      'PORT',
+      'FRONTEND_ORIGIN',
+      'FIREBASE_MODE',
+      'FIREBASE_PROJECT_ID',
+      'FIRESTORE_EMULATOR_HOST',
+      'FIREBASE_AUTH_EMULATOR_HOST',
+      'SHUTDOWN_TIMEOUT_MS',
+    ]);
 
-    throw new Error(`Invalid environment:\n${messages.join('\n')}`);
+    const fields = [
+      ...new Set(
+        result.error.issues.map((issue) => {
+          const field = issue.path[0];
+
+          return typeof field === 'string' && knownFields.has(field)
+            ? field
+            : 'environment';
+        }),
+      ),
+    ];
+    throw new DiagnosticError('CONFIG_INVALID', fields);
   }
 
   return result.data;

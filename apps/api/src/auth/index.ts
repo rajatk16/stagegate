@@ -17,13 +17,15 @@ import {
       throttlers: [
         {
           name: 'ip',
-          limit: 30,
+          limit: 120,
           ttl: 60_000,
+          blockDuration: 60_000,
         },
         {
           name: 'user',
           limit: 5,
           ttl: 60_000,
+          blockDuration: 60_000,
         },
       ],
     }),

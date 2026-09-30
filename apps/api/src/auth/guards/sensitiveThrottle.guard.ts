@@ -1,21 +1,25 @@
+import { isIP } from 'node:net';
 import { Response } from 'express';
 import {
   ThrottlerGuard,
-  ThrottlerLimitDetail,
   ThrottlerRequest,
+  ThrottlerLimitDetail,
 } from '@nestjs/throttler';
 import {
-  ExecutionContext,
-  HttpStatus,
   Injectable,
+  HttpStatus,
+  ExecutionContext,
   InternalServerErrorException,
 } from '@nestjs/common';
 
 import { AuthenticatedRequest } from '../types';
 import { ApiException, AuthException } from '../../common';
-import { IS_PUBLIC_KEY, SENSITIVE_ACTION_KEY } from '../constants';
 import { SensitiveActionName, sensitiveActionPolicies } from '../policies';
-import { isIP } from 'node:net';
+import {
+  IS_PUBLIC_KEY,
+  SENSITIVE_ACTION_KEY,
+  USER_WRITE_THROTTLE_KEY,
+} from '../constants';
 
 abstract class SensitiveThrottleGuard extends ThrottlerGuard {
   protected abstract readonly bucket: 'ip' | 'user';
@@ -28,15 +32,24 @@ abstract class SensitiveThrottleGuard extends ThrottlerGuard {
       handler,
     );
 
-    if (action === undefined) return true;
+    const userWrite = this.reflector.get<boolean>(
+      USER_WRITE_THROTTLE_KEY,
+      handler,
+    );
 
-    if (this.reflector.get<boolean>(IS_PUBLIC_KEY, handler) === true) {
+    const isPublic = this.reflector.get<boolean>(IS_PUBLIC_KEY, handler);
+
+    if (isPublic === true && (action !== undefined || userWrite === true)) {
       throw new InternalServerErrorException(
-        'A sensitive action cannot be public.',
+        'User write and sensitive-action policies require authentication.',
       );
     }
 
-    return false;
+    if (this.bucket === 'ip') {
+      return false;
+    }
+
+    return action === undefined && userWrite !== true;
   }
 
   protected async handleRequest(
@@ -51,9 +64,14 @@ abstract class SensitiveThrottleGuard extends ThrottlerGuard {
       properties.context.getHandler(),
     );
 
-    if (!action) return true;
-
-    const policy = sensitiveActionPolicies[action][this.bucket];
+    const policy =
+      action === undefined
+        ? {
+            limit: properties.limit,
+            ttl: properties.ttl,
+            blockDuration: properties.blockDuration,
+          }
+        : sensitiveActionPolicies[action][this.bucket];
 
     let getTracker = properties.getTracker;
 
@@ -72,7 +90,10 @@ abstract class SensitiveThrottleGuard extends ThrottlerGuard {
         );
       }
 
-      getTracker = async () => `ip:${clientIp}`;
+      getTracker = async () =>
+        this.getTracker({
+          ip: clientIp,
+        });
     }
 
     if (this.bucket === 'user') {

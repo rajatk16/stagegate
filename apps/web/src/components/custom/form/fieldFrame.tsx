@@ -32,6 +32,15 @@ export const FieldFrame = (props: FieldFrameProps) => {
           {props.hint}
         </p>
       )}
+      {props.error && (
+        <p
+          id={`${fieldId}-error`}
+          role="alert"
+          className="text-sm text-destructive"
+        >
+          {props.error}
+        </p>
+      )}
     </div>
   );
 };

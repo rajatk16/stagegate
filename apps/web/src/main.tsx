@@ -6,7 +6,7 @@ import { createRoot } from "react-dom/client";
 import "@/style.css";
 import { App } from "@/App";
 import { AuthProvider } from "@/providers";
-import { ErrorBoundary, SessionBoundary } from "@/layouts";
+import { ErrorBoundary } from "@/layouts";
 
 const rootElement = document.getElementById("app");
 
@@ -26,9 +26,7 @@ createRoot(rootElement).render(
       >
         <AuthProvider>
           <BrowserRouter>
-            <SessionBoundary>
-              <App />
-            </SessionBoundary>
+            <App />
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>

@@ -206,21 +206,23 @@ export const AuthForm = ({ mode }: AuthFormProps) => {
             {pending ? pendingLabel : ""}
           </p>
 
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-sm text-muted-foreground">
             {pending ? (
               <span>Please wait while we finish your request.</span>
             ) : (
               <>
-                {isRegistration
-                  ? "Already have an account?"
-                  : "New to StageGate?"}
+                <span>
+                  {isRegistration
+                    ? "Already have an account?"
+                    : "New to StageGate?"}
+                </span>
 
                 <Link
                   to={getAuthUrl(
                     isRegistration ? "/sign-in" : "/register",
                     returnTo,
                   )}
-                  className="font-medium text-primary underline underline-offset-4 hover:underline"
+                  className="rounded font-medium text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-ring"
                 >
                   {isRegistration ? "Sign in" : "Create an account"}
                 </Link>

@@ -41,7 +41,7 @@ const parseProfile = (value: unknown, expectedUid: string): Profile => {
   return {
     uid: expectedUid,
     displayName: value.displayName,
-    biography: value.displayName,
+    biography: value.biography,
     affiliation: value.affiliation,
     timezone: value.timezone,
   };
@@ -93,5 +93,5 @@ export const getProfileErrorMessage = (error: unknown): string => {
     return error.message;
   }
 
-  return "We could not complete the profule request. Please try again.";
+  return "We could not complete the profile request. Please try again.";
 };

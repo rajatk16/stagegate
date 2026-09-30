@@ -17,7 +17,7 @@ export const SelectField = (props: SelectFieldProps) => (
         {...accessibility}
         className={cn(controlStyles, "h-11", props.className)}
       >
-        {props.className}
+        {props.children}
       </select>
     )}
   </FieldFrame>
