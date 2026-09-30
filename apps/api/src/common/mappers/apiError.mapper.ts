@@ -1,17 +1,23 @@
 import { STATUS_CODES } from 'http';
+import createHttpError from 'http-errors';
 import { HttpException } from '@nestjs/common';
 
-import { ApiException } from '../exceptions';
 import { ApiErrorResponseDto } from '../dtos';
+import { ApiException, RequestValidationException } from '../exceptions';
 
 type PublicError = Pick<
   ApiErrorResponseDto,
-  'statusCode' | 'error' | 'code' | 'message'
+  'statusCode' | 'error' | 'code' | 'message' | 'details'
 >;
 
 export const toPublicApiError = (exception: unknown): PublicError => {
-  const proposedStatus =
-    exception instanceof HttpException ? exception.getStatus() : 500;
+  let proposedStatus = 500;
+
+  if (exception instanceof HttpException) {
+    proposedStatus = exception.getStatus();
+  } else if (createHttpError.isHttpError(exception)) {
+    proposedStatus = exception.statusCode;
+  }
 
   const statusCode =
     Number.isInteger(proposedStatus) &&
@@ -28,6 +34,9 @@ export const toPublicApiError = (exception: unknown): PublicError => {
       error,
       code: exception.code,
       message: [exception.publicMessage],
+      ...(exception instanceof RequestValidationException
+        ? { details: exception.details }
+        : {}),
     };
   }
 

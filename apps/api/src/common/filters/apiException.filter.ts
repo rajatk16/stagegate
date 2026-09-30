@@ -1,19 +1,26 @@
 import { randomUUID } from 'node:crypto';
+import createHttpError from 'http-errors';
 import type { Request, Response } from 'express';
 import {
-  type ArgumentsHost,
   Catch,
-  type ExceptionFilter,
+  ConsoleLogger,
   HttpException,
+  type ArgumentsHost,
+  type ExceptionFilter,
 } from '@nestjs/common';
 
 import { ApiException } from '../exceptions';
 import { ApiErrorResponseDto } from '../dtos';
 import { toPublicApiError } from '../mappers';
-import { RequestContextService } from '../../observalibility';
+import { RequestContextService, toDiagnostic } from '../../observalibility';
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {
+  private readonly logger = new ConsoleLogger('Exceptions', {
+    json: true,
+    colors: false,
+  });
+
   constructor(private readonly contexts: RequestContextService) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
@@ -29,12 +36,22 @@ export class ApiExceptionFilter implements ExceptionFilter {
       context?.requestId ??
       (typeof existingId === 'string' ? existingId : randomUUID());
 
+    if (mapped.statusCode >= 500) {
+      this.logger.error({
+        event: 'request.failed',
+        requestId,
+        errorCode: mapped.code,
+        ...toDiagnostic(exception),
+      });
+    }
+
     if (context) {
       context.errorCode = mapped.code;
       context.errorKind =
         exception instanceof ApiException
           ? 'application'
-          : exception instanceof HttpException
+          : exception instanceof HttpException ||
+              createHttpError.isHttpError(exception)
             ? 'http'
             : 'unexpected';
     }

@@ -1,0 +1,212 @@
+import { Link } from "react-router";
+import type { User } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { ArrowRight, Check, Circle } from "lucide-react";
+
+import { useAuth } from "@/hooks";
+import { Button, Badge } from "@/components/ui";
+import { InlineAlert } from "@/components/custom";
+import {
+  getProfile,
+  type Profile,
+  getProfileErrorMessage,
+} from "@/services";
+
+type ProfileState =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "ready"; profile: Profile };
+
+const DashboardContent = ({ user }: { user: User }) => {
+  const [attempt, setAttempt] = useState(0);
+  const [state, setState] = useState<ProfileState>({
+    status: "loading",
+  });
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const load = async () => {
+      try {
+        const profile = await getProfile(user, controller.signal);
+
+        if (!controller.signal.aborted) {
+          setState({ status: "ready", profile });
+        }
+      } catch (error: unknown) {
+        if (!controller.signal.aborted) {
+          setState({
+            status: "error",
+            message: getProfileErrorMessage(error),
+          });
+        }
+      }
+    };
+
+    void load();
+
+    return () => controller.abort();
+  }, [user, attempt]);
+
+  if (state.status === "loading") {
+    return (
+      <div
+        role="status"
+        className="rounded-2xl border bg-card p-8 text-muted-foreground"
+      >
+        Loading your workspace…
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className="space-y-4">
+        <InlineAlert tone="error" title="Could not load your dashboard">
+          {state.message}
+        </InlineAlert>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setState({ status: "loading" });
+            setAttempt((value) => value + 1);
+          }}
+        >
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
+  const { profile } = state;
+  const hasName = Boolean(profile.displayName?.trim());
+  const hasTimezone = Boolean(profile.timezone?.trim());
+  const profileReady = hasName && hasTimezone;
+
+  const checklist = [
+    { label: "Email verified", complete: user.emailVerified },
+    { label: "Name added", complete: hasName },
+    { label: "Timezone selected", complete: hasTimezone },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <section className="rounded-3xl border bg-card p-6 md:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div className="space-y-3">
+            <Badge variant="secondary">Your workspace</Badge>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Welcome, {profile.displayName?.trim() || "there"}.
+            </h2>
+            <p className="max-w-xl leading-7 text-muted-foreground">
+              {profileReady
+                ? "Your profile is ready. You can update your details whenever you need to."
+                : "Start by adding your name and timezone to finish setting up your profile."}
+            </p>
+          </div>
+
+          <Button asChild className="min-h-11">
+            <Link to="/profile">
+              {profileReady ? "Edit profile" : "Complete profile"}
+              <ArrowRight aria-hidden="true" className="size-4" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <section className="space-y-5 rounded-2xl border bg-card p-6">
+          <h2 className="text-lg font-semibold">Getting started</h2>
+
+          <ul className="space-y-4">
+            {checklist.map(({ label, complete }) => {
+              const Icon = complete ? Check : Circle;
+
+              return (
+                <li key={label} className="flex items-center gap-3">
+                  <Icon
+                    aria-hidden="true"
+                    className={`size-5 ${
+                      complete ? "text-primary" : "text-muted-foreground"
+                    }`}
+                  />
+                  <span>{label}</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    {complete ? "Done" : "To do"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+
+          <p className="text-sm text-muted-foreground">
+            Biography and affiliation are optional.
+          </p>
+        </section>
+
+        <section className="space-y-5 rounded-2xl border bg-card p-6">
+          <h2 className="text-lg font-semibold">Profile at a glance</h2>
+
+          <dl className="space-y-4">
+            <div>
+              <dt className="text-xs text-muted-foreground">Email</dt>
+              <dd className="mt-1 break-words">
+                {user.email ?? "Not available"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-muted-foreground">Affiliation</dt>
+              <dd className="mt-1 break-words">
+                {profile.affiliation || "Not added"}
+              </dd>
+            </div>
+
+            <div>
+              <dt className="text-xs text-muted-foreground">Timezone</dt>
+              <dd className="mt-1 break-words">
+                {profile.timezone?.replaceAll("_", " ") || "Not selected"}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+
+      <section className="rounded-2xl border border-dashed bg-card/50 p-8">
+        <Badge variant="outline">Coming next</Badge>
+        <h2 className="mt-4 text-xl font-semibold">
+          Your projects will have a home here.
+        </h2>
+        <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
+          Project workflows are the next stage of StageGate. For now,
+          your account and profile are ready to support what comes next.
+        </p>
+      </section>
+    </div>
+  );
+};
+
+export const Dashboard = () => {
+  const session = useAuth();
+
+  if (session.status !== "authenticated") {
+    return null;
+  }
+
+  return (
+    <div className="space-y-8">
+      <header>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Dashboard
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Your profile, account, and next steps.
+        </p>
+      </header>
+
+      <DashboardContent key={session.user.uid} user={session.user} />
+    </div>
+  );
+};

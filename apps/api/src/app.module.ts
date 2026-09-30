@@ -6,9 +6,9 @@ import { AuthModule } from './auth';
 import { UsersModule } from './users';
 import { HealthModule } from './health';
 import { FirebaseModule } from './firebase';
-import { ApiExceptionFilter } from './common';
 import { validateEnvironment } from './config';
 import { ObservabilityModule } from './observalibility';
+import { ApiExceptionFilter, RequestValidationException, toValidationIssues } from './common';
 
 @Module({
   imports: [
@@ -39,6 +39,8 @@ import { ObservabilityModule } from './observalibility';
             target: false,
             value: false,
           },
+          exceptionFactory: (errors) =>
+            new RequestValidationException(toValidationIssues(errors)),
         }),
     },
     {

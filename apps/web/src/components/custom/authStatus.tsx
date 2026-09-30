@@ -1,71 +1,59 @@
 import { useRef, useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { LoaderCircle, UserRound } from "lucide-react";
 
 import { useAuth } from "@/hooks";
 import { signOut } from "@/services";
-import { getAuthErrorMessage, getAuthUrl, getSafeReturnTo } from "@/lib";
+import { getAuthErrorMessage } from "@/lib";
 
-import { Badge, Button } from "../ui";
+import { Button } from "../ui";
 
 export const AuthStatus = () => {
   const session = useAuth();
-  const location = useLocation();
+  const navigate = useNavigate();
 
-  const returnTo = getSafeReturnTo(
-    new URLSearchParams(location.search).get("returnTo") ??
-      `${location.pathname}${location.search}${location.hash}`,
-  );
-  const signOutLock = useRef(false);
+  const lock = useRef(false);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>();
 
   const handleSignOut = async () => {
-    if (signOutLock.current) return;
+    if (lock.current) return;
 
-    signOutLock.current = true;
+    lock.current = true;
     setPending(true);
     setError(null);
 
     try {
       await signOut();
+      navigate('/', { replace: true });
     } catch (error: unknown) {
       setError(getAuthErrorMessage(error));
     } finally {
-      signOutLock.current = false;
+      lock.current = false;
       setPending(false);
     }
   };
 
-  if (session.status === "loading") {
-    return <Badge variant="outline">Restoring session...</Badge>;
+  if (session.status !== "authenticated") {
+    return null;
   }
-
-  if (session.status === "unauthenticated") {
-    return (
-      <Button asChild variant="outline">
-        <Link to={getAuthUrl("/sign-in", returnTo)}>Sign in</Link>
-      </Button>
-    );
-  }
-
-  const label = session.user.email ?? "Signed in";
 
   return (
     <div className="flex flex-col items-end gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant="outline" role="status" className="max-w-48 gap-2 py-2">
-          <UserRound className="size-3.5 shrink-0" aria-hidden="true" />
-          <span className="truncate" title={label}>
-            {label}
+      <div className="flex flex-wrap items-center gap-3">
+        <Link to="/profile" className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm focus-visible:outline-2 focus-visible:outline-ring">
+          <UserRound aria-hidden="true" className="size-4" />
+          <span className="max-w-40 truncate">
+            {session.user.email ?? "Your profile"}
           </span>
-        </Badge>
+        </Link>
 
         <Button
           type="button"
           variant="ghost"
+          className="min-h-11"
           disabled={pending}
-          onClick={handleSignOut}
+          onClick={() => void handleSignOut()}
         >
           {pending && (
             <LoaderCircle

@@ -4,8 +4,8 @@ import { ConfigService } from '@nestjs/config';
 
 import { Environment } from './config';
 import { AppModule } from './app.module';
-import { SystemLogger } from './observalibility';
 import { configureHttpApp } from './configureHttpApp';
+import { SystemLogger, toDiagnostic } from './observalibility';
 import { installGracefulShutdown } from './installGracefulShutdown';
 
 const bootstrapLogger = new ConsoleLogger('Bootstrap', {
@@ -41,14 +41,22 @@ const bootstrap = async (): Promise<void> => {
       port,
     });
   } catch (error: unknown) {
-    await app.close();
+    try {
+      await app.close();
+    } catch (closeError: unknown) {
+      bootstrapLogger.error({
+        event: 'api.startup.cleanup.failed',
+        ...toDiagnostic(closeError),
+      });
+    }
     throw error;
   }
 };
 
-void bootstrap().catch(() => {
+void bootstrap().catch((error: unknown) => {
   bootstrapLogger.error({
     event: 'api.startup.failed',
+    ...toDiagnostic(error),
   });
   process.exitCode = 1;
 });

@@ -1,22 +1,31 @@
 import { Link } from "react-router";
-
-import { Button } from "@/components/ui";
 import { ArrowLeft } from "lucide-react";
 
-export const NotFound = () => (
-  <section className="flex min-h-[50vh] flex-col items-center justify-center space-y-5 text-center">
-    <p className="text-7xl font-semibold tracking-tight text-primary">404</p>
+import { useAuth } from "@/hooks";
+import { Button } from "@/components/ui";
 
-    <h1 className="text-2xl font-semibold">Page not found</h1>
+export const NotFound = () => {
+  const session = useAuth();
+  const signedIn = session.status === "authenticated";
 
-    <p className="max-w-md text-muted-foreground">
-      This page does not exist. Return to your workspace to continue.
-    </p>
+  return (
+    <section className="flex min-h-[50vh] flex-col items-center justify-center space-y-5 text-center">
+      <p className="text-7xl font-semibold tracking-tight text-primary">
+        404
+      </p>
 
-    <Button asChild>
-      <Link to="/">
-        <ArrowLeft className="size-4" aria-hidden="true" />
-      </Link>
-    </Button>
-  </section>
-);
+      <h1 className="text-2xl font-semibold">Page not found</h1>
+
+      <p className="max-w-md text-muted-foreground">
+        This page may have moved, or the address may be incorrect.
+      </p>
+
+      <Button asChild className="min-h-11">
+        <Link to={signedIn ? "/dashboard" : "/"}>
+          <ArrowLeft aria-hidden="true" className="size-4" />
+          {signedIn ? "Back to dashboard" : "Back to home"}
+        </Link>
+      </Button>
+    </section>
+  );
+};

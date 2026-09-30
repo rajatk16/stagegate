@@ -11,6 +11,9 @@ import { RequestLogginMiddleware } from './middlewares';
 export class ObservabilityModule {}
 
 export * from './types';
+export * from './errors';
 export * from './loggers';
+export * from './mappers';
 export * from './services';
+export * from './constants';
 export * from './middlewares';

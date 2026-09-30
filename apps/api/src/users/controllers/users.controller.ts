@@ -3,8 +3,8 @@ import { Body, Controller, Get, Header, Patch } from '@nestjs/common';
 
 import { UsersService } from '../services';
 import { toMeResponseDto } from '../mappers';
-import { CurrentUser } from '../../auth/decorators';
 import { MeResponseDto, UpdateProfileDto } from '../dtos';
+import { CurrentUser, ThrottleUserWrites } from '../../auth/decorators';
 
 @Controller('users')
 export class UsersController {
@@ -19,6 +19,7 @@ export class UsersController {
   }
 
   @Patch('me')
+  @ThrottleUserWrites()
   @Header('Cache-Control', 'no-store')
   async updateMe(
     @CurrentUser() user: DecodedIdToken,

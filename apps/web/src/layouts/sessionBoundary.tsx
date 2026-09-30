@@ -1,5 +1,5 @@
 import { PropsWithChildren } from "react";
-import { Layers3, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 
 import { useAuth } from "@/hooks";
 
@@ -9,33 +9,27 @@ export const SessionBoundary = (props: PropsWithChildren) => {
   if (session.status === "loading") {
     return (
       <main
+        id="main-content"
+        tabIndex={-1}
         aria-busy="true"
-        className="stagegate-surface flex min-h-screen items-center justify-center bg-background px-6 text-foreground"
+        className="flex min-h-[60vh] flex-1 items-center justify-center bg-background px-6 text-foreground outline-none"
       >
         <div
           role="status"
-          aria-live="polite"
-          className="flex flex-col items-center gap-5 text-center"
+          className="space-y-4 text-center"
         >
-          <div className="rounded-2xl bg-primary p-4 text-primary-foreground">
-            <Layers3 className="size-7" aria-hidden="true" />
-          </div>
-
-          <div className="space-y-2">
-            <h1 className="text-xl font-semibold tracking-tight">
-              Opening StageGate
-            </h1>
-
-            <p className="text-sm text-muted-foreground">
-              Restoring your session...
-            </p>
-          </div>
-
-          <LoaderCircle
-            className="size-5 text-primary motion-safe:animate-spin"
+          <LoaderCircle 
             aria-hidden="true"
+            className="mx-auto size-6 text-primary motion-safe:animate-spin"
           />
-        </div>
+          <h1 className="text-xl font-semibold">
+            Opening StageGate
+          </h1>
+
+          <p className="text-sm text-muted-foreground">
+            Restoring your session...
+          </p>
+          </div>
       </main>
     );
   }
