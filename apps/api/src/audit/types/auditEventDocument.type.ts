@@ -1,7 +1,13 @@
-import { Timestamp } from 'firebase-admin/firestore';
+import type { Timestamp } from 'firebase-admin/firestore';
 
-import { AuditEvent } from '../models';
+import type { AuditEvent } from '../models';
 
-export type AuditEventDocument = Omit<AuditEvent, 'occurredAt'> & {
-  occurredAt: Timestamp;
-};
+type WithFirestoreTimestamp<T> = T extends {
+  occurredAt: Date;
+}
+  ? Omit<T, 'occurredAt'> & {
+      occurredAt: Timestamp;
+    }
+  : never;
+
+export type AuditEventDocument = WithFirestoreTimestamp<AuditEvent>;

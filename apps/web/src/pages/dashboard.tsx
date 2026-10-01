@@ -148,21 +148,21 @@ const DashboardContent = ({ user }: { user: User }) => {
           <dl className="space-y-4">
             <div>
               <dt className="text-xs text-muted-foreground">Email</dt>
-              <dd className="mt-1 break-words">
+              <dd className="mt-1 wrap-break-word">
                 {user.email ?? "Not available"}
               </dd>
             </div>
 
             <div>
               <dt className="text-xs text-muted-foreground">Affiliation</dt>
-              <dd className="mt-1 break-words">
+              <dd className="mt-1 wrap-break-word">
                 {profile.affiliation || "Not added"}
               </dd>
             </div>
 
             <div>
               <dt className="text-xs text-muted-foreground">Timezone</dt>
-              <dd className="mt-1 break-words">
+              <dd className="mt-1 wrap-break-word">
                 {profile.timezone?.replaceAll("_", " ") || "Not selected"}
               </dd>
             </div>
@@ -171,14 +171,29 @@ const DashboardContent = ({ user }: { user: User }) => {
       </div>
 
       <section className="rounded-2xl border border-dashed bg-card/50 p-8">
-        <Badge variant="outline">Coming next</Badge>
-        <h2 className="mt-4 text-xl font-semibold">
-          Your projects will have a home here.
-        </h2>
-        <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-          Project workflows are the next stage of StageGate. For now, your
-          account and profile are ready to support what comes next.
-        </p>
+        <section className="rounded-2xl border bg-card p-6 md:p-8">
+          <div className="flex flex-wrap items-start justify-between gap-6">
+            <div className="max-w-2xl space-y-3">
+              <Badge variant="secondary">Organizations</Badge>
+
+              <h2 className="text-xl font-semibold">
+                Give your team a home in StageGate.
+              </h2>
+
+              <p className="leading-7 text-muted-foreground">
+                Create an organization for your team, company, or research
+                group. You will become its owner.
+              </p>
+            </div>
+
+            <Button asChild className="min-h-11">
+              <Link to="/organizations/new">
+                Create organization
+                <ArrowRight aria-hidden="true" className="size-4" />
+              </Link>
+            </Button>
+          </div>
+        </section>
       </section>
     </div>
   );

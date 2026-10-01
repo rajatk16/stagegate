@@ -4,9 +4,12 @@ import { Transaction } from 'firebase-admin/firestore';
 import { AuditEvent } from '../models';
 import { ProfileField } from '../enums';
 import { auditEventConverter } from '../converters';
-import { toProfileUpdatedAuditEvent } from '../mappers';
+import {
+  toOrganizationCreatedAuditEvent,
+  toProfileUpdatedAuditEvent,
+} from '../mappers';
 import { FirebaseService } from '../../firebase/services';
-import { RequestContextService } from '../../observalibility';
+import { DiagnosticError, RequestContextService } from '../../observalibility';
 
 @Injectable()
 export class AuditWriter {
@@ -22,7 +25,7 @@ export class AuditWriter {
     const context = this.requestContextService.require();
 
     if (!context.actorUid || context.actorUid !== targetUid) {
-      throw new Error('Invalid actor for self-profile audit event');
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
     }
 
     return toProfileUpdatedAuditEvent({
@@ -30,6 +33,25 @@ export class AuditWriter {
       targetUid,
       requestId: context.requestId,
       fields,
+    });
+  }
+
+  prepareOrganizationCreated(
+    organizationId: string,
+    ownerUid: string,
+    occurredAt: Date,
+  ): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== ownerUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return toOrganizationCreatedAuditEvent({
+      actorUid: context.actorUid,
+      organizationId,
+      requestId: context.requestId,
+      occurredAt,
     });
   }
 

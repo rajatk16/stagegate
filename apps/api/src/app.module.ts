@@ -7,11 +7,12 @@ import { UsersModule } from './users';
 import { HealthModule } from './health';
 import { FirebaseModule } from './firebase';
 import { validateEnvironment } from './config';
+import { OrganizationModule } from './organizations';
 import { ObservabilityModule } from './observalibility';
 import {
   ApiExceptionFilter,
-  RequestValidationException,
   toValidationIssues,
+  RequestValidationException,
 } from './common';
 
 @Module({
@@ -25,6 +26,7 @@ import {
     UsersModule,
     HealthModule,
     FirebaseModule,
+    OrganizationModule,
     ObservabilityModule,
   ],
   providers: [
