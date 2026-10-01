@@ -94,7 +94,7 @@ const DashboardContent = ({ user }: { user: User }) => {
           <div className="space-y-3">
             <Badge variant="secondary">Your workspace</Badge>
             <h2 className="text-2xl font-semibold tracking-tight">
-              Welcome, {profile.displayName?.trim() || "there"}.
+              Welcome {profile.displayName ? profile.displayName.trim() : ""}.
             </h2>
             <p className="max-w-xl leading-7 text-muted-foreground">
               {profileReady
@@ -170,30 +170,39 @@ const DashboardContent = ({ user }: { user: User }) => {
         </section>
       </div>
 
-      <section className="rounded-2xl border border-dashed bg-card/50 p-8">
-        <section className="rounded-2xl border bg-card p-6 md:p-8">
-          <div className="flex flex-wrap items-start justify-between gap-6">
-            <div className="max-w-2xl space-y-3">
-              <Badge variant="secondary">Organizations</Badge>
+      <section className="rounded-2xl border bg-card p-6 md:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <div className="max-w-2xl space-y-3">
+            <Badge variant="secondary">Organizations</Badge>
 
-              <h2 className="text-xl font-semibold">
-                Give your team a home in StageGate.
-              </h2>
+            <h2 className="text-xl font-semibold">
+              Give your team a home in StageGate.
+            </h2>
 
-              <p className="leading-7 text-muted-foreground">
-                Create an organization for your team, company, or research
-                group. You will become its owner.
-              </p>
-            </div>
+            <p className="leading-7 text-muted-foreground">
+              Create an organization for your team, company, or group.
+            </p>
+          </div>
 
+          <Button asChild className="min-h-11">
+            <Link to="/organizations/new">
+              Create organization
+              <ArrowRight aria-hidden="true" className="size-4" />
+            </Link>
+          </Button>
+          <div className="flex flex-wrap gap-3">
             <Button asChild className="min-h-11">
-              <Link to="/organizations/new">
-                Create organization
+              <Link to="/organizations">
+                Open organizations
                 <ArrowRight aria-hidden="true" className="size-4" />
               </Link>
             </Button>
+
+            <Button asChild variant="outline" className="min-h-11">
+              <Link to="/organizations/new">Create organization</Link>
+            </Button>
           </div>
-        </section>
+        </div>
       </section>
     </div>
   );

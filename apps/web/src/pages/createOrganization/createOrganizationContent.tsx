@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { User } from "firebase/auth";
 
 import { Organization } from "@/services";
+import { useOrganizations } from "@/hooks";
 import { CreateOrganizationForm } from "@/components/custom";
 import {
   Card,
@@ -18,6 +19,7 @@ import { OrganizationCreated } from "./organizationCreated";
 export const CreateOrganizationContent = ({ user }: { user: User }) => {
   const [createdOrganization, setCreatedOrganization] =
     useState<Organization | null>(null);
+  const { reload } = useOrganizations();
 
   if (createdOrganization) {
     return <OrganizationCreated organization={createdOrganization} />;
@@ -50,7 +52,10 @@ export const CreateOrganizationContent = ({ user }: { user: User }) => {
           <CardContent>
             <CreateOrganizationForm
               user={user}
-              onCreated={setCreatedOrganization}
+              onCreated={(organization) => {
+                setCreatedOrganization(organization);
+                reload();
+              }}
             />
           </CardContent>
         </Card>

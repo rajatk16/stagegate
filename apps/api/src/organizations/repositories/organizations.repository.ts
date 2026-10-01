@@ -5,7 +5,9 @@ import { ApiException } from '../../common';
 import { OrganizationCreation } from '../types';
 import { organizationConverter } from '../converters';
 import { ORGANIZATIONS_COLLECTION } from '../constants';
+import { DiagnosticError } from '../../observalibility';
 import { FirebaseService } from '../../firebase/services';
+import { Organization, organizationSchema } from '../models';
 import { OrganizationSlugRepository } from './organizationSlugs.repository';
 import { OrganizationmembershipRepository } from './organizationMembership.repository';
 
@@ -72,5 +74,33 @@ export class OrganizationRepository {
         return creation;
       },
     );
+  }
+
+  async findByIds(ids: readonly string[]): Promise<Map<string, Organization>> {
+    const organizations = new Map<string, Organization>();
+
+    if (ids.length === 0) {
+      return organizations;
+    }
+
+    const references = [...new Set(ids)].map((id) =>
+      this.getDocumentReference(id),
+    );
+
+    const snapshots = await this.firebaseService.firestore.getAll(
+      ...references,
+    );
+
+    for (const snapshot of snapshots) {
+      if (!snapshot.exists) {
+        throw new DiagnosticError('ORGANIZATION_STORAGE_INVARIANT_FAILED');
+      }
+
+      const organization = organizationSchema.parse(snapshot.data());
+
+      organizations.set(organization.id, organization);
+    }
+
+    return organizations;
   }
 }

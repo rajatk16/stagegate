@@ -1,7 +1,11 @@
 import { NavLink } from "react-router";
-import { LayoutDashboard, UserRound } from "lucide-react";
+import { Building2, LayoutDashboard, UserRound } from "lucide-react";
 
-import { AuthStatus, ThemeToggle } from "@/components/custom";
+import {
+  AuthStatus,
+  ThemeToggle,
+  OrganizationSwitcher,
+} from "@/components/custom";
 
 import { SkipLink } from "./skipLink";
 import { SiteBrand } from "./siteBrand";
@@ -15,6 +19,11 @@ const navigation = [
     icon: LayoutDashboard,
   },
   {
+    to: "/organizations",
+    label: "Organizations",
+    icon: Building2,
+  },
+  {
     to: "/profile",
     label: "Profile",
     icon: UserRound,
@@ -25,11 +34,13 @@ export const AppShell = () => (
   <div className="stagegate-surface min-h-screen bg-background text-foreground">
     <SkipLink />
 
-    <div className="mx-auto min-h-screen md:grid md:grid-cols-[240px_minmax(0,1fr)]">
+    <div className="mx-auto min-h-screen md:grid md:grid-cols-[280px_minmax(0,1fr)]">
       <aside className="border-b bg-card/70 p-5 md:sticky md:top-0 md:h-screen md:border-b-0 md:border-r md:p-6">
         <SiteBrand to="/dashboard" />
 
-        <p className="mt-3 text-xs text-muted-foreground">Your workspace</p>
+        <div className="mt-6">
+          <OrganizationSwitcher />
+        </div>
 
         <nav
           aria-label="Workspace navigation"
@@ -39,7 +50,7 @@ export const AppShell = () => (
             <NavLink
               key={to}
               to={to}
-              end
+              end={to !== "/organizations"}
               className={({ isActive }) =>
                 [
                   "flex items-center gap-3 rounded-xl px-4 py-3 text-sm",

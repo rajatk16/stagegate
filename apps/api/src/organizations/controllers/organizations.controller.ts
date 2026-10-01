@@ -1,17 +1,27 @@
+import { type DecodedIdToken } from 'firebase-admin/auth';
 import {
+  Get,
   Body,
-  Controller,
+  Post,
+  Query,
   Header,
   HttpCode,
+  Controller,
   HttpStatus,
-  Post,
 } from '@nestjs/common';
 
 import { OrganizationsService } from '../services';
 import { CurrentUser, SensitiveAction } from '../../auth/decorators';
-import { type DecodedIdToken } from 'firebase-admin/auth';
-import { CreateOrganizationDto, OrganizationResponseDto } from '../dtos';
-import { toOrganizationResponseDto } from '../mappers';
+import {
+  toOrganizationResponseDto,
+  toMyOrganizationsResponseDto,
+} from '../mappers';
+import {
+  CreateOrganizationDto,
+  OrganizationResponseDto,
+  MyOrganizationsResponseDto,
+  ListMyOrganizationsQueryDto,
+} from '../dtos';
 
 @Controller('organizations')
 export class OrganizationsController {
@@ -28,5 +38,16 @@ export class OrganizationsController {
     const creation = await this.organizationsService.create(user, dto);
 
     return toOrganizationResponseDto(creation);
+  }
+
+  @Get('me')
+  @Header('Cache-Control', 'no-store')
+  async listMine(
+    @CurrentUser() user: DecodedIdToken,
+    @Query() query: ListMyOrganizationsQueryDto,
+  ): Promise<MyOrganizationsResponseDto> {
+    const page = await this.organizationsService.listMine(user, query);
+
+    return toMyOrganizationsResponseDto(page);
   }
 }

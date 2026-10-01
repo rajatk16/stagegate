@@ -4,5 +4,7 @@ export * from "./notFound";
 export * from "./dashboard";
 export * from "./emailAction";
 export * from "./verifyEmail";
+export * from "./organizations";
 export * from "./forgotPassword";
 export * from "./createOrganization";
+export * from "./organizationDashboard";
