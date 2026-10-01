@@ -16,6 +16,7 @@ import {
   EmailAction,
   VerifyEmail,
   ForgotPassword,
+  CreateOrganization,
 } from "@/pages";
 
 export const App = () => (
@@ -49,6 +50,7 @@ export const App = () => (
       <Route element={<AppShell />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/organizations/new" element={<CreateOrganization />} />
       </Route>
     </Route>
 

@@ -5,3 +5,4 @@ export * from "./dashboard";
 export * from "./emailAction";
 export * from "./verifyEmail";
 export * from "./forgotPassword";
+export * from "./createOrganization";

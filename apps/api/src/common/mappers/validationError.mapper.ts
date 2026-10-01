@@ -9,6 +9,8 @@ const publicFields = new Set([
   'biography',
   'affiliation',
   'timezone',
+  'name',
+  'slug',
 ]);
 
 const constraintCodes = new Map<string, ValidationIssueCode>([
@@ -18,6 +20,7 @@ const constraintCodes = new Map<string, ValidationIssueCode>([
   ['maxLength', 'TOO_LONG'],
   ['isUrl', 'INVALID_URL'],
   ['isTimeZone', 'INVALID_TIMEZONE'],
+  ['matches', 'INVALID_VALUE'],
 ]);
 
 export const toValidationIssues = (

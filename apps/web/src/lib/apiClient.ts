@@ -8,12 +8,19 @@ type ApiErrorKind = "http" | "network" | "timeout" | "response";
 export class ApiError extends Error {
   readonly kind: ApiErrorKind;
   readonly status: number | undefined;
+  readonly code: string | undefined;
 
-  constructor(message: string, kind: ApiErrorKind, status?: number) {
+  constructor(
+    message: string,
+    kind: ApiErrorKind,
+    status?: number,
+    code?: string,
+  ) {
     super(message);
     this.name = "ApiError";
     this.kind = kind;
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -69,12 +76,31 @@ export const apiRequest = async (
     });
 
     if (!response.ok) {
+      let code: string | undefined;
+
+      try {
+        const payload: unknown = await response.json();
+
+        if (
+          typeof payload === "object" &&
+          payload !== null &&
+          !Array.isArray(payload) &&
+          "code" in payload &&
+          typeof payload.code === "string"
+        ) {
+          code = payload.code;
+        }
+      } catch {
+        // An error response can be empty or contain non-JSON content.
+        // Preserve its HTTP status even when the body cannot be parsed.
+      }
+
       const message =
         response.status === 502
           ? "The gateway could not reach the API. Check that the backend is running."
           : `The API returned HTTP ${response.status}.`;
 
-      throw new ApiError(message, "http", response.status);
+      throw new ApiError(message, "http", response.status, code);
     }
 
     if (response.status === 204) {

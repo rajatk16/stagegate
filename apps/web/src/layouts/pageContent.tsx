@@ -18,6 +18,7 @@ const pageTitles: Record<string, string> = {
   "/verify-email": "Verify email",
   "/forgot-password": "Reset password",
   "/auth/action": "Account recovery",
+  "/organizations/new": "Create organization",
 };
 
 export const PageContent = (props: PropsWithChildren<Props>) => {

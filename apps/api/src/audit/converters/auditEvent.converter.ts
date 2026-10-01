@@ -1,16 +1,12 @@
 import z from 'zod';
 import {
-  FirestoreDataConverter,
   Timestamp,
   SetOptions,
+  FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
 import { AuditEventDocument } from '../types';
 import { AuditEvent, auditEventSchema } from '../models';
-
-const documentSchema = auditEventSchema.extend({
-  occurredAt: z.instanceof(Timestamp),
-});
 
 export const auditEventConverter: FirestoreDataConverter<
   AuditEvent,
@@ -29,15 +25,19 @@ export const auditEventConverter: FirestoreDataConverter<
     };
   },
   fromFirestore(snapshot): AuditEvent {
-    const document = documentSchema.parse(snapshot.data());
+    const document = snapshot.data();
 
-    if (document.eventId !== snapshot.id) {
-      throw new Error('Audit event ID does not match document ID');
+    const occurredAt = z.instanceof(Timestamp).parse(document.occurredAt);
+
+    const event = auditEventSchema.parse({
+      ...document,
+      occurredAt: occurredAt.toDate(),
+    });
+
+    if (event.eventId !== snapshot.id) {
+      throw new Error('Audit event Id does not match document ID');
     }
 
-    return {
-      ...document,
-      occurredAt: document.occurredAt.toDate(),
-    };
+    return event;
   },
 };

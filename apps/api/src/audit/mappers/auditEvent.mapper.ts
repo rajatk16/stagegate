@@ -10,6 +10,13 @@ interface ProfileUpdatedEventInput {
   fields: readonly ProfileField[];
 }
 
+interface OrganizationCreatedEventInput {
+  actorUid: string;
+  organizationId: string;
+  requestId: string;
+  occurredAt: Date;
+}
+
 export const toProfileUpdatedAuditEvent = (
   input: ProfileUpdatedEventInput,
 ): AuditEvent =>
@@ -27,4 +34,21 @@ export const toProfileUpdatedAuditEvent = (
     occurredAt: new Date(),
 
     fields: [...new Set(input.fields)],
+  });
+
+export const toOrganizationCreatedAuditEvent = (
+  input: OrganizationCreatedEventInput,
+): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: 'organization.created',
+    outcome: 'succeeded',
+
+    actorUid: input.actorUid,
+    targetType: 'organization',
+    targetId: input.organizationId,
+
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
   });
