@@ -8,3 +8,4 @@ export * from "./requireAuth";
 export * from "./publicLayout";
 export * from "./errorBoundary";
 export * from "./sessionBoundary";
+export * from "./organizationShell";

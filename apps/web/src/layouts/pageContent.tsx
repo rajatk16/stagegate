@@ -1,7 +1,8 @@
-import { Outlet, useLocation } from "react-router";
 import { PropsWithChildren, useEffect, useRef } from "react";
+import { matchPath, Outlet, useLocation } from "react-router";
 
 import { useAuth } from "@/hooks";
+import { ORGANIZATION_ROUTE_PATTERN } from "@/lib";
 
 import { ErrorBoundary } from "./errorBoundary";
 
@@ -19,6 +20,7 @@ const pageTitles: Record<string, string> = {
   "/forgot-password": "Reset password",
   "/auth/action": "Account recovery",
   "/organizations/new": "Create organization",
+  "/organizations": "Organizations",
 };
 
 export const PageContent = (props: PropsWithChildren<Props>) => {
@@ -26,7 +28,13 @@ export const PageContent = (props: PropsWithChildren<Props>) => {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
-  const title = pageTitles[location.pathname] ?? "Page not found.";
+  const isOrganizationDashboard = Boolean(
+    matchPath(ORGANIZATION_ROUTE_PATTERN, location.pathname),
+  );
+
+  const title =
+    pageTitles[location.pathname] ??
+    (isOrganizationDashboard ? "Organization dashboard" : "Page not found.");
   const boundaryKey = `${location.key}:${session.user?.uid ?? session.status}`;
 
   useEffect(() => {

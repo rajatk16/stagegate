@@ -10,3 +10,4 @@ export * from "./profileLoader";
 export * from "./verifyEmailAction";
 export * from "./publicAuthActions";
 export * from "./resetPasswordAction";
+export * from "./organizationSwitcher";

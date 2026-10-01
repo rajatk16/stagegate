@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { useEffect, useRef } from "react";
 
 import { Organization } from "@/services";
+import { getOrganizationPath } from "@/lib";
 import {
   Card,
   Badge,
@@ -60,7 +61,9 @@ export const OrganizationCreated = ({
         </dl>
 
         <Button asChild className="min-h-11">
-          <Link to="/dashboard">Continue to dashboard</Link>
+          <Link to={getOrganizationPath(organization.slug)}>
+            Open organization
+          </Link>
         </Button>
       </CardContent>
     </Card>

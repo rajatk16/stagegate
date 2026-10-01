@@ -1,8 +1,8 @@
 import z from 'zod';
 import {
-  FirestoreDataConverter,
   Timestamp,
   SetOptions,
+  FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
 import { DiagnosticError } from '../../observalibility';
@@ -11,6 +11,10 @@ import {
   OrganizationMembership,
   organizationMembershipSchema,
 } from '../models';
+import {
+  ORGANIZATIONS_COLLECTION,
+  ORGANIZATION_MEMBERSHIPS_COLLECTION,
+} from '../constants';
 
 const rejectPartialWrite = (options?: SetOptions): void => {
   if (options !== undefined) {
@@ -51,8 +55,8 @@ export const organizationMembershipConverter: FirestoreDataConverter<
     const document = membershipDocumentSchema.parse(snapshot.data());
 
     assertIdentity(
-      document.uid === snapshot.id &&
-        document.organizationId === snapshot.ref.parent.parent?.id,
+      snapshot.ref.path ===
+        `${ORGANIZATIONS_COLLECTION}/${document.organizationId}/${ORGANIZATION_MEMBERSHIPS_COLLECTION}/${document.uid}`,
     );
 
     return {

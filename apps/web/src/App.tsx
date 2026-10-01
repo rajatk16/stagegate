@@ -1,12 +1,13 @@
-import { Navigate, Route, Routes } from "react-router";
+import { Route, Routes } from "react-router";
 
 import { AuthForm } from "@/components/custom";
 import {
   AppShell,
+  AuthLayout,
   RequireAuth,
   PublicLayout,
-  AuthLayout,
   SessionBoundary,
+  OrganizationShell,
 } from "@/layouts";
 import {
   Landing,
@@ -15,9 +16,14 @@ import {
   Dashboard,
   EmailAction,
   VerifyEmail,
+  Organizations,
   ForgotPassword,
   CreateOrganization,
+  OrganizationDashboard,
 } from "@/pages";
+
+import { ORGANIZATION_ROUTE_PATTERN } from "./lib";
+import { OrganizationsProvider } from "./providers";
 
 export const App = () => (
   <Routes>
@@ -47,13 +53,20 @@ export const App = () => (
         </SessionBoundary>
       }
     >
-      <Route element={<AppShell />}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/organizations/new" element={<CreateOrganization />} />
+      <Route element={<OrganizationsProvider />}>
+        <Route element={<AppShell />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/organizations" element={<Organizations />} />
+          <Route path="/organizations/new" element={<CreateOrganization />} />
+          <Route
+            path={ORGANIZATION_ROUTE_PATTERN}
+            element={<OrganizationShell />}
+          >
+            <Route index element={<OrganizationDashboard />} />
+          </Route>
+        </Route>
       </Route>
     </Route>
-
-    <Route path="/connection" element={<Navigate to="/dashboard" replace />} />
   </Routes>
 );
