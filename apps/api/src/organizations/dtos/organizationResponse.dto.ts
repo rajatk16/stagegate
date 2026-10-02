@@ -1,3 +1,4 @@
+import { OrganizationPermission } from '../types';
 import { OrganizationMembershipResponseDto } from './organizationMembershipResponse.dto';
 
 export class OrganizationResponseDto {
@@ -7,4 +8,5 @@ export class OrganizationResponseDto {
   createdAt!: string;
   updatedAt!: string;
   membership!: OrganizationMembershipResponseDto;
+  capabilities!: OrganizationPermission[];
 }

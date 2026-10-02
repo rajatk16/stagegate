@@ -2,6 +2,14 @@ import { User } from "firebase/auth";
 
 import { ApiError, authenticatedApiRequest } from "@/lib";
 
+export const ORGANIZATION_CAPABILITIES = [
+  "organization:read",
+  "organization:update",
+  "organization:members:manage"
+];
+
+export type OrganizationCapability = (typeof ORGANIZATION_CAPABILITIES)[number];
+
 export type Organization = {
   id: string;
   name: string;
@@ -12,6 +20,7 @@ export type Organization = {
     uid: string;
     role: "OWNER";
   };
+  capabilities: readonly OrganizationCapability[];
 };
 
 type OrganizationPage = {
@@ -49,6 +58,23 @@ const isNonEmptyString = (value: unknown): value is string =>
 const isDateString = (value: unknown): value is string =>
   typeof value === "string" && Number.isFinite(Date.parse(value));
 
+const parseOrganizationCapabilities = (
+  value: unknown
+): OrganizationCapability[] => {
+  if (!Array.isArray(value) || !value.every((item) => typeof item === 'string')) {
+    throw new ApiError(
+      "The API returned invalid organization capabilities.",
+      'response'
+    );
+  }
+
+  const knownCapabilities = value.filter(
+    (item): item is OrganizationCapability => ORGANIZATION_CAPABILITIES.some((capability) => capability === item)
+  );
+
+  return [...new Set(knownCapabilities)];
+};
+
 const parseOrganization = (
   value: unknown,
   expectedUid: string,
@@ -83,8 +109,14 @@ const parseOrganization = (
       uid: expectedUid,
       role: "OWNER",
     },
+    capabilities: parseOrganizationCapabilities(value.capabilities)
   };
 };
+
+export const hasOrganizationCapability = (
+  organization: Pick<Organization, 'capabilities'>,
+  capability: OrganizationCapability
+): boolean => organization.capabilities.includes(capability)
 
 export const createOrganization = async (
   user: User,
@@ -191,7 +223,7 @@ export const listMyOrganizations = async (
       query.set("cursor", cursor);
     }
 
-    const suffix = query.size > 0 ? `${query.toString()}` : "";
+    const suffix = query.size > 0 ? `?${query.toString()}` : "";
 
     const result = await authenticatedApiRequest(
       user,

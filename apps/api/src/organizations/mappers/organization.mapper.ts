@@ -14,6 +14,7 @@ import {
   MyOrganizationsResponseDto,
   OrganizationMembershipResponseDto,
 } from '../dtos';
+import { ORGANIZATION_ROLE_PERMISSIONS } from '../constants';
 
 export const toNewOrganization = (
   dto: CreateOrganizationDto,
@@ -58,6 +59,7 @@ export const toOrganizationWithMembershipResponseDto = ({
       uid: membership.uid,
       role: membership.role,
     }),
+    capabilities: [...(ORGANIZATION_ROLE_PERMISSIONS[membership.role] ?? [])],
   });
 
 export const toOrganizationResponseDto = (

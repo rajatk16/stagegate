@@ -7,4 +7,6 @@ export * from "./verifyEmail";
 export * from "./organizations";
 export * from "./forgotPassword";
 export * from "./createOrganization";
+export * from './organizationMembers';
 export * from "./organizationDashboard";
+export * from './organizationManagement';

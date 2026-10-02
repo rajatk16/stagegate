@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 
 import { AuditModule } from '../audit';
 import { FirebaseModule } from '../firebase';
-import { OrganizationsService } from './services';
 import { OrganizationsController } from './controllers';
+import { OrganizationAccessService, OrganizationsService } from './services';
 import {
   OrganizationRepository,
   OrganizationSlugRepository,
@@ -11,11 +11,13 @@ import {
 } from './repositories';
 
 @Module({
-  imports: [FirebaseModule, AuditModule],
+  exports: [OrganizationAccessService],
   controllers: [OrganizationsController],
+  imports: [FirebaseModule, AuditModule],
   providers: [
     OrganizationsService,
     OrganizationRepository,
+    OrganizationAccessService,
     OrganizationSlugRepository,
     OrganizationmembershipRepository,
   ],
@@ -26,8 +28,10 @@ export * from './dtos';
 export * from './types';
 export * from './utils';
 export * from './models';
+export * from './guards';
 export * from './mappers';
 export * from './services';
 export * from './constants';
 export * from './converters';
+export * from './decorators';
 export * from './repositories';
