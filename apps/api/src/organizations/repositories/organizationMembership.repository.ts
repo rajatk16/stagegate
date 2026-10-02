@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
+import { OrganizationMembership } from '../models';
 import { OrganizationMembershipPage } from '../types';
 import { FirebaseService } from '../../firebase/services';
 import {
@@ -55,5 +56,14 @@ export class OrganizationmembershipRepository {
       items: memberships.slice(0, limit),
       hasMore: memberships.length > limit,
     };
+  }
+
+  async findByOrganizationAndUser(
+    organizationId: string,
+    uid: string,
+  ): Promise<OrganizationMembership | null> {
+    const snapshot = await this.getDocumentReference(organizationId, uid).get();
+
+    return snapshot.data() ?? null;
   }
 }

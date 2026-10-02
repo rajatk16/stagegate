@@ -9,3 +9,4 @@ export * from "./publicLayout";
 export * from "./errorBoundary";
 export * from "./sessionBoundary";
 export * from "./organizationShell";
+export * from './requireOrganizationCapability';

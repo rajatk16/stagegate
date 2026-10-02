@@ -1,9 +1,10 @@
 import { Link, NavLink, Outlet, useParams } from "react-router";
 
 import { useOrganizations } from "@/hooks";
-import { getOrganizationPath } from "@/lib";
 import { Badge, Button } from "@/components/ui";
 import { InlineAlert } from "@/components/custom";
+import { hasOrganizationCapability } from "@/services";
+import { getOrganizationSectionPath, ORGANIZATION_SECTIONS } from "@/lib";
 
 export const OrganizationShell = () => {
   const { organizationSlug } = useParams<{
@@ -72,14 +73,39 @@ export const OrganizationShell = () => {
     );
   }
 
-  const basePath = getOrganizationPath(organization.slug);
+  if (!hasOrganizationCapability(organization, 'organization:read')) {
+    return (
+      <div className="space-y-4">
+        <InlineAlert
+          tone="warning"
+          title="Organization access available"
+        >
+          Your account does not currently have access to this organization's workspace.
+        </InlineAlert>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="min-h-11"
+          onClick={reload}
+        >
+          Refresh access
+        </Button>
+      </div>
+    );
+  }
+
+  const visibleSections = Object.values(
+    ORGANIZATION_SECTIONS,
+  ).filter((section) => hasOrganizationCapability(organization, section.capability))
 
   return (
     <div className="space-y-8">
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="secondary">Organization</Badge>
-          <Badge variant="outline">Owner</Badge>
+          <Badge variant="outline" className="capitalize">
+            {organization.membership.role.toLowerCase()}
+          </Badge>
         </div>
 
         <h1 className="wrap-break-word text-3xl font-semibold tracking-tight">
@@ -93,25 +119,31 @@ export const OrganizationShell = () => {
 
       <nav
         aria-label="Organization navigation"
-        className="flex gap-2 border-b pb-3"
+        className="flex flex-wrap gap-2 border-b pb-3"
       >
-        <NavLink
-          to={basePath}
-          end
-          className={({ isActive }) =>
-            [
-              "rounded-xl px-4 py-3 text-sm",
-              "focus-visible:outline-2",
-              "focus-visible:outline-offset-2",
-              "focus-visible:outline-ring",
-              isActive
-                ? "bg-primary/10 font-medium text-primary"
-                : "text-muted-foreground hover:bg-accent",
-            ].join(" ")
-          }
-        >
-          Overview
-        </NavLink>
+        {visibleSections.map((section) => (
+          <NavLink
+            key={section.segment}
+            to={getOrganizationSectionPath(
+              organization.slug,
+              section.segment
+            )}
+            end={section.segment === ""}
+            className={({ isActive }) =>
+              [
+                "rounded-xl px-4 py-3 text-sm",
+                "focus-visible:outline-2",
+                "focus-visible:outline-offset-2",
+                "focus-visible:outline-ring",
+                isActive
+                  ? "bg-primary/10 font-medium text-primary"
+                  : "text-muted-foreground hover:bg-accent",
+              ].join(" ")
+            }
+          >
+            {section.label}
+          </NavLink>
+        ))}
       </nav>
 
       <Outlet key={organization.id} context={organization} />

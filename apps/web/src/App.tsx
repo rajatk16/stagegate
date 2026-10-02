@@ -8,6 +8,7 @@ import {
   PublicLayout,
   SessionBoundary,
   OrganizationShell,
+  RequireOrganization
 } from "@/layouts";
 import {
   Landing,
@@ -19,11 +20,13 @@ import {
   Organizations,
   ForgotPassword,
   CreateOrganization,
+  OrganizationMembers,
+  OrganizationSettings,
   OrganizationDashboard,
 } from "@/pages";
 
-import { ORGANIZATION_ROUTE_PATTERN } from "./lib";
 import { OrganizationsProvider } from "./providers";
+import { ORGANIZATION_ROUTE_PATTERN, ORGANIZATION_SECTIONS } from "./lib";
 
 export const App = () => (
   <Routes>
@@ -64,6 +67,32 @@ export const App = () => (
             element={<OrganizationShell />}
           >
             <Route index element={<OrganizationDashboard />} />
+
+            <Route
+              element={
+                <RequireOrganization
+                  capability={ORGANIZATION_SECTIONS.settings.capability}
+                />
+              }
+            >
+              <Route
+                path={ORGANIZATION_SECTIONS.settings.segment}
+                element={<OrganizationSettings />}
+              />
+            </Route>
+
+            <Route
+              element={
+                <RequireOrganization
+                  capability={ORGANIZATION_SECTIONS.members.capability}
+                />
+              }
+            >
+              <Route
+                path={ORGANIZATION_SECTIONS.members.segment}
+                element={<OrganizationMembers />}
+              />
+            </Route>
           </Route>
         </Route>
       </Route>

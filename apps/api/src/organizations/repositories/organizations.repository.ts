@@ -103,4 +103,10 @@ export class OrganizationRepository {
 
     return organizations;
   }
+
+  async findById(id: string): Promise<Organization | null> {
+    const snapshot = await this.getDocumentReference(id).get();
+
+    return snapshot.data() ?? null;
+  }
 }

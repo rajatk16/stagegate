@@ -4,6 +4,11 @@ import { ThrottlerModule } from '@nestjs/throttler';
 
 import { FirebaseModule } from '../firebase';
 import {
+  OrganizationModule,
+  OrganizationScopeGuard,
+  OrganizationPermissionGuard,
+} from '../organizations';
+import {
   FirebaseTokenGuard,
   VerifiedEmailGuard,
   SensitiveIpThrottleGuard,
@@ -13,6 +18,7 @@ import {
 @Module({
   imports: [
     FirebaseModule,
+    OrganizationModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -46,6 +52,14 @@ import {
     {
       provide: APP_GUARD,
       useClass: VerifiedEmailGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: OrganizationScopeGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: OrganizationPermissionGuard,
     },
   ],
 })

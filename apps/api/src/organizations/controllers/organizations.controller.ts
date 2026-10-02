@@ -10,12 +10,19 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 
+import { type OrganizationScope } from '../types';
 import { OrganizationsService } from '../services';
 import { CurrentUser, SensitiveAction } from '../../auth/decorators';
 import {
   toOrganizationResponseDto,
   toMyOrganizationsResponseDto,
+  toOrganizationWithMembershipResponseDto,
 } from '../mappers';
+import {
+  CurrentOrganization,
+  OrganizationScoped,
+  RequireOrganizationPermissions,
+} from '../decorators';
 import {
   CreateOrganizationDto,
   OrganizationResponseDto,
@@ -49,5 +56,15 @@ export class OrganizationsController {
     const page = await this.organizationsService.listMine(user, query);
 
     return toMyOrganizationsResponseDto(page);
+  }
+
+  @Get(':organizationId')
+  @OrganizationScoped()
+  @RequireOrganizationPermissions('organization:read')
+  @Header('Cache-Control', 'no-store')
+  getOrganization(
+    @CurrentOrganization() scope: OrganizationScope,
+  ): OrganizationResponseDto {
+    return toOrganizationWithMembershipResponseDto(scope);
   }
 }
