@@ -1,13 +1,9 @@
-import {
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { ApiException } from '../../common';
 import { organizationSchema } from '../models';
 import { DiagnosticError } from '../../observalibility';
-import { ORGANIZATION_ROLE_PERMISSIONS } from '../constants';
+import { assertOrganizationPermissions } from '../utils';
 import { OrganizationPermission, OrganizationScope } from '../types';
 import {
   OrganizationRepository,
@@ -93,24 +89,6 @@ export class OrganizationAccessService {
     scope: OrganizationScope,
     required: readonly OrganizationPermission[],
   ): void {
-    if (required.length === 0) {
-      throw new InternalServerErrorException(
-        'An organization operation must declare a permission.',
-      );
-    }
-
-    const allowed = ORGANIZATION_ROLE_PERMISSIONS[scope.membership.role] ?? [];
-
-    const permitted = required.every((permission) =>
-      allowed.includes(permission),
-    );
-
-    if (!permitted) {
-      throw new ApiException(
-        HttpStatus.FORBIDDEN,
-        'ORGANIZATION_PERMISSION_DENIED',
-        'You do not have permission to perform this operation.',
-      );
-    }
+    assertOrganizationPermissions(scope.membership, required);
   }
 }

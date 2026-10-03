@@ -2,12 +2,21 @@ import { randomUUID } from 'node:crypto';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { ApiException } from '../../common';
 import { toNewOrganization } from '../mappers';
 import { DiagnosticError } from '../../observalibility';
 import { RESERVED_ORGANIZATION_SLUGS } from '../constants';
-import { MyOrganizationsPage, OrganizationCreation } from '../types';
-import { CreateOrganizationDto, ListMyOrganizationsQueryDto } from '../dtos';
+import { ApiException, RequestValidationException } from '../../common';
+import {
+  MyOrganizationsPage,
+  OrganizationCreation,
+  OrganizationScope,
+  OrganizationWithMembership,
+} from '../types';
+import {
+  CreateOrganizationDto,
+  ListMyOrganizationsQueryDto,
+  UpdateOrganizationSettingsDto,
+} from '../dtos';
 import {
   OrganizationRepository,
   OrganizationmembershipRepository,
@@ -17,6 +26,7 @@ import {
   encodeOrganizationCursor,
   normalizeOrganizationSlug,
 } from '../utils';
+import { organizationSettingsChangesSchema } from '../models';
 
 @Injectable()
 export class OrganizationsService {
@@ -90,5 +100,33 @@ export class OrganizationsService {
           ? encodeOrganizationCursor(user.uid, lastMembership.organizationId)
           : null,
     };
+  }
+
+  updateSettings(
+    scope: OrganizationScope,
+    dto: UpdateOrganizationSettingsDto,
+  ): Promise<OrganizationWithMembership> {
+    const result = organizationSettingsChangesSchema.safeParse(dto);
+
+    if (!result.success) {
+      throw new RequestValidationException([
+        {
+          field: '$body',
+          code: 'INVALID_VALUE',
+        },
+      ]);
+    }
+
+    const changes = result.data;
+
+    if (Object.values(changes).every((value) => value === undefined)) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'ORGANIZATION_SETTINGS_UPDATE_EMPTY',
+        'Provide at least one setting to update.',
+      );
+    }
+
+    return this.organizationRepository.updateSettings(scope, changes);
   }
 }

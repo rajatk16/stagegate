@@ -1,10 +1,10 @@
-import { AlertDialog } from "radix-ui";
-import { LoaderCircle } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { AlertDialog } from 'radix-ui';
+import { LoaderCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 
-import { Button } from "@/components/ui";
+import { Button } from '@/components';
 
-import { InlineAlert } from "../alerts";
+import { InlineAlert } from '../alerts';
 
 type ConfirmDialogProps = {
   triggerLabel: string;
@@ -25,9 +25,9 @@ export const ConfirmDialog = ({
   title,
   description,
   confirmLabel,
-  cancelLabel = "Cancel",
-  pendingLabel = "Working...",
-  errorMessage = "The action could not be complete. Please try again.",
+  cancelLabel = 'Cancel',
+  pendingLabel = 'Working...',
+  errorMessage = 'The action could not be complete. Please try again.',
   destructive = false,
   disabled = false,
   onConfirm,
@@ -126,7 +126,7 @@ export const ConfirmDialog = ({
 
               <Button
                 type="button"
-                variant={destructive ? "destructive" : "default"}
+                variant={destructive ? 'destructive' : 'default'}
                 aria-disabled={pending}
                 className="aria-disabled:cursor-wait aria-disabled:opacity-60"
                 onClick={() => void confirm()}
@@ -141,7 +141,7 @@ export const ConfirmDialog = ({
               </Button>
             </div>
             <p role="status" className="sr-only">
-              {pending ? pendingLabel : ""}
+              {pending ? pendingLabel : ''}
             </p>
           </AlertDialog.Content>
         </AlertDialog.Overlay>

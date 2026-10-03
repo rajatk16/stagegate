@@ -1,6 +1,10 @@
 import z from 'zod';
 
-import { RequestValidationException } from '../../common';
+import { OrganizationPermission } from '../types';
+import { OrganizationMembership } from '../models';
+import { ORGANIZATION_ROLE_PERMISSIONS } from '../constants';
+import { ApiException, RequestValidationException } from '../../common';
+import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
 
 export const normalizeOrganizationSlug = (value: string): string =>
   value.trim().toLowerCase();
@@ -64,3 +68,29 @@ export const decodeOrganizationCursor = (
 
   return result.data.organizationId;
 };
+
+export const assertOrganizationPermissions = (
+  membership: OrganizationMembership,
+  required: readonly OrganizationPermission[],
+): void => {
+  if (required.length === 0) {
+    throw new InternalServerErrorException(
+      'An organization operation must declare a permission.',
+    );
+  }
+
+  const allowed = ORGANIZATION_ROLE_PERMISSIONS[membership.role] ?? [];
+
+  if (!required.every((permission) => allowed.includes(permission))) {
+    throw new ApiException(
+      HttpStatus.FORBIDDEN,
+      'ORGANIZATION_PERMISSION_DENIED',
+      'You do not have permission to perform this operation.',
+    );
+  }
+};
+
+export const getOrganizationLogoPath = (
+  organizationId: string,
+  version: string,
+): string => `organizations/${organizationId}/logos/${version}.webp`;

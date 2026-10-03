@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
-import { ProfileField } from '../enums';
 import { AuditEvent, auditEventSchema } from '../models';
+import { ORGANIZATION_SETTINGS_FIELDS, ProfileField } from '../enums';
 
 interface ProfileUpdatedEventInput {
   actorUid: string;
@@ -51,4 +51,26 @@ export const toOrganizationCreatedAuditEvent = (
 
     requestId: input.requestId,
     occurredAt: input.occurredAt,
+  });
+
+export const toOrganizationSettingsUpdatedAuditEvent = (input: {
+  actorUid: string;
+  organizationId: string;
+  requestId: string;
+  occurredAt: Date;
+  fields: readonly ORGANIZATION_SETTINGS_FIELDS[];
+}): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: 'organization.settings.updated',
+    outcome: 'succeeded',
+
+    actorUid: input.actorUid,
+    targetType: 'organization',
+    targetId: input.organizationId,
+
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
+    fields: [...new Set(input.fields)],
   });

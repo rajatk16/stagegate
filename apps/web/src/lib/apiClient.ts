@@ -1,9 +1,9 @@
 const configuredBaseUrl =
-  import.meta.env.VITE_API_BASE_URL?.trim() || "/api/v1";
+  import.meta.env.VITE_API_BASE_URL?.trim() || '/api/v1';
 
-export const API_BASE_URL = configuredBaseUrl.replace(/\/+$/, "");
+export const API_BASE_URL = configuredBaseUrl.replace(/\/+$/, '');
 
-type ApiErrorKind = "http" | "network" | "timeout" | "response";
+type ApiErrorKind = 'http' | 'network' | 'timeout' | 'response';
 
 export class ApiError extends Error {
   readonly kind: ApiErrorKind;
@@ -17,17 +17,19 @@ export class ApiError extends Error {
     code?: string,
   ) {
     super(message);
-    this.name = "ApiError";
+    this.name = 'ApiError';
     this.kind = kind;
     this.status = status;
     this.code = code;
   }
 }
 
-export type ApiRequestOptions = Omit<RequestInit, "body" | "method"> & {
-  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type ApiRequestOptions = Omit<RequestInit, 'body' | 'method'> & {
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   json?: unknown;
   timeoutMs?: number;
+  formData?: FormData;
+  responseType?: 'json' | 'blob';
 };
 
 export const apiRequest = async (
@@ -39,25 +41,40 @@ export const apiRequest = async (
     timeoutMs = 8_000,
     signal: callerSignal,
     headers: customHeaders,
-    method = "GET",
+    method = 'GET',
+    formData,
+    responseType = 'json',
     ...requestOptions
   } = options;
 
-  if (method === "GET" && json !== undefined) {
-    throw new Error("GET requests cannot include a JSON body.");
+  if (json !== undefined && formData !== undefined) {
+    throw new Error('Provide JSON or FormData, not both');
   }
 
-  const url = `${API_BASE_URL}/${path.replace(/^\/+/, "")}`;
+  if (method === 'GET' && (json !== undefined || formData !== undefined)) {
+    throw new Error('GET requests cannot include a body.');
+  }
+
+  const url = `${API_BASE_URL}/${path.replace(/^\/+/, '')}`;
   const headers = new Headers(customHeaders);
 
-  if (!headers.has("Accept")) {
-    headers.set("Accept", "application/json");
+  if (!headers.has('Accept')) {
+    headers.set('Accept', 'application/json');
   }
 
-  const body = json === undefined ? undefined : JSON.stringify(json);
+  const body =
+    formData ?? (json === undefined ? undefined : JSON.stringify(json));
 
-  if (body !== undefined && !headers.has("Content-Type")) {
-    headers.set("Content-Type", "application/json");
+  if (json !== undefined && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  if (formData !== undefined) {
+    headers.delete('Content-Type');
+  }
+
+  if (body !== undefined && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
   }
 
   const timeoutSignal = AbortSignal.timeout(timeoutMs);
@@ -67,7 +84,7 @@ export const apiRequest = async (
 
   try {
     const response = await fetch(url, {
-      cache: "no-store",
+      cache: 'no-store',
       ...requestOptions,
       method,
       headers,
@@ -82,11 +99,11 @@ export const apiRequest = async (
         const payload: unknown = await response.json();
 
         if (
-          typeof payload === "object" &&
+          typeof payload === 'object' &&
           payload !== null &&
           !Array.isArray(payload) &&
-          "code" in payload &&
-          typeof payload.code === "string"
+          'code' in payload &&
+          typeof payload.code === 'string'
         ) {
           code = payload.code;
         }
@@ -97,14 +114,18 @@ export const apiRequest = async (
 
       const message =
         response.status === 502
-          ? "The gateway could not reach the API. Check that the backend is running."
+          ? 'The gateway could not reach the API. Check that the backend is running.'
           : `The API returned HTTP ${response.status}.`;
 
-      throw new ApiError(message, "http", response.status, code);
+      throw new ApiError(message, 'http', response.status, code);
     }
 
     if (response.status === 204) {
       return undefined;
+    }
+
+    if (responseType === 'blob') {
+      return await response.blob();
     }
 
     const text = await response.text();
@@ -118,8 +139,8 @@ export const apiRequest = async (
       return data;
     } catch {
       throw new ApiError(
-        "The API returned invalid JSON.",
-        "response",
+        'The API returned invalid JSON.',
+        'response',
         response.status,
       );
     }
@@ -131,7 +152,7 @@ export const apiRequest = async (
     if (timeoutSignal.aborted) {
       throw new ApiError(
         `The API did not response within ${timeoutMs / 1000} seconds.`,
-        "timeout",
+        'timeout',
       );
     }
 
@@ -141,8 +162,8 @@ export const apiRequest = async (
 
     if (error instanceof TypeError) {
       throw new ApiError(
-        "Could not reach the API. Check your connection and the server.",
-        "network",
+        'Could not reach the API. Check your connection and the server.',
+        'network',
       );
     }
 

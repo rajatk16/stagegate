@@ -2,14 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { Transaction } from 'firebase-admin/firestore';
 
 import { AuditEvent } from '../models';
-import { ProfileField } from '../enums';
 import { auditEventConverter } from '../converters';
-import {
-  toOrganizationCreatedAuditEvent,
-  toProfileUpdatedAuditEvent,
-} from '../mappers';
 import { FirebaseService } from '../../firebase/services';
+import { ORGANIZATION_SETTINGS_FIELDS, ProfileField } from '../enums';
 import { DiagnosticError, RequestContextService } from '../../observalibility';
+import {
+  toProfileUpdatedAuditEvent,
+  toOrganizationCreatedAuditEvent,
+  toOrganizationSettingsUpdatedAuditEvent,
+} from '../mappers';
 
 @Injectable()
 export class AuditWriter {
@@ -62,5 +63,26 @@ export class AuditWriter {
       .doc(event.eventId);
 
     transaction.create(reference, event);
+  }
+
+  prepareOrganizationSettingsUpdated(
+    organizationId: string,
+    actorUid: string,
+    fields: readonly ORGANIZATION_SETTINGS_FIELDS[],
+    occurredAt: Date,
+  ): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return toOrganizationSettingsUpdatedAuditEvent({
+      organizationId,
+      actorUid,
+      fields,
+      occurredAt,
+      requestId: context.requestId,
+    });
   }
 }

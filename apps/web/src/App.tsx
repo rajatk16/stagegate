@@ -1,32 +1,26 @@
-import { Route, Routes } from "react-router";
+import { Route, Routes } from 'react-router';
 
-import { AuthForm } from "@/components/custom";
+import { RequireAuth } from '@/app/components';
+import { AppShell, PublicLayout } from '@/app/layouts';
+import { Dashboard, Landing, NotFound } from '@/app/pages';
+import { ORGANIZATION_ROUTE_PATTERN, ORGANIZATION_SECTIONS } from '@/lib';
 import {
-  AppShell,
-  AuthLayout,
-  RequireAuth,
-  PublicLayout,
-  SessionBoundary,
-  OrganizationShell,
-  RequireOrganization
-} from "@/layouts";
-import {
-  Landing,
   Profile,
-  NotFound,
-  Dashboard,
+  AuthForm,
+  AuthLayout,
   EmailAction,
   VerifyEmail,
   Organizations,
   ForgotPassword,
+  SessionBoundary,
+  OrganizationShell,
   CreateOrganization,
   OrganizationMembers,
+  RequireOrganization,
   OrganizationSettings,
   OrganizationDashboard,
-} from "@/pages";
-
-import { OrganizationsProvider } from "./providers";
-import { ORGANIZATION_ROUTE_PATTERN, ORGANIZATION_SECTIONS } from "./lib";
+  OrganizationsProvider,
+} from '@/features';
 
 export const App = () => (
   <Routes>

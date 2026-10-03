@@ -59,6 +59,16 @@ export const environmentSchema = z
       .min(1000)
       .max(300000)
       .default(8000),
+    FIREBASE_STORAGE_BUCKET: z
+      .string()
+      .min(3)
+      .max(222)
+      .regex(/^[a-z0-9][a-z0-9._-]*[a-z0-9]$/),
+
+    FIREBASE_STORAGE_EMULATOR_HOST: z
+      .string()
+      .refine(isLocalEmulatorHost)
+      .optional(),
   })
   .superRefine((env, context) => {
     const issue = (field: string, message: string) => {
@@ -141,6 +151,8 @@ export const validateEnvironment = (
       'FIRESTORE_EMULATOR_HOST',
       'FIREBASE_AUTH_EMULATOR_HOST',
       'SHUTDOWN_TIMEOUT_MS',
+      'FIREBASE_STORAGE_BUCKET',
+      'FIREBASE_STORAGE_EMULATOR_HOST',
     ]);
 
     const fields = [
