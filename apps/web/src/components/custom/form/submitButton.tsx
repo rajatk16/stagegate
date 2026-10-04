@@ -1,8 +1,15 @@
-import { LoaderCircle } from "lucide-react";
+import { ComponentProps } from 'react';
+import { LoaderCircle } from 'lucide-react';
 
-import { Button } from "@/components/ui";
+import { Button } from '@/components';
 
-import { SubmitButtonProps } from "./types";
+export type SubmitButtonProps = Omit<
+  ComponentProps<typeof Button>,
+  'type' | 'asChild'
+> & {
+  pending: boolean;
+  pendingLabel?: string;
+};
 
 export const SubmitButton = (props: SubmitButtonProps) => (
   <Button

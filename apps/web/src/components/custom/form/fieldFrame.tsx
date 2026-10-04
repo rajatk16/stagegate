@@ -1,6 +1,22 @@
-import { useId } from "react";
+import { ReactNode, useId } from 'react';
 
-import { FieldFrameProps } from "./types";
+type FieldDetails = {
+  id?: string;
+  label: string;
+  hint?: string;
+  error?: string;
+};
+
+type AccessibilityProps = {
+  id: string;
+  'aria-invalid': boolean;
+  'aria-describedby': string | undefined;
+};
+
+type FieldFrameProps = FieldDetails & {
+  describedBy?: string;
+  children: (props: AccessibilityProps) => ReactNode;
+};
 
 export const FieldFrame = (props: FieldFrameProps) => {
   const generatedId = useId();
@@ -13,7 +29,7 @@ export const FieldFrame = (props: FieldFrameProps) => {
       props.error ? `${fieldId}-error` : undefined,
     ]
       .filter(Boolean)
-      .join(" ") || undefined;
+      .join(' ') || undefined;
 
   return (
     <div className="space-y-2">
@@ -23,8 +39,8 @@ export const FieldFrame = (props: FieldFrameProps) => {
 
       {props.children({
         id: fieldId,
-        "aria-invalid": Boolean(props.error),
-        "aria-describedby": descriptionIds,
+        'aria-invalid': Boolean(props.error),
+        'aria-describedby': descriptionIds,
       })}
 
       {props.hint && (

@@ -1,12 +1,3 @@
-import { OrganizationPermission } from '../types';
-import { OrganizationMembershipResponseDto } from './organizationMembershipResponse.dto';
+import { OrganizationPrivateResponseDto } from './organizationPrivateResponse.dto';
 
-export class OrganizationResponseDto {
-  id!: string;
-  name!: string;
-  slug!: string;
-  createdAt!: string;
-  updatedAt!: string;
-  membership!: OrganizationMembershipResponseDto;
-  capabilities!: OrganizationPermission[];
-}
+export class OrganizationResponseDto extends OrganizationPrivateResponseDto {}

@@ -3,7 +3,11 @@ import { Module } from '@nestjs/common';
 import { AuditModule } from '../audit';
 import { FirebaseModule } from '../firebase';
 import { OrganizationsController } from './controllers';
-import { OrganizationAccessService, OrganizationsService } from './services';
+import {
+  OrganizationsService,
+  OrganizationLogoService,
+  OrganizationAccessService,
+} from './services';
 import {
   OrganizationRepository,
   OrganizationSlugRepository,
@@ -17,6 +21,7 @@ import {
   providers: [
     OrganizationsService,
     OrganizationRepository,
+    OrganizationLogoService,
     OrganizationAccessService,
     OrganizationSlugRepository,
     OrganizationmembershipRepository,

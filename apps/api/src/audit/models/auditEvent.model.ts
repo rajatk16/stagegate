@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { PROFILE_FIELDS } from '../enums';
+import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
 
 const auditBaseSchema = z.object({
   schemaVersion: z.literal(1),
@@ -28,9 +28,22 @@ export const organizationCreatedAuditEventSchema = auditBaseSchema
   })
   .strict();
 
+export const organizationSettingsUpdatedAuditEventSchema = auditBaseSchema
+  .extend({
+    action: z.literal('organization.settings.updated'),
+    targetType: z.literal('organization'),
+    targetId: z.string().uuid(),
+    fields: z
+      .array(z.nativeEnum(ORGANIZATION_SETTINGS_FIELDS))
+      .min(1)
+      .max(Object.values(ORGANIZATION_SETTINGS_FIELDS).length),
+  })
+  .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
   profileUpdatedAuditEventSchema,
   organizationCreatedAuditEventSchema,
+  organizationSettingsUpdatedAuditEventSchema,
 ]);
 
 export type AuditEvent = z.infer<typeof auditEventSchema>;

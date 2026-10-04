@@ -11,6 +11,10 @@ const publicFields = new Set([
   'timezone',
   'name',
   'slug',
+  'description',
+  'websiteURL',
+  'primaryColor',
+  'secondaryColor',
 ]);
 
 const constraintCodes = new Map<string, ValidationIssueCode>([
