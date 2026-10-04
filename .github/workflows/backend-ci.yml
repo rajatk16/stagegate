@@ -56,11 +56,15 @@ jobs:
           docker run --detach \
             --name stagegate-api-ci \
             --publish 127.0.0.1:3000:3000 \
-            --env NODE_ENV=production \
+            --env NODE_ENV=test \
             --env PORT=3000 \
             --env FRONTEND_ORIGIN=http://localhost:5173 \
-            --env FIREBASE_MODE=live \
-            --env FIREBASE_PROJECT_ID=stagegate-ci-smoke \
+            --env FIREBASE_MODE=emulator \
+            --env FIREBASE_PROJECT_ID=demo-stagegate-ci \
+            --env FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 \
+            --env FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
+            --env FIREBASE_STORAGE_BUCKET=demo-stagegate-ci.appspot.com \
+            --env FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199 \
             --env SHUTDOWN_TIMEOUT_MS=8000 \
             stagegate-api:ci
 
