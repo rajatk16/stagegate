@@ -1,0 +1,6 @@
+export enum ORGANIZATION_ROLES {
+  OWNER = 'OWNER',
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
+  VIEWER = 'VIEWER',
+}

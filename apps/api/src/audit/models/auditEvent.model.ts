@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { ORGANIZATION_ROLES } from '../../organizations';
 import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
 
 const auditBaseSchema = z.object({
@@ -40,10 +41,22 @@ export const organizationSettingsUpdatedAuditEventSchema = auditBaseSchema
   })
   .strict();
 
+export const organizationMemberRoleChangedAuditEventSchema = auditBaseSchema
+  .extend({
+    action: z.literal('organization.member.role.changed'),
+    targetType: z.literal('organizationMembership'),
+    organizationId: z.string().uuid(),
+    targetUid: z.string().min(1).max(128),
+    previousRole: z.nativeEnum(ORGANIZATION_ROLES),
+    nextRole: z.nativeEnum(ORGANIZATION_ROLES),
+  })
+  .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
   profileUpdatedAuditEventSchema,
   organizationCreatedAuditEventSchema,
   organizationSettingsUpdatedAuditEventSchema,
+  organizationMemberRoleChangedAuditEventSchema,
 ]);
 
 export type AuditEvent = z.infer<typeof auditEventSchema>;

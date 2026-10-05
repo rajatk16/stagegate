@@ -1,10 +1,15 @@
 import z from 'zod';
+import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
 
+import { ORGANIZATION_ROLES } from '../enums';
 import { OrganizationPermission } from '../types';
 import { OrganizationMembership } from '../models';
-import { ORGANIZATION_ROLE_PERMISSIONS } from '../constants';
+import { DiagnosticError } from '../../observalibility';
 import { ApiException, RequestValidationException } from '../../common';
-import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
+import {
+  ORGANIZATION_ROLE_PERMISSIONS,
+  ORGANIZATION_ROLE_CHANGE_TARGETS,
+} from '../constants';
 
 export const normalizeOrganizationSlug = (value: string): string =>
   value.trim().toLowerCase();
@@ -94,3 +99,44 @@ export const getOrganizationLogoPath = (
   organizationId: string,
   version: string,
 ): string => `organizations/${organizationId}/logos/${version}.webp`;
+
+export const assertOrganizationRoleChange = (
+  actor: OrganizationMembership,
+  target: OrganizationMembership,
+  nextRole: ORGANIZATION_ROLES,
+): void => {
+  if (actor.organizationId !== target.organizationId) {
+    throw new DiagnosticError('ORGANIZATION_STORAGE_INVARIANT_FAILED');
+  }
+
+  assertOrganizationPermissions(actor, ['organization:members:manage']);
+
+  if (actor.uid === target.uid) {
+    throw new ApiException(
+      HttpStatus.FORBIDDEN,
+      'ORGANIZATION_SELF_ROLE_CHANGE_FORBIDDEN',
+      'You cannot change your own organization role.',
+    );
+  }
+
+  if (target.role === 'OWNER' || nextRole === 'OWNER') {
+    throw new ApiException(
+      HttpStatus.FORBIDDEN,
+      'ORGANIZATION_OWNERSHIP_CHANGE_FORBIDDEN',
+      'Ownership changes require a separate operation.',
+    );
+  }
+
+  const manageableRoles = ORGANIZATION_ROLE_CHANGE_TARGETS[actor.role] ?? [];
+
+  if (
+    !manageableRoles.includes(target.role) ||
+    !manageableRoles.includes(nextRole)
+  ) {
+    throw new ApiException(
+      HttpStatus.FORBIDDEN,
+      'ORGANIZATION_ROLE_CHANGE_FORBIDDEN',
+      'You cannot perform this role change.',
+    );
+  }
+};

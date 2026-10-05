@@ -5,8 +5,22 @@ import { ApiError, authenticatedApiRequest } from '@/lib';
 export const ORGANIZATION_CAPABILITIES = [
   'organization:read',
   'organization:update',
+  'organization:members:read',
   'organization:members:manage',
 ];
+
+export const ORGANIZATION_ROLES = [
+  'OWNER',
+  'ADMIN',
+  'MEMBER',
+  'VIEWER',
+] as const;
+
+export type OrganizationRole = (typeof ORGANIZATION_ROLES)[number];
+
+export const isOrganizationRole = (value: unknown): value is OrganizationRole =>
+  typeof value === 'string' &&
+  ORGANIZATION_ROLES.some((role) => role === value);
 
 export const ORGANIZATION_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
 
@@ -32,7 +46,7 @@ export type Organization = {
   updatedAt: string;
   membership: {
     uid: string;
-    role: 'OWNER';
+    role: OrganizationRole;
   };
   capabilities: readonly OrganizationCapability[];
 };
@@ -109,7 +123,7 @@ const parseOrganization = (
     !isDateString(value.updatedAt) ||
     !isRecord(value.membership) ||
     value.membership.uid !== expectedUid ||
-    value.membership.role !== 'OWNER' ||
+    !isOrganizationRole(value.membership.role) ||
     !isNullableString(value.description) ||
     !isNullableString(value.websiteURL) ||
     !isNullableColor(value.primaryColor) ||
@@ -130,7 +144,7 @@ const parseOrganization = (
     updatedAt: value.updatedAt,
     membership: {
       uid: expectedUid,
-      role: 'OWNER',
+      role: value.membership.role,
     },
     capabilities: parseOrganizationCapabilities(value.capabilities),
     description: value.description,

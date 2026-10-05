@@ -1,8 +1,11 @@
+import { memoryStorage } from 'multer';
 import { type DecodedIdToken } from 'firebase-admin/auth';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   Get,
   Body,
   Post,
+  Param,
   Patch,
   Query,
   Header,
@@ -17,21 +20,16 @@ import {
 
 import { type OrganizationScope } from '../types';
 import {
-  OrganizationsService,
-  OrganizationLogoService,
-  UploadedOrganizationLogo,
-} from '../services';
-import {
   OrganizationScoped,
   CurrentOrganization,
   RequireOrganizationPermissions,
 } from '../decorators';
 import {
-  toOrganizationResponseDto,
-  toMyOrganizationsResponseDto,
-  toOrganizationPrivateResponseDto,
-  toOrganizationWithMembershipResponseDto,
-} from '../mappers';
+  OrganizationsService,
+  OrganizationLogoService,
+  UploadedOrganizationLogo,
+  OrganizationMembersService,
+} from '../services';
 import {
   CurrentUser,
   SensitiveAction,
@@ -39,22 +37,32 @@ import {
   RequireVerifiedEmail,
 } from '../../auth/decorators';
 import {
+  toOrganizationResponseDto,
+  toMyOrganizationsResponseDto,
+  toOrganizationMemberResponseDto,
+  toOrganizationMembersResponseDto,
+  toOrganizationPrivateResponseDto,
+  toOrganizationWithMembershipResponseDto,
+} from '../mappers';
+import {
   CreateOrganizationDto,
   OrganizationResponseDto,
   MyOrganizationsResponseDto,
   ListMyOrganizationsQueryDto,
+  OrganizationMemberResponseDto,
   UpdateOrganizationSettingsDto,
   OrganizationPrivateResponseDto,
+  OrganizationMembersResponseDto,
+  UpdateOrganizationMemberRoleDto,
+  ListOrganizationMembersQueryDto,
 } from '../dtos';
-
-import { FileInterceptor } from '@nestjs/platform-express';
-import { memoryStorage } from 'multer';
 
 @Controller('organizations')
 export class OrganizationsController {
   constructor(
     private readonly organizationsService: OrganizationsService,
     private readonly organizationLogoService: OrganizationLogoService,
+    private readonly organizationMembersService: OrganizationMembersService,
   ) {}
 
   @Post()
@@ -158,5 +166,38 @@ export class OrganizationsController {
     return toOrganizationPrivateResponseDto(
       await this.organizationLogoService.remove(scope),
     );
+  }
+
+  @Get(':organizationId/members')
+  @OrganizationScoped()
+  @RequireOrganizationPermissions('organization:members:read')
+  @Header('Cache-Control', 'no-store')
+  async listMembers(
+    @CurrentOrganization() scope: OrganizationScope,
+    @Query() query: ListOrganizationMembersQueryDto,
+  ): Promise<OrganizationMembersResponseDto> {
+    const page = await this.organizationMembersService.list(scope, query);
+
+    return toOrganizationMembersResponseDto(page);
+  }
+
+  @Patch(':organizationId/members/:uid/role')
+  @OrganizationScoped()
+  @RequireOrganizationPermissions('organization:members:manage')
+  @RequireVerifiedEmail()
+  @ThrottleUserWrites()
+  @Header('Cache-Control', 'no-store')
+  async changeMemberRole(
+    @CurrentOrganization() scope: OrganizationScope,
+    @Param('uid') uid: string,
+    @Body() dto: UpdateOrganizationMemberRoleDto,
+  ): Promise<OrganizationMemberResponseDto> {
+    const membership = await this.organizationMembersService.changeRole(
+      scope,
+      uid,
+      dto,
+    );
+
+    return toOrganizationMemberResponseDto(membership);
   }
 }

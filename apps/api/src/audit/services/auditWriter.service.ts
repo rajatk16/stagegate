@@ -3,6 +3,7 @@ import { Transaction } from 'firebase-admin/firestore';
 
 import { AuditEvent } from '../models';
 import { auditEventConverter } from '../converters';
+import { ORGANIZATION_ROLES } from '../../organizations';
 import { FirebaseService } from '../../firebase/services';
 import { ORGANIZATION_SETTINGS_FIELDS, ProfileField } from '../enums';
 import { DiagnosticError, RequestContextService } from '../../observalibility';
@@ -10,6 +11,7 @@ import {
   toProfileUpdatedAuditEvent,
   toOrganizationCreatedAuditEvent,
   toOrganizationSettingsUpdatedAuditEvent,
+  toOrganizationMemberRoleChangedAuditEvent,
 } from '../mappers';
 
 @Injectable()
@@ -81,6 +83,31 @@ export class AuditWriter {
       organizationId,
       actorUid,
       fields,
+      occurredAt,
+      requestId: context.requestId,
+    });
+  }
+
+  prepareOrganizationMemberRoleChanged(
+    organizationId: string,
+    actorUid: string,
+    targetUid: string,
+    previousRole: ORGANIZATION_ROLES,
+    nextRole: ORGANIZATION_ROLES,
+    occurredAt: Date,
+  ): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return toOrganizationMemberRoleChangedAuditEvent({
+      organizationId,
+      actorUid,
+      targetUid,
+      previousRole,
+      nextRole,
       occurredAt,
       requestId: context.requestId,
     });
