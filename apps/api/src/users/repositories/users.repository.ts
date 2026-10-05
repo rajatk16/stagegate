@@ -109,4 +109,27 @@ export class UsersRepository {
       },
     );
   }
+
+  async findByUids(uids: readonly string[]): Promise<UserProfile[]> {
+    const uniqueUids = [...new Set(uids)];
+
+    if (uniqueUids.length === 0) {
+      return [];
+    }
+
+    const references = uniqueUids.map((uid) => this.document(uid));
+    const snapshots = await this.firebase.firestore.getAll(...references);
+
+    const profiles: UserProfile[] = [];
+
+    for (const snapshot of snapshots) {
+      const profile = snapshot.data();
+
+      if (profile !== undefined) {
+        profiles.push(profile as UserProfile);
+      }
+    }
+
+    return profiles;
+  }
 }

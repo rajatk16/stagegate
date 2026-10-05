@@ -1,6 +1,7 @@
 import z from 'zod';
 import { length as hasValidLength, isURL } from 'class-validator';
 
+import { ORGANIZATION_ROLES } from '../enums';
 import { ORGANIZATION_SLUG_PATTERN } from '../constants';
 
 const uidSchema = z
@@ -68,7 +69,7 @@ export const organizationMembershipSchema = z
   .object({
     organizationId: z.string().uuid(),
     uid: uidSchema,
-    role: z.literal('OWNER'),
+    role: z.nativeEnum(ORGANIZATION_ROLES),
     createdAt: z.date(),
     updatedAt: z.date(),
   })

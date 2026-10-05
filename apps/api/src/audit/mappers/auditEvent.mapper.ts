@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { AuditEvent, auditEventSchema } from '../models';
+import { ORGANIZATION_ROLES } from '../../organizations';
 import { ORGANIZATION_SETTINGS_FIELDS, ProfileField } from '../enums';
 
 interface ProfileUpdatedEventInput {
@@ -73,4 +74,30 @@ export const toOrganizationSettingsUpdatedAuditEvent = (input: {
     requestId: input.requestId,
     occurredAt: input.occurredAt,
     fields: [...new Set(input.fields)],
+  });
+
+export const toOrganizationMemberRoleChangedAuditEvent = (input: {
+  actorUid: string;
+  organizationId: string;
+  targetUid: string;
+  previousRole: ORGANIZATION_ROLES;
+  nextRole: ORGANIZATION_ROLES;
+  requestId: string;
+  occurredAt: Date;
+}): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: 'organization.member.role.changed',
+    outcome: 'succeeded',
+    targetType: 'organizationMembership',
+
+    actorUid: input.actorUid,
+    organizationId: input.organizationId,
+    targetUid: input.targetUid,
+    previousRole: input.previousRole,
+    nextRole: input.nextRole,
+
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
   });

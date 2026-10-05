@@ -4,27 +4,31 @@ import { ValidationIssueDto } from '../dtos';
 import { ValidationIssueCode } from '../types';
 
 const publicFields = new Set([
-  'displayName',
-  'photoURL',
-  'biography',
-  'affiliation',
-  'timezone',
+  'uid',
   'name',
+  'role',
   'slug',
-  'description',
+  'limit',
+  'cursor',
+  'photoURL',
+  'timezone',
+  'biography',
   'websiteURL',
+  'affiliation',
+  'displayName',
+  'description',
   'primaryColor',
   'secondaryColor',
 ]);
 
 const constraintCodes = new Map<string, ValidationIssueCode>([
-  ['whitelistValidation', 'UNEXPECTED_FIELD'],
-  ['isString', 'INVALID_TYPE'],
-  ['isLength', 'INVALID_LENGTH'],
-  ['maxLength', 'TOO_LONG'],
   ['isUrl', 'INVALID_URL'],
-  ['isTimeZone', 'INVALID_TIMEZONE'],
+  ['maxLength', 'TOO_LONG'],
+  ['isString', 'INVALID_TYPE'],
   ['matches', 'INVALID_VALUE'],
+  ['isLength', 'INVALID_LENGTH'],
+  ['isTimeZone', 'INVALID_TIMEZONE'],
+  ['whitelistValidation', 'UNEXPECTED_FIELD'],
 ]);
 
 export const toValidationIssues = (

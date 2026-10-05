@@ -1,4 +1,6 @@
+import { ORGANIZATION_ROLES } from '../enums';
+
 export class OrganizationMembershipResponseDto {
   uid!: string;
-  role!: 'OWNER';
+  role!: ORGANIZATION_ROLES;
 }

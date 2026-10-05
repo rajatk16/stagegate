@@ -1,14 +1,21 @@
-import { Badge } from '@/components';
+import { useAuth } from '@/features/auth';
 
-export const OrganizationMembers = () => (
-  <section className="space-y-4 rounded-2xl border bg-card p-6">
-    <h2 className="text-xl font-semibold">Organization members</h2>
+import { useActiveOrganization } from '../hooks';
+import { OrganizationMembersContent } from '../components';
 
-    <Badge variant="outline">Coming next</Badge>
+export const OrganizationMembers = () => {
+  const session = useAuth();
+  const organization = useActiveOrganization();
 
-    <p className="text-sm leading-6 text-muted-foreground">
-      Member listings, invitations, and membership management will be available
-      here.
-    </p>
-  </section>
-);
+  if (session.status !== 'authenticated') {
+    return null;
+  }
+
+  return (
+    <OrganizationMembersContent
+      key={`${session.user.uid}:${organization.id}`}
+      user={session.user}
+      organization={organization}
+    />
+  );
+};
