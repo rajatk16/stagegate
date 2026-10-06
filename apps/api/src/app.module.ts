@@ -7,6 +7,7 @@ import { UsersModule } from './users';
 import { HealthModule } from './health';
 import { FirebaseModule } from './firebase';
 import { validateEnvironment } from './config';
+import { InvitationsModule } from './invitations';
 import { OrganizationModule } from './organizations';
 import { ObservabilityModule } from './observalibility';
 import {
@@ -26,6 +27,7 @@ import {
     UsersModule,
     HealthModule,
     FirebaseModule,
+    InvitationsModule,
     OrganizationModule,
     ObservabilityModule,
   ],

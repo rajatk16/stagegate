@@ -101,3 +101,36 @@ export const toOrganizationMemberRoleChangedAuditEvent = (input: {
     requestId: input.requestId,
     occurredAt: input.occurredAt,
   });
+
+export interface OrganizationInvitationAuditInput {
+  action:
+    | 'organization.invitation.created'
+    | 'organization.invitation.accepted'
+    | 'organization.invitation.revoked';
+  actorUid: string;
+  organizationId: string;
+  invitationId: string;
+  role: Exclude<ORGANIZATION_ROLES, ORGANIZATION_ROLES.OWNER>;
+  occurredAt: Date;
+}
+
+export const toOrganizationInvitationAuditEvent = (
+  input: OrganizationInvitationAuditInput & {
+    requestId: string;
+  },
+): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: input.action,
+    outcome: 'succeeded',
+    targetType: 'organizationInvitation',
+
+    actorUid: input.actorUid,
+    organizationId: input.organizationId,
+    invitationId: input.invitationId,
+    role: input.role,
+
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
+  });

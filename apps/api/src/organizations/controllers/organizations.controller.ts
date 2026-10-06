@@ -31,11 +31,17 @@ import {
   OrganizationMembersService,
 } from '../services';
 import {
+  InvitationsService,
+  CreateOrganizationInvitationDto,
+  OrganizationInvitationResponseDto,
+  toOrganizationInvitationResponseDto,
+} from '../../invitations';
+import {
   CurrentUser,
   SensitiveAction,
   ThrottleUserWrites,
   RequireVerifiedEmail,
-} from '../../auth/decorators';
+} from '../../auth';
 import {
   toOrganizationResponseDto,
   toMyOrganizationsResponseDto,
@@ -60,6 +66,7 @@ import {
 @Controller('organizations')
 export class OrganizationsController {
   constructor(
+    private readonly invitationsService: InvitationsService,
     private readonly organizationsService: OrganizationsService,
     private readonly organizationLogoService: OrganizationLogoService,
     private readonly organizationMembersService: OrganizationMembersService,
@@ -199,5 +206,19 @@ export class OrganizationsController {
     );
 
     return toOrganizationMemberResponseDto(membership);
+  }
+
+  @Post(':organizationId/invitations')
+  @HttpCode(HttpStatus.CREATED)
+  @Header('Cache-Control', 'no-store')
+  @RequireOrganizationPermissions('organization:members:manage')
+  @SensitiveAction('inviteOrganizationMember')
+  async createOrganizationInvitation(
+    @CurrentOrganization() scope: OrganizationScope,
+    @Body() dto: CreateOrganizationInvitationDto,
+  ): Promise<OrganizationInvitationResponseDto> {
+    const result = await this.invitationsService.create(scope, dto);
+
+    return toOrganizationInvitationResponseDto(result);
   }
 }

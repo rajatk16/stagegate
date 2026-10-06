@@ -52,11 +52,46 @@ export const organizationMemberRoleChangedAuditEventSchema = auditBaseSchema
   })
   .strict();
 
+const organizationInvitationAuditBaseSchema = auditBaseSchema.extend({
+  targetType: z.literal('organizationInvitation'),
+  invitationId: z.string().uuid(),
+  organizationId: z.string().uuid(),
+  role: z.enum([
+    ORGANIZATION_ROLES.ADMIN,
+    ORGANIZATION_ROLES.MEMBER,
+    ORGANIZATION_ROLES.VIEWER,
+  ]),
+});
+
+export const organizationInvitationCreatedAuditEventSchema =
+  organizationInvitationAuditBaseSchema
+    .extend({
+      action: z.literal('organization.invitation.created'),
+    })
+    .strict();
+
+export const organizationInvitationAcceptedAuditEventSchema =
+  organizationInvitationAuditBaseSchema
+    .extend({
+      action: z.literal('organization.invitation.accepted'),
+    })
+    .strict();
+
+export const organizationInvitationRevokedAuditEventSchema =
+  organizationInvitationAuditBaseSchema
+    .extend({
+      action: z.literal('organization.invitation.revoked'),
+    })
+    .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
   profileUpdatedAuditEventSchema,
   organizationCreatedAuditEventSchema,
   organizationSettingsUpdatedAuditEventSchema,
+  organizationInvitationCreatedAuditEventSchema,
   organizationMemberRoleChangedAuditEventSchema,
+  organizationInvitationRevokedAuditEventSchema,
+  organizationInvitationAcceptedAuditEventSchema,
 ]);
 
 export type AuditEvent = z.infer<typeof auditEventSchema>;

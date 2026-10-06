@@ -64,3 +64,10 @@ import {
   ],
 })
 export class AuthModule {}
+
+export * from './types';
+export * from './guards';
+export * from './mappers';
+export * from './policies';
+export * from './constants';
+export * from './decorators';

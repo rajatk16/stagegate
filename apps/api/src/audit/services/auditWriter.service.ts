@@ -10,6 +10,8 @@ import { DiagnosticError, RequestContextService } from '../../observalibility';
 import {
   toProfileUpdatedAuditEvent,
   toOrganizationCreatedAuditEvent,
+  OrganizationInvitationAuditInput,
+  toOrganizationInvitationAuditEvent,
   toOrganizationSettingsUpdatedAuditEvent,
   toOrganizationMemberRoleChangedAuditEvent,
 } from '../mappers';
@@ -109,6 +111,21 @@ export class AuditWriter {
       previousRole,
       nextRole,
       occurredAt,
+      requestId: context.requestId,
+    });
+  }
+
+  prepareOrganizationInvitation(
+    input: OrganizationInvitationAuditInput,
+  ): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== input.actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return toOrganizationInvitationAuditEvent({
+      ...input,
       requestId: context.requestId,
     });
   }

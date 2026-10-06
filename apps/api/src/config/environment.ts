@@ -69,6 +69,11 @@ export const environmentSchema = z
       .string()
       .refine(isLocalEmulatorHost)
       .optional(),
+
+    EMAIL_PROVIDER: z.enum(['memory', 'resend']).default('memory'),
+    EMAIL_FROM: z.string().email().optional(),
+    RESEND_API_KEY: z.string().min(1).optional(),
+    INVITATION_TTL_HOURS: z.coerce.number().int().min(1).max(168).default(72),
   })
   .superRefine((env, context) => {
     const issue = (field: string, message: string) => {
@@ -78,6 +83,16 @@ export const environmentSchema = z
         message,
       });
     };
+
+    if (env.EMAIL_PROVIDER === 'resend') {
+      if (!env.EMAIL_FROM) {
+        issue('EMAIL_FROM', 'Required when using Resend');
+      }
+
+      if (!env.RESEND_API_KEY) {
+        issue('RESEND_API_KEY', 'Required when using Resend');
+      }
+    }
 
     if (env.NODE_ENV === 'production') {
       if (env.FIREBASE_MODE !== 'live') {
@@ -95,6 +110,14 @@ export const environmentSchema = z
         if (env[key] !== undefined) {
           issue(key, 'Must be absent in production');
         }
+      }
+
+      if (env.EMAIL_PROVIDER !== 'resend') {
+        issue('EMAIL_PROVIDER', 'Production requires Resend');
+      }
+
+      if (!env.FRONTEND_ORIGIN.startsWith('https://')) {
+        issue('FRONTEND_ORIGIN', 'Production requires HTTPS');
       }
 
       return;
@@ -153,6 +176,10 @@ export const validateEnvironment = (
       'SHUTDOWN_TIMEOUT_MS',
       'FIREBASE_STORAGE_BUCKET',
       'FIREBASE_STORAGE_EMULATOR_HOST',
+      'EMAIL_PROVIDER',
+      'EMAIL_FROM',
+      'RESEND_API_KEY',
+      'INVITATION_TTL_HOURS',
     ]);
 
     const fields = [
