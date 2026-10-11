@@ -3,30 +3,31 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { toNewOrganization } from '../mappers';
-import { DiagnosticError } from '../../observalibility';
+import { ApiException } from '../../common/exceptions';
 import { RESERVED_ORGANIZATION_SLUGS } from '../constants';
-import { ApiException, RequestValidationException } from '../../common';
+import { organizationSettingsChangesSchema } from '../models';
+import { DiagnosticError } from '../../observalibility/errors';
+import { RequestValidationException } from '../../common/exceptions';
 import {
-  MyOrganizationsPage,
-  OrganizationCreation,
-  OrganizationScope,
-  OrganizationWithMembership,
-} from '../types';
+  OrganizationRepository,
+  OrganizationmembershipRepository,
+} from '../repositories';
 import {
   CreateOrganizationDto,
   ListMyOrganizationsQueryDto,
   UpdateOrganizationSettingsDto,
 } from '../dtos';
 import {
-  OrganizationRepository,
-  OrganizationmembershipRepository,
-} from '../repositories';
-import {
   decodeOrganizationCursor,
   encodeOrganizationCursor,
   normalizeOrganizationSlug,
 } from '../utils';
-import { organizationSettingsChangesSchema } from '../models';
+import {
+  OrganizationScope,
+  MyOrganizationsPage,
+  OrganizationCreation,
+  OrganizationWithMembership,
+} from '../types';
 
 @Injectable()
 export class OrganizationsService {

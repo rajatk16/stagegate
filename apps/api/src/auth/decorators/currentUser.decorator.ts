@@ -1,8 +1,8 @@
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-import { AuthException } from '../../common';
 import { AuthenticatedRequest } from '../types';
+import { AuthException } from '../../common/exceptions';
 
 export const CurrentUser = createParamDecorator(
   (_data: unknown, context: ExecutionContext): DecodedIdToken => {

@@ -1,11 +1,11 @@
 import { Transform, TransformFnParams } from 'class-transformer';
 import {
-  IsOptional,
-  IsString,
-  IsTimeZone,
   IsUrl,
   Length,
+  IsString,
   MaxLength,
+  IsOptional,
+  IsTimeZone,
 } from 'class-validator';
 
 const normalizeOptionalText = ({ value }: TransformFnParams): unknown =>

@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 
 import { UserProfile } from '../models';
 import { UserProfileChanges } from '../types';
+import { PROFILE_FIELDS } from '../../audit/enums';
+import { AuditWriter } from '../../audit/services';
 import { userProfileConverter } from '../converters';
 import { toUserProfileUpdateDocument } from '../mappers';
 import { FirebaseService } from '../../firebase/services';
-import { AuditWriter, PROFILE_FIELDS } from '../../audit';
 
 @Injectable()
 export class UsersRepository {
@@ -49,9 +50,9 @@ export class UsersRepository {
   ): Promise<UserProfile> {
     const reference = this.document(candidate.uid);
 
-    const fields = PROFILE_FIELDS.filter(
-      (field) => changes[field] !== undefined,
-    );
+    const fields = Object.keys(changes).filter(
+      (key) => changes[key as keyof UserProfileChanges] !== undefined,
+    ) as readonly PROFILE_FIELDS[];
 
     const auditEvent = this.audit.prepareProfileUpdated(candidate.uid, fields);
 

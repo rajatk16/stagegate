@@ -16,14 +16,22 @@ import {
   UploadedFile,
   StreamableFile,
   UseInterceptors,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { type OrganizationScope } from '../types';
+import { InvitationsService } from '../../invitations/services';
+import { toOrganizationInvitationResponseDto } from '../../invitations/mappers';
 import {
   OrganizationScoped,
   CurrentOrganization,
   RequireOrganizationPermissions,
 } from '../decorators';
+import {
+  CreateOrganizationInvitationDto,
+  OrganizationInvitationResponseDto,
+  ListOrganizationInvitationsQueryDto,
+} from '../../invitations/dtos';
 import {
   OrganizationsService,
   OrganizationLogoService,
@@ -60,6 +68,7 @@ import {
 @Controller('organizations')
 export class OrganizationsController {
   constructor(
+    private readonly invitationsService: InvitationsService,
     private readonly organizationsService: OrganizationsService,
     private readonly organizationLogoService: OrganizationLogoService,
     private readonly organizationMembersService: OrganizationMembersService,
@@ -199,5 +208,46 @@ export class OrganizationsController {
     );
 
     return toOrganizationMemberResponseDto(membership);
+  }
+
+  @Get(':organizationId/invitations')
+  @OrganizationScoped()
+  @Header('Cache-Control', 'no-store')
+  @RequireOrganizationPermissions('organization:members:manage')
+  listOrganizationInvitations(
+    @CurrentOrganization() scope: OrganizationScope,
+    @Query() query: ListOrganizationInvitationsQueryDto,
+  ) {
+    return this.invitationsService.listPending(scope, query.cursor);
+  }
+
+  @Post(':organizationId/invitations')
+  @OrganizationScoped()
+  @HttpCode(HttpStatus.CREATED)
+  @Header('Cache-Control', 'no-store')
+  @RequireOrganizationPermissions('organization:members:manage')
+  @SensitiveAction('inviteOrganizationMember')
+  async createOrganizationInvitation(
+    @CurrentOrganization() scope: OrganizationScope,
+    @Body() dto: CreateOrganizationInvitationDto,
+  ): Promise<OrganizationInvitationResponseDto> {
+    const result = await this.invitationsService.create(scope, dto);
+
+    return toOrganizationInvitationResponseDto(result);
+  }
+
+  @Delete(':organizationId/invitations/:invitationId')
+  @OrganizationScoped()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Header('Cache-Control', 'no-store')
+  @RequireOrganizationPermissions('organization:members:manage')
+  @RequireVerifiedEmail()
+  @ThrottleUserWrites()
+  async revoke(
+    @CurrentOrganization() scope: OrganizationScope,
+    @Param('invitationId', new ParseUUIDPipe({ version: '4' }))
+    invitationId: string,
+  ): Promise<void> {
+    await this.invitationsService.revoke(scope, invitationId);
   }
 }

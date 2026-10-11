@@ -67,7 +67,11 @@ export const OrganizationMembersTable = ({
       <tbody className="divide-y">
         {members.map((member) => (
           <tr key={member.uid} className="align-top">
-            <th scope="row" className="px-5 py-4 text-left font-normal">
+            <th
+              scope="row"
+              className="px-5 py-4 text-left font-normal"
+              aria-label={`${member.displayName ?? member.email ?? 'Member details unavailable'}`}
+            >
               <div className="flex items-start gap-3">
                 <div
                   aria-hidden="true"

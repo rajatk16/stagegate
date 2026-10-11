@@ -3,8 +3,8 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { UserProfile } from '../models';
 import { UpdateProfileDto } from '../dtos';
-import { ApiException } from '../../common';
 import { UsersRepository } from '../repositories';
+import { ApiException } from '../../common/exceptions';
 import { FirebaseService } from '../../firebase/services';
 import { toNewUserProfile, toUserProfileChanges } from '../mappers';
 

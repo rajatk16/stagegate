@@ -2,11 +2,11 @@ import { Transform, TransformFnParams } from 'class-transformer';
 import {
   IsUrl,
   Length,
+  Matches,
   IsString,
   MaxLength,
   IsOptional,
   ValidateIf,
-  Matches,
 } from 'class-validator';
 
 const trimText = ({ value }: TransformFnParams): unknown =>

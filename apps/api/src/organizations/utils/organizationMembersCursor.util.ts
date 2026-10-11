@@ -2,7 +2,7 @@ import z from 'zod';
 
 import { OrganizationScope } from '../types';
 import { organizationMembershipSchema } from '../models';
-import { RequestValidationException } from '../../common';
+import { RequestValidationException } from '../../common/exceptions';
 
 const cursorSchema = z
   .object({

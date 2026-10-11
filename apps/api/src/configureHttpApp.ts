@@ -4,7 +4,7 @@ import { INestApplication } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 
 import { Environment } from './config/environment';
-import { RequestLogginMiddleware } from './observalibility';
+import { RequestLogginMiddleware } from './observalibility/middlewares';
 
 export const configureHttpApp = (app: INestApplication): void => {
   const config = app.get<ConfigService<Environment, true>>(ConfigService);

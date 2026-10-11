@@ -1,12 +1,13 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { ApiException } from '../../common';
+import { AuditWriter } from '../../audit/services';
 import { organizationConverter } from '../converters';
+import { ApiException } from '../../common/exceptions';
 import { ORGANIZATIONS_COLLECTION } from '../constants';
-import { DiagnosticError } from '../../observalibility';
 import { FirebaseService } from '../../firebase/services';
-import { AuditWriter, ORGANIZATION_SETTINGS_FIELDS } from '../../audit';
+import { DiagnosticError } from '../../observalibility/errors';
+import { ORGANIZATION_SETTINGS_FIELDS } from '../../audit/enums';
 import { OrganizationSlugRepository } from './organizationSlugs.repository';
 import { OrganizationmembershipRepository } from './organizationMembership.repository';
 import {

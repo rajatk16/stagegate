@@ -5,8 +5,8 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { DiagnosticError } from '../../observalibility';
 import { OrganizationMembershipDocument } from '../types';
+import { DiagnosticError } from '../../observalibility/errors';
 import {
   OrganizationMembership,
   organizationMembershipSchema,

@@ -1,4 +1,4 @@
-import { AuthException } from '../../common';
+import { AuthException } from '../../common/exceptions';
 
 export const getFirebaseErrorCode = (error: unknown): string | undefined => {
   if (

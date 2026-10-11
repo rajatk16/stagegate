@@ -6,7 +6,7 @@ import { ApiError } from '@/lib';
 import {
   OrganizationMember,
   listOrganizationMembers,
-  getOrganizationErrorMessage,
+  getOrganizationMembersErrorMessage,
 } from '../services';
 
 type MembersState =
@@ -116,7 +116,7 @@ export const useOrganizationMembers = (user: User, organizationId: string) => {
           return;
         }
 
-        const message = getOrganizationErrorMessage(error);
+        const message = getOrganizationMembersErrorMessage(error);
 
         const accessChanged =
           error instanceof ApiError &&

@@ -1,14 +1,14 @@
 import { randomUUID } from 'node:crypto';
 
 import { AuditEvent, auditEventSchema } from '../models';
-import { ORGANIZATION_ROLES } from '../../organizations';
-import { ORGANIZATION_SETTINGS_FIELDS, ProfileField } from '../enums';
+import { ORGANIZATION_ROLES } from '../../organizations/enums';
+import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
 
 interface ProfileUpdatedEventInput {
   actorUid: string;
   targetUid: string;
   requestId: string;
-  fields: readonly ProfileField[];
+  fields: readonly PROFILE_FIELDS[];
 }
 
 interface OrganizationCreatedEventInput {
@@ -97,6 +97,39 @@ export const toOrganizationMemberRoleChangedAuditEvent = (input: {
     targetUid: input.targetUid,
     previousRole: input.previousRole,
     nextRole: input.nextRole,
+
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
+  });
+
+export interface OrganizationInvitationAuditInput {
+  action:
+    | 'organization.invitation.created'
+    | 'organization.invitation.accepted'
+    | 'organization.invitation.revoked';
+  actorUid: string;
+  organizationId: string;
+  invitationId: string;
+  role: Exclude<ORGANIZATION_ROLES, ORGANIZATION_ROLES.OWNER>;
+  occurredAt: Date;
+}
+
+export const toOrganizationInvitationAuditEvent = (
+  input: OrganizationInvitationAuditInput & {
+    requestId: string;
+  },
+): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: input.action,
+    outcome: 'succeeded',
+    targetType: 'organizationInvitation',
+
+    actorUid: input.actorUid,
+    organizationId: input.organizationId,
+    invitationId: input.invitationId,
+    role: input.role,
 
     requestId: input.requestId,
     occurredAt: input.occurredAt,

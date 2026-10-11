@@ -12,7 +12,8 @@ import {
 import { ApiException } from '../exceptions';
 import { ApiErrorResponseDto } from '../dtos';
 import { toPublicApiError } from '../mappers';
-import { RequestContextService, toDiagnostic } from '../../observalibility';
+import { RequestContextService } from '../../observalibility/services';
+import { toDiagnostic } from '../../observalibility/mappers';
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {

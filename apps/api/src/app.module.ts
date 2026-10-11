@@ -2,18 +2,17 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { Module, ValidationPipe } from '@nestjs/common';
 
-import { AuthModule } from './auth';
-import { UsersModule } from './users';
-import { HealthModule } from './health';
-import { FirebaseModule } from './firebase';
 import { validateEnvironment } from './config';
-import { OrganizationModule } from './organizations';
-import { ObservabilityModule } from './observalibility';
-import {
-  ApiExceptionFilter,
-  toValidationIssues,
-  RequestValidationException,
-} from './common';
+import { ApiExceptionFilter } from './common/filters';
+import { toValidationIssues } from './common/mappers';
+import { AuthModule } from './auth/modules/auth.module';
+import { UsersModule } from './users/modules/user.module';
+import { HealthModule } from './health/modules/firebase.module';
+import { RequestValidationException } from './common/exceptions';
+import { FirebaseModule } from './firebase/module/firebase.module';
+import { InvitationsModule } from './invitations/modules/invitations.module';
+import { OrganizationModule } from './organizations/modules/organization.module';
+import { ObservabilityModule } from './observalibility/modules/observability.module';
 
 @Module({
   imports: [
@@ -26,6 +25,7 @@ import {
     UsersModule,
     HealthModule,
     FirebaseModule,
+    InvitationsModule,
     OrganizationModule,
     ObservabilityModule,
   ],

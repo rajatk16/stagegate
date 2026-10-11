@@ -1,9 +1,7 @@
-export const PROFILE_FIELDS = [
-  'displayName',
-  'photoURL',
-  'biography',
-  'affiliation',
-  'timezone',
-] as const;
-
-export type ProfileField = (typeof PROFILE_FIELDS)[number];
+export enum PROFILE_FIELDS {
+  DISPLAY_NAME = 'displayName',
+  PHOTO_URL = 'photoURL',
+  BIOGRAPHY = 'biography',
+  AFFILIATION = 'affiliation',
+  TIMEZONE = 'timezone',
+}

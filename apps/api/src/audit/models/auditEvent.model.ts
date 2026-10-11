@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { ORGANIZATION_ROLES } from '../../organizations';
+import { ORGANIZATION_ROLES } from '../../organizations/enums';
 import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
 
 const auditBaseSchema = z.object({
@@ -17,7 +17,7 @@ export const profileUpdatedAuditEventSchema = auditBaseSchema
     action: z.literal('user.profile.updated'),
     targetType: z.literal('user'),
     targetUid: z.string().min(1).max(128),
-    fields: z.array(z.enum(PROFILE_FIELDS)).min(1).max(5),
+    fields: z.array(z.nativeEnum(PROFILE_FIELDS)).min(1).max(5),
   })
   .strict();
 
@@ -52,11 +52,42 @@ export const organizationMemberRoleChangedAuditEventSchema = auditBaseSchema
   })
   .strict();
 
+const organizationInvitationAuditBaseSchema = auditBaseSchema.extend({
+  targetType: z.literal('organizationInvitation'),
+  invitationId: z.string().uuid(),
+  organizationId: z.string().uuid(),
+  role: z.nativeEnum(ORGANIZATION_ROLES),
+});
+
+export const organizationInvitationCreatedAuditEventSchema =
+  organizationInvitationAuditBaseSchema
+    .extend({
+      action: z.literal('organization.invitation.created'),
+    })
+    .strict();
+
+export const organizationInvitationAcceptedAuditEventSchema =
+  organizationInvitationAuditBaseSchema
+    .extend({
+      action: z.literal('organization.invitation.accepted'),
+    })
+    .strict();
+
+export const organizationInvitationRevokedAuditEventSchema =
+  organizationInvitationAuditBaseSchema
+    .extend({
+      action: z.literal('organization.invitation.revoked'),
+    })
+    .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
   profileUpdatedAuditEventSchema,
   organizationCreatedAuditEventSchema,
   organizationSettingsUpdatedAuditEventSchema,
+  organizationInvitationCreatedAuditEventSchema,
   organizationMemberRoleChangedAuditEventSchema,
+  organizationInvitationRevokedAuditEventSchema,
+  organizationInvitationAcceptedAuditEventSchema,
 ]);
 
 export type AuditEvent = z.infer<typeof auditEventSchema>;

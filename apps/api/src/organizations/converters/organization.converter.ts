@@ -1,13 +1,13 @@
 import z from 'zod';
 import {
-  FirestoreDataConverter,
-  SetOptions,
   Timestamp,
+  SetOptions,
+  FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
 import { OrganizationDocument } from '../types';
-import { DiagnosticError } from '../../observalibility';
 import { Organization, organizationSchema } from '../models';
+import { DiagnosticError } from '../../observalibility/errors';
 
 const organizationDocumentSchema = organizationSchema.extend({
   createdAt: z.instanceof(Timestamp),

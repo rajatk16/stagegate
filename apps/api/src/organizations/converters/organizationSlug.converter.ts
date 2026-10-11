@@ -1,12 +1,12 @@
 import z from 'zod';
 import {
-  FirestoreDataConverter,
   Timestamp,
   SetOptions,
+  FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
 import { OrganizationSlugDocument } from '../types';
-import { DiagnosticError } from '../../observalibility';
+import { DiagnosticError } from '../../observalibility/errors';
 import { OrganizationSlug, organizationSlugSchema } from '../models';
 
 const slugDocumentSchema = organizationSlugSchema.extend({
