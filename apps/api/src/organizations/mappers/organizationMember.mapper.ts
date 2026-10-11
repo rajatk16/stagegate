@@ -26,7 +26,7 @@ export const toOrganizationMembersResponseDto = (
         new OrganizationTeamMemberResponseDto(),
         toOrganizationMemberResponseDto(member),
         {
-          displayName: member,
+          displayName: member.displayName,
           email: member.email,
         },
       ),

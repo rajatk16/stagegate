@@ -3,10 +3,11 @@ import { Transaction } from 'firebase-admin/firestore';
 
 import { AuditEvent } from '../models';
 import { auditEventConverter } from '../converters';
-import { ORGANIZATION_ROLES } from '../../organizations';
 import { FirebaseService } from '../../firebase/services';
-import { ORGANIZATION_SETTINGS_FIELDS, ProfileField } from '../enums';
-import { DiagnosticError, RequestContextService } from '../../observalibility';
+import { ORGANIZATION_ROLES } from '../../organizations/enums';
+import { DiagnosticError } from '../../observalibility/errors';
+import { RequestContextService } from '../../observalibility/services';
+import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
 import {
   toProfileUpdatedAuditEvent,
   toOrganizationCreatedAuditEvent,
@@ -25,7 +26,7 @@ export class AuditWriter {
 
   prepareProfileUpdated(
     targetUid: string,
-    fields: readonly ProfileField[],
+    fields: readonly PROFILE_FIELDS[],
   ): AuditEvent {
     const context = this.requestContextService.require();
 

@@ -1,7 +1,11 @@
 import { useAuth } from '@/features/auth';
 
 import { useActiveOrganization } from '../hooks';
-import { OrganizationMembersContent } from '../components';
+import {
+  OrganizationInvitations,
+  OrganizationMembersContent,
+} from '../components';
+import { hasOrganizationCapability } from '../services';
 
 export const OrganizationMembers = () => {
   const session = useAuth();
@@ -11,11 +15,24 @@ export const OrganizationMembers = () => {
     return null;
   }
 
+  const canManageMembers = hasOrganizationCapability(
+    organization,
+    'organization:members:manage',
+  );
+
   return (
-    <OrganizationMembersContent
-      key={`${session.user.uid}:${organization.id}`}
-      user={session.user}
-      organization={organization}
-    />
+    <div key={`${session.user.uid}:${organization.id}`} className="space-y-6">
+      <OrganizationMembersContent
+        key={`${session.user.uid}:${organization.id}`}
+        user={session.user}
+        organization={organization}
+      />
+      {canManageMembers && (
+        <OrganizationInvitations
+          user={session.user}
+          organization={organization}
+        />
+      )}
+    </div>
   );
 };

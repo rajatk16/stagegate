@@ -1,4 +1,4 @@
-import { OrganizationMembershipResponseDto } from '../../organizations';
+import { OrganizationMembershipResponseDto } from '../../organizations/dtos';
 import { InvitationAcceptanceResult, InvitationIssueResult } from '../types';
 import {
   OrganizationInvitationResponseDto,

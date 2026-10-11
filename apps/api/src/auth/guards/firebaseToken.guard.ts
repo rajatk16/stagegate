@@ -2,12 +2,12 @@ import { Reflector } from '@nestjs/core';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 
-import { AuthException } from '../../common';
 import { IS_PUBLIC_KEY } from '../constants';
 import { toAuthException } from '../mappers';
 import { AuthenticatedRequest } from '../types';
+import { AuthException } from '../../common/exceptions';
 import { FirebaseService } from '../../firebase/services';
-import { RequestContextService } from '../../observalibility';
+import { RequestContextService } from '../../observalibility/services';
 
 @Injectable()
 export class FirebaseTokenGuard implements CanActivate {

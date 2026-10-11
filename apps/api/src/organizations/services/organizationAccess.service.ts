@@ -1,9 +1,9 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { ApiException } from '../../common';
 import { organizationSchema } from '../models';
-import { DiagnosticError } from '../../observalibility';
+import { ApiException } from '../../common/exceptions';
 import { assertOrganizationPermissions } from '../utils';
+import { DiagnosticError } from '../../observalibility/errors';
 import { OrganizationPermission, OrganizationScope } from '../types';
 import {
   OrganizationRepository,

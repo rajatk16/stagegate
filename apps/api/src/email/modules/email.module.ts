@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { Environment } from '../config';
-import { TransactionalEmailProvider } from './types';
-import { MemoryEmailProvider, ResendEmailProvider } from './providers';
+import { Environment } from '../../config';
+import { TransactionalEmailProvider } from '../types';
+import { MemoryEmailProvider, ResendEmailProvider } from '../providers';
 
 @Module({
   imports: [ConfigModule],
@@ -36,5 +36,3 @@ import { MemoryEmailProvider, ResendEmailProvider } from './providers';
   exports: [TransactionalEmailProvider],
 })
 export class EmailModule {}
-
-export * from './types';

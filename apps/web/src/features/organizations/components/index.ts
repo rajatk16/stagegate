@@ -4,6 +4,7 @@ export * from './OrganizationCreated';
 export * from './RequireOrganization';
 export * from './OrganizationSwitcher';
 export * from './CreateOrganizationForm';
+export * from './OrganizationInvitations';
 export * from './OrganizationMembersTable';
 export * from './OrganizationSettingsForm';
 export * from './CreateOrganizationContent';

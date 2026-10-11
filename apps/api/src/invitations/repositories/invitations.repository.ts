@@ -1,26 +1,31 @@
+import { FieldPath } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { AuditWriter } from '../../audit';
-import { ApiException } from '../../common';
-import { DiagnosticError } from '../../observalibility';
+import { AuditWriter } from '../../audit/services';
 import { FirebaseService } from '../../firebase/services';
+import { OrganizationScope } from '../../organizations/types';
+import { DiagnosticError } from '../../observalibility/errors';
 import { organizationInvitationConverter } from '../converters';
 import { ORGANIZATION_INVITATIONS_COLLECTION } from '../constants';
+import { organizationMembershipSchema } from '../../organizations/models';
 import { InvitationAcceptanceResult, InvitationCreationResult } from '../types';
 import {
   OrganizationInvitation,
   organizationInvitationSchema,
 } from '../models';
 import {
+  ApiException,
+  RequestValidationException,
+} from '../../common/exceptions';
+import {
+  OrganizationRepository,
+  OrganizationmembershipRepository,
+} from '../../organizations/repositories';
+import {
   assertInvitationGrant,
   matchesInvitationToken,
   normalizeInvitationEmail,
 } from '../utils';
-import {
-  OrganizationRepository,
-  organizationMembershipSchema,
-  OrganizationmembershipRepository,
-} from '../../organizations';
 
 const invalidInvitation = (): ApiException =>
   new ApiException(
@@ -314,6 +319,139 @@ export class InvitationsRepository {
           membership,
           alreadyAccepted: false,
         };
+      },
+    );
+  }
+
+  async listPending(
+    organizationId: string,
+    cursor?: string,
+  ): Promise<{
+    items: OrganizationInvitation[];
+    nextCursor: string | null;
+  }> {
+    const pageSize = 20;
+
+    let query = this.collection()
+      .where('scope.organizationId', '==', organizationId)
+      .where('status', '==', 'PENDING')
+      .where('expiresAt', '>', new Date())
+      .orderBy('expiresAt', 'asc')
+      .orderBy(FieldPath.documentId(), 'asc');
+
+    if (cursor !== undefined) {
+      const cursorSnapshot = await this.invitationReference(cursor).get();
+      const cursorInvitation = cursorSnapshot.data();
+
+      if (
+        !cursorInvitation ||
+        cursorInvitation.scope.organizationId !== organizationId
+      ) {
+        throw new RequestValidationException([
+          {
+            field: 'cursor',
+            code: 'INVALID_VALUE',
+          },
+        ]);
+      }
+
+      query = query.startAfter(cursorSnapshot);
+    }
+
+    const snapshot = await query.limit(pageSize + 1).get();
+    const items = snapshot.docs
+      .slice(0, pageSize)
+      .map((document) => document.data());
+
+    const lastInvitation = items.at(-1);
+
+    return {
+      items,
+      nextCursor:
+        snapshot.docs.length > pageSize && lastInvitation
+          ? lastInvitation.id
+          : null,
+    };
+  }
+
+  async revoke(scope: OrganizationScope, invitationId: string): Promise<void> {
+    const reference = this.invitationReference(invitationId);
+
+    await this.firebaseService.firestore.runTransaction(
+      async (transaction): Promise<void> => {
+        const organizationSnapshot = await transaction.get(
+          this.organizationsRepository.getDocumentReference(
+            scope.organizationId,
+          ),
+        );
+
+        const actorSnapshot = await transaction.get(
+          this.organizationMembershipRepository.getDocumentReference(
+            scope.organizationId,
+            scope.actorUid,
+          ),
+        );
+
+        const invitationSnapshot = await transaction.get(reference);
+
+        const organization = organizationSnapshot.data();
+        const actor = actorSnapshot.data();
+        const invitation = invitationSnapshot.data();
+
+        if (
+          !organization ||
+          !invitation ||
+          invitation.scope.organizationId !== scope.organizationId
+        ) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'ORGANIZATION_INVITATION_NOT_FOUND',
+            'Invitation not found.',
+          );
+        }
+
+        if (!actor) {
+          throw new ApiException(
+            HttpStatus.FORBIDDEN,
+            'ORGANIZATION_PERMISSION_DENIED',
+            'You cannot revoke invitations in this organization.',
+          );
+        }
+
+        assertInvitationGrant(actor, invitation.role);
+
+        if (invitation.status === 'REVOKED') {
+          return;
+        }
+
+        if (invitation.status === 'ACCEPTED') {
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            'ORGANIZATION_INVITATION_ALREADY_ACCEPTED',
+            'THis invitation has already been accepted.',
+          );
+        }
+
+        const now = new Date();
+
+        const revoked = organizationInvitationSchema.parse({
+          ...invitation,
+          status: 'REVOKED',
+          revokedAt: now,
+        });
+
+        const event = this.auditWriter.prepareOrganizationInvitation({
+          action: 'organization.invitation.revoked',
+          actorUid: scope.actorUid,
+          organizationId: scope.organizationId,
+          invitationId: invitation.id,
+          role: invitation.role,
+          occurredAt: now,
+        });
+
+        transaction.set(reference, revoked);
+
+        this.auditWriter.append(transaction, event);
       },
     );
   }

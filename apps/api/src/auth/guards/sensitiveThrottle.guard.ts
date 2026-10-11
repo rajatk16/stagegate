@@ -13,7 +13,8 @@ import {
 } from '@nestjs/common';
 
 import { AuthenticatedRequest } from '../types';
-import { ApiException, AuthException } from '../../common';
+import { ApiException } from '../../common/exceptions';
+import { AuthException } from '../../common/exceptions';
 import { SensitiveActionName, sensitiveActionPolicies } from '../policies';
 import {
   IS_PUBLIC_KEY,

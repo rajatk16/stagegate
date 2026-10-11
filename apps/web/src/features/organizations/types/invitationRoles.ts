@@ -1,0 +1,5 @@
+export enum INVITATION_ROLES {
+  ADMIN = 'ADMIN',
+  MEMBER = 'MEMBER',
+  VIEWER = 'VIEWER',
+}

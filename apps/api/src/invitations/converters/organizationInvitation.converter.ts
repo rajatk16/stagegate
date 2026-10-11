@@ -5,7 +5,7 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { DiagnosticError } from '../../observalibility';
+import { DiagnosticError } from '../../observalibility/errors';
 import {
   OrganizationInvitation,
   organizationInvitationSchema,

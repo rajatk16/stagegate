@@ -2,11 +2,11 @@ import z from 'zod';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { FieldPath, Timestamp } from 'firebase-admin/firestore';
 
-import { AuditWriter } from '../../audit';
-import { ApiException } from '../../common';
 import { ORGANIZATION_ROLES } from '../enums';
-import { DiagnosticError } from '../../observalibility';
+import { AuditWriter } from '../../audit/services';
+import { ApiException } from '../../common/exceptions';
 import { FirebaseService } from '../../firebase/services';
+import { DiagnosticError } from '../../observalibility/errors';
 import {
   assertOrganizationRoleChange,
   assertOrganizationPermissions,

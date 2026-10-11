@@ -6,8 +6,8 @@ import {
 } from 'firebase-admin/firestore';
 
 import { UserProfileDocument } from '../types';
-import { DiagnosticError } from '../../observalibility';
 import { UserProfile, userProfileSchema } from '../models';
+import { DiagnosticError } from '../../observalibility/errors';
 
 const userProfileDocumentSchema = userProfileSchema.extend({
   createdAt: z.instanceof(Timestamp),

@@ -2,11 +2,11 @@ import sharp from 'sharp';
 import { randomUUID } from 'node:crypto';
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 
-import { ApiException } from '../../common';
 import { getOrganizationLogoPath } from '../utils';
-import { DiagnosticError } from '../../observalibility';
+import { ApiException } from '../../common/exceptions';
 import { OrganizationRepository } from '../repositories';
 import { FirebaseService } from '../../firebase/services';
+import { DiagnosticError } from '../../observalibility/errors';
 import { OrganizationScope, OrganizationWithMembership } from '../types';
 
 export type UploadedOrganizationLogo = {

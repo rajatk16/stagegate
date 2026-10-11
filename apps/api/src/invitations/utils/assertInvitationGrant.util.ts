@@ -1,12 +1,10 @@
 import { HttpStatus } from '@nestjs/common';
 
-import { ApiException } from '../../common';
+import { ApiException } from '../../common/exceptions';
 import { INVITABLE_ORGANIZATION_ROLES } from '../models';
-import {
-  OrganizationMembership,
-  assertOrganizationPermissions,
-  ORGANIZATION_ROLE_CHANGE_TARGETS,
-} from '../../organizations';
+import { OrganizationMembership } from '../../organizations/models';
+import { assertOrganizationPermissions } from '../../organizations/utils';
+import { ORGANIZATION_ROLE_CHANGE_TARGETS } from '../../organizations/constants';
 
 export const assertInvitationGrant = (
   inviter: OrganizationMembership,

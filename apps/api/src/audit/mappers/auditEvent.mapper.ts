@@ -1,14 +1,14 @@
 import { randomUUID } from 'node:crypto';
 
 import { AuditEvent, auditEventSchema } from '../models';
-import { ORGANIZATION_ROLES } from '../../organizations';
-import { ORGANIZATION_SETTINGS_FIELDS, ProfileField } from '../enums';
+import { ORGANIZATION_ROLES } from '../../organizations/enums';
+import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
 
 interface ProfileUpdatedEventInput {
   actorUid: string;
   targetUid: string;
   requestId: string;
-  fields: readonly ProfileField[];
+  fields: readonly PROFILE_FIELDS[];
 }
 
 interface OrganizationCreatedEventInput {

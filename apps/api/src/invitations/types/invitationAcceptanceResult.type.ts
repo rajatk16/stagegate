@@ -1,4 +1,4 @@
-import { OrganizationMembership } from '../../organizations';
+import { OrganizationMembership } from '../../organizations/models';
 
 export interface InvitationAcceptanceResult {
   organizationId: string;

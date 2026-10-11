@@ -20,7 +20,7 @@ import {
   CurrentUser,
   ThrottleUserWrites,
   RequireVerifiedEmail,
-} from '../../auth';
+} from '../../auth/decorators';
 
 @Controller('invitations')
 export class InvitationsController {

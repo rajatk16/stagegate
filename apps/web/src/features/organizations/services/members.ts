@@ -117,7 +117,7 @@ export const listOrganizationMembers = async (
   return parseMembersPage(response);
 };
 
-export const getOrganzationMembersErrorMessage = (error: unknown): string => {
+export const getOrganizationMembersErrorMessage = (error: unknown): string => {
   if (!(error instanceof ApiError)) {
     return 'We could not load the organization team. Please try again.';
   }

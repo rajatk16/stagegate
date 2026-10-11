@@ -1,7 +1,7 @@
 import z from 'zod';
 
 import { ORGANIZATION_ROLES } from '../../organizations/enums';
-import { organizationMembershipSchema } from '../../organizations';
+import { organizationMembershipSchema } from '../../organizations/models';
 
 export const INVITABLE_ORGANIZATION_ROLES = {
   ADMIN: ORGANIZATION_ROLES.ADMIN,

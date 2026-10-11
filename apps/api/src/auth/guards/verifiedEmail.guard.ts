@@ -6,8 +6,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import { AuthException } from '../../common';
 import { AuthenticatedRequest } from '../types';
+import { AuthException } from '../../common/exceptions';
 import { IS_PUBLIC_KEY, REQUIRES_VERIFIED_EMAIL_KEY } from '../constants';
 
 @Injectable()

@@ -4,17 +4,22 @@ import { DecodedIdToken } from 'firebase-admin/auth';
 import { ConsoleLogger, HttpStatus, Injectable } from '@nestjs/common';
 
 import { Environment } from '../../config';
-import { toAuthException } from '../../auth';
-import { toDiagnostic } from '../../observalibility';
-import { OrganizationScope } from '../../organizations';
+import { toAuthException } from '../../auth/mappers';
 import { InvitationsRepository } from '../repositories';
-import { TransactionalEmailProvider } from '../../email';
-import { organizationInvitationSchema } from '../models';
-import { FirebaseService } from '../../firebase/services';
 import { CreateOrganizationInvitationDto } from '../dtos';
-import { ApiException, AuthException } from '../../common';
+import { FirebaseService } from '../../firebase/services';
+import { toDiagnostic } from '../../observalibility/mappers';
+import { OrganizationScope } from '../../organizations/types';
+import { TransactionalEmailProvider } from '../../email/types';
+import { ApiException, AuthException } from '../../common/exceptions';
+import { assertOrganizationPermissions } from '../../organizations/utils';
 import { createInvitationToken, normalizeInvitationEmail } from '../utils';
 import { InvitationAcceptanceResult, InvitationIssueResult } from '../types';
+import { ORGANIZATION_ROLE_CHANGE_TARGETS } from '../../organizations/constants';
+import {
+  INVITABLE_ORGANIZATION_ROLES,
+  organizationInvitationSchema,
+} from '../models';
 
 @Injectable()
 export class InvitationsService {
@@ -155,5 +160,45 @@ export class InvitationsService {
       recipientUid: account.uid,
       verifiedEmail: normalizeInvitationEmail(account.email),
     });
+  }
+
+  async listPending(scope: OrganizationScope, cursor?: string) {
+    assertOrganizationPermissions(scope.membership, [
+      'organization:members:manage',
+    ]);
+
+    const grantableRoles =
+      ORGANIZATION_ROLE_CHANGE_TARGETS[scope.membership.role];
+
+    const allowedRoles = Object.values(INVITABLE_ORGANIZATION_ROLES).filter(
+      (role) => grantableRoles.includes(role),
+    );
+
+    const page = await this.invitationsRepository.listPending(
+      scope.organizationId,
+      cursor,
+    );
+
+    return {
+      items: page.items.map((invitation) => ({
+        id: invitation.id,
+        organizationId: invitation.scope.organizationId,
+        recipientEmail: invitation.recipientEmail,
+        role: invitation.role,
+        status: invitation.status,
+        expiresAt: invitation.expiresAt.toISOString(),
+        canRevoke: allowedRoles.includes(invitation.role),
+      })),
+      nextCursor: page.nextCursor,
+      allowedRoles,
+    };
+  }
+
+  async revoke(scope: OrganizationScope, invitationId: string): Promise<void> {
+    assertOrganizationPermissions(scope.membership, [
+      'organization:members:manage',
+    ]);
+
+    await this.invitationsRepository.revoke(scope, invitationId);
   }
 }

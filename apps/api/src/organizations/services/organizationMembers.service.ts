@@ -4,8 +4,8 @@ import { Injectable } from '@nestjs/common';
 import { ORGANIZATION_ROLES } from '../enums';
 import { UsersService } from '../../users/services';
 import { assertOrganizationPermissions } from '../utils';
-import { RequestValidationException } from '../../common';
 import { OrganizationmembershipRepository } from '../repositories';
+import { RequestValidationException } from '../../common/exceptions';
 import { OrganizationMembersPage, OrganizationScope } from '../types';
 import {
   ListOrganizationMembersQueryDto,

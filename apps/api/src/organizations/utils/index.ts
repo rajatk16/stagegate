@@ -4,8 +4,9 @@ import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
 import { ORGANIZATION_ROLES } from '../enums';
 import { OrganizationPermission } from '../types';
 import { OrganizationMembership } from '../models';
-import { DiagnosticError } from '../../observalibility';
-import { ApiException, RequestValidationException } from '../../common';
+import { ApiException } from '../../common/exceptions';
+import { DiagnosticError } from '../../observalibility/errors';
+import { RequestValidationException } from '../../common/exceptions';
 import {
   ORGANIZATION_ROLE_PERMISSIONS,
   ORGANIZATION_ROLE_CHANGE_TARGETS,

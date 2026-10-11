@@ -1,7 +1,7 @@
 import {
   Organization,
-  OrganizationMembership,
   OrganizationSlug,
+  OrganizationMembership,
 } from '../models';
 
 export interface OrganizationCreation {

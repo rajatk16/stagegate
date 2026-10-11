@@ -5,7 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import { Environment } from './config';
 import { AppModule } from './app.module';
 import { configureHttpApp } from './configureHttpApp';
-import { SystemLogger, toDiagnostic } from './observalibility';
+import { SystemLogger } from './observalibility/loggers';
+import { toDiagnostic } from './observalibility/mappers';
 import { installGracefulShutdown } from './installGracefulShutdown';
 
 const bootstrapLogger = new ConsoleLogger('Bootstrap', {

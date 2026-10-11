@@ -1,4 +1,5 @@
 import { ZodError } from 'zod';
+
 import { knownCodes } from '../constants';
 import { SafeDiagnostic } from '../types';
 import { DiagnosticError } from '../errors';

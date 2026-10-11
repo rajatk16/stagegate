@@ -1,4 +1,4 @@
-import { EmailReceipt } from '../../email';
+import { EmailReceipt } from '../../email/types';
 import { InvitationCreationResult } from './invitationCreationResult.type';
 
 export interface InvitationIssueResult extends InvitationCreationResult {

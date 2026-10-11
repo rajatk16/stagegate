@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { DiagnosticError } from '../observalibility';
+import { DiagnosticError } from '../observalibility/errors';
 
 const isHttpOrigin = (value: string): boolean => {
   try {

@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { IS_PUBLIC_KEY } from '../../auth/constants';
-import { AuthException } from '../../common';
+import { AuthException } from '../../common/exceptions';
 import { OrganizationAccessService } from '../services';
 import { OrganizationPermission, OrganizationRequest } from '../types';
 import {
