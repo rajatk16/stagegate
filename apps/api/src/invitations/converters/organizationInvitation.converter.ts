@@ -1,15 +1,17 @@
 import z from 'zod';
 import {
   Timestamp,
-  SetOptions,
-  FirestoreDataConverter,
+  type SetOptions,
+  type FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
+import { assertInvitationState } from '../utils';
 import { DiagnosticError } from '../../observalibility/errors';
+import { ORGANIZATION_INVITATIONS_COLLECTION } from '../constants';
 import {
-  OrganizationInvitation,
+  type OrganizationInvitation,
   organizationInvitationSchema,
-} from '../models';
+} from '../models/organizationInvitation.model';
 
 const invitationDocumentSchema = organizationInvitationSchema.extend({
   createdAt: z.instanceof(Timestamp),
@@ -18,18 +20,23 @@ const invitationDocumentSchema = organizationInvitationSchema.extend({
   revokedAt: z.instanceof(Timestamp).nullable(),
 });
 
-type invitationDocument = z.infer<typeof invitationDocumentSchema>;
+type OrganizationInvitationDocument = z.infer<typeof invitationDocumentSchema>;
 
 export const organizationInvitationConverter: FirestoreDataConverter<
   OrganizationInvitation,
-  invitationDocument
+  OrganizationInvitationDocument
 > = {
-  toFirestore(value: unknown, options?: SetOptions): invitationDocument {
+  toFirestore(
+    value: unknown,
+    options?: SetOptions,
+  ): OrganizationInvitationDocument {
     if (options !== undefined) {
       throw new DiagnosticError('INVITATION_PARTIAL_WRITE_UNSUPPORTED');
     }
 
     const invitation = organizationInvitationSchema.parse(value);
+
+    assertInvitationState(invitation);
 
     return {
       ...invitation,
@@ -47,16 +54,23 @@ export const organizationInvitationConverter: FirestoreDataConverter<
   fromFirestore(snapshot): OrganizationInvitation {
     const document = invitationDocumentSchema.parse(snapshot.data());
 
-    if (snapshot.ref.path !== `organizationInvitations/${document.id}`) {
+    if (
+      snapshot.ref.path !==
+      `${ORGANIZATION_INVITATIONS_COLLECTION}/${document.id}`
+    ) {
       throw new DiagnosticError('INVITATION_STORAGE_INVARIANT_FAILED');
     }
 
-    return {
+    const invitation: OrganizationInvitation = {
       ...document,
       createdAt: document.createdAt.toDate(),
       expiresAt: document.expiresAt.toDate(),
       acceptedAt: document.acceptedAt ? document.acceptedAt.toDate() : null,
       revokedAt: document.revokedAt ? document.revokedAt.toDate() : null,
     };
+
+    assertInvitationState(invitation);
+
+    return invitation;
   },
 };

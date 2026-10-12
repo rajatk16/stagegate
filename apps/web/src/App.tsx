@@ -13,6 +13,7 @@ import {
   Organizations,
   ForgotPassword,
   SessionBoundary,
+  AcceptInvitation,
   OrganizationShell,
   CreateOrganization,
   OrganizationMembers,
@@ -41,6 +42,7 @@ export const App = () => (
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       <Route path="/auth/action" element={<EmailAction />} />
+      <Route path="/invitations/:invitationId" element={<AcceptInvitation />} />
     </Route>
 
     <Route

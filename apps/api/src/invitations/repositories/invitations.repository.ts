@@ -8,7 +8,6 @@ import { DiagnosticError } from '../../observalibility/errors';
 import { organizationInvitationConverter } from '../converters';
 import { ORGANIZATION_INVITATIONS_COLLECTION } from '../constants';
 import { organizationMembershipSchema } from '../../organizations/models';
-import { InvitationAcceptanceResult, InvitationCreationResult } from '../types';
 import {
   OrganizationInvitation,
   organizationInvitationSchema,
@@ -21,6 +20,11 @@ import {
   OrganizationRepository,
   OrganizationmembershipRepository,
 } from '../../organizations/repositories';
+import {
+  InvitationCreationResult,
+  InvitationAcceptanceInput,
+  InvitationAcceptanceResult,
+} from '../types';
 import {
   assertInvitationGrant,
   matchesInvitationToken,
@@ -175,12 +179,9 @@ export class InvitationsRepository {
     );
   }
 
-  async accept(input: {
-    invitationId: string;
-    token: string;
-    recipientUid: string;
-    verifiedEmail: string;
-  }): Promise<InvitationAcceptanceResult> {
+  async acceptAuthorized(
+    input: InvitationAcceptanceInput,
+  ): Promise<InvitationAcceptanceResult> {
     const reference = this.invitationReference(input.invitationId);
 
     return this.firebaseService.firestore.runTransaction(
@@ -188,9 +189,16 @@ export class InvitationsRepository {
         const snapshot = await transaction.get(reference);
         const invitation = snapshot.data();
 
+        if (!invitation) {
+          throw invalidInvitation();
+        }
+
         if (
-          !invitation ||
-          !matchesInvitationToken(input.token, invitation.tokenHash)
+          input.authorization.kind === 'email-link' &&
+          !matchesInvitationToken(
+            input.authorization.token,
+            invitation.tokenHash,
+          )
         ) {
           throw invalidInvitation();
         }
@@ -199,6 +207,11 @@ export class InvitationsRepository {
           invitation.recipientEmail !==
           normalizeInvitationEmail(input.verifiedEmail)
         ) {
+          if (input.authorization.kind === 'verified-account') {
+            // Do not disclose another recipient's invitation.
+            throw invalidInvitation();
+          }
+
           throw new ApiException(
             HttpStatus.FORBIDDEN,
             'ORGANIZATION_INVITATION_RECIPIENT_MISMATCH',
@@ -321,6 +334,36 @@ export class InvitationsRepository {
         };
       },
     );
+  }
+
+  accept(input: {
+    invitationId: string;
+    token: string;
+    recipientUid: string;
+    verifiedEmail: string;
+  }): Promise<InvitationAcceptanceResult> {
+    return this.acceptAuthorized({
+      invitationId: input.invitationId,
+      recipientUid: input.recipientUid,
+      verifiedEmail: input.verifiedEmail,
+      authorization: {
+        kind: 'email-link',
+        token: input.token,
+      },
+    });
+  }
+
+  acceptReceived(input: {
+    invitationId: string;
+    recipientUid: string;
+    verifiedEmail: string;
+  }): Promise<InvitationAcceptanceResult> {
+    return this.acceptAuthorized({
+      ...input,
+      authorization: {
+        kind: 'verified-account',
+      },
+    });
   }
 
   async listPending(
@@ -454,5 +497,105 @@ export class InvitationsRepository {
         this.auditWriter.append(transaction, event);
       },
     );
+  }
+
+  async listReceived(
+    recipientUid: string,
+    verifiedEmail: string,
+    cursor?: string,
+  ) {
+    const pageSize = 20;
+
+    let query = this.collection()
+      .where('recipientEmail', '==', verifiedEmail)
+      .where('status', '==', 'PENDING')
+      .where('expiresAt', '>', new Date())
+      .orderBy('expiresAt', 'asc')
+      .orderBy(FieldPath.documentId(), 'asc');
+
+    if (cursor !== undefined) {
+      const snapshot = await this.invitationReference(cursor).get();
+      const invitation = snapshot.data();
+
+      if (!invitation || invitation.recipientEmail !== verifiedEmail) {
+        throw new RequestValidationException([
+          { field: 'cursor', code: 'INVALID_VALUE' },
+        ]);
+      }
+
+      query = query.startAfter(snapshot);
+    }
+
+    const snapshot = await query.limit(pageSize + 1).get();
+
+    const invitations = snapshot.docs
+      .slice(0, pageSize)
+      .map((document) => document.data());
+
+    const lastInvitation = invitations.at(-1);
+
+    const nextCursor =
+      snapshot.docs.length > pageSize && lastInvitation
+        ? lastInvitation.id
+        : null;
+
+    if (invitations.length === 0) {
+      return { items: [], nextCursor };
+    }
+
+    const organizationIds = [
+      ...new Set(
+        invitations.map((invitation) => invitation.scope.organizationId),
+      ),
+    ];
+
+    const [organizationSnapshots, membershipSnapshots] = await Promise.all([
+      this.firebaseService.firestore.getAll(
+        ...organizationIds.map((id) =>
+          this.organizationsRepository.getDocumentReference(id),
+        ),
+      ),
+      this.firebaseService.firestore.getAll(
+        ...organizationIds.map((id) =>
+          this.organizationMembershipRepository.getDocumentReference(
+            id,
+            recipientUid,
+          ),
+        ),
+      ),
+    ]);
+
+    const organizations = new Map(
+      organizationSnapshots.map((document) => [document.id, document.data()]),
+    );
+
+    const joinedOrganizationIds = new Set(
+      membershipSnapshots.flatMap((document) => {
+        const membership = document.data();
+        return membership ? [membership.organizationId] : [];
+      }),
+    );
+
+    const items = invitations.flatMap((invitation) => {
+      const organizationId = invitation.scope.organizationId;
+      const organization = organizations.get(organizationId);
+
+      // Hide invitations for deleted organizations or existing memberships.
+      if (!organization || joinedOrganizationIds.has(organizationId)) {
+        return [];
+      }
+
+      return [
+        {
+          id: invitation.id,
+          organizationId,
+          organizationName: organization.name,
+          role: invitation.role,
+          expiresAt: invitation.expiresAt.toISOString(),
+        },
+      ];
+    });
+
+    return { items, nextCursor };
   }
 }

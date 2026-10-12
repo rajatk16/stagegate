@@ -1,6 +1,7 @@
 import { useAuth } from '@/features';
 
 import { DashboardContent } from '../components';
+import { ReceivedInvitations } from '@/features/invitations/components';
 
 export const Dashboard = () => {
   const session = useAuth();
@@ -17,6 +18,11 @@ export const Dashboard = () => {
           Your profile, account, and next steps.
         </p>
       </header>
+
+      <ReceivedInvitations
+        key={`${session.user.uid}:${session.user.email ?? ''}`}
+        user={session.user}
+      />
 
       <DashboardContent key={session.user.uid} user={session.user} />
     </div>
