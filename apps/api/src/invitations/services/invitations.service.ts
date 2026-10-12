@@ -138,27 +138,13 @@ export class InvitationsService {
     invitationId: string,
     token: string,
   ): Promise<InvitationAcceptanceResult> {
-    // Fetch current account data rather than trusting a possibly
-    // stale email claim from the ID token.
-    const account = await this.firebaseService.auth
-      .getUser(user.uid)
-      .catch((error: unknown) => {
-        throw toAuthException(error);
-      });
-
-    if (account.disabled) {
-      throw new AuthException('AUTH_USER_DISABLED');
-    }
-
-    if (!account.emailVerified || !account.email?.trim()) {
-      throw new AuthException('AUTH_EMAIL_NOT_VERIFIED');
-    }
+    const recipient = await this.getVerifiedRecipient(user);
 
     return this.invitationsRepository.accept({
       invitationId,
       token,
-      recipientUid: account.uid,
-      verifiedEmail: normalizeInvitationEmail(account.email),
+      recipientUid: recipient.uid,
+      verifiedEmail: recipient.email,
     });
   }
 
@@ -200,5 +186,49 @@ export class InvitationsService {
     ]);
 
     await this.invitationsRepository.revoke(scope, invitationId);
+  }
+
+  async listReceived(user: DecodedIdToken, cursor?: string) {
+    const recipient = await this.getVerifiedRecipient(user);
+
+    return this.invitationsRepository.listReceived(
+      recipient.uid,
+      recipient.email,
+      cursor,
+    );
+  }
+
+  async acceptReceived(
+    user: DecodedIdToken,
+    invitationId: string,
+  ): Promise<InvitationAcceptanceResult> {
+    const recipient = await this.getVerifiedRecipient(user);
+
+    return this.invitationsRepository.acceptReceived({
+      invitationId,
+      recipientUid: recipient.uid,
+      verifiedEmail: recipient.email,
+    });
+  }
+
+  private async getVerifiedRecipient(user: DecodedIdToken) {
+    const account = await this.firebaseService.auth
+      .getUser(user.uid)
+      .catch((error: unknown) => {
+        throw toAuthException(error);
+      });
+
+    if (account.disabled) {
+      throw new AuthException('AUTH_USER_DISABLED');
+    }
+
+    if (!account.emailVerified || !account.email?.trim()) {
+      throw new AuthException('AUTH_EMAIL_NOT_VERIFIED');
+    }
+
+    return {
+      uid: account.uid,
+      email: normalizeInvitationEmail(account.email),
+    };
   }
 }

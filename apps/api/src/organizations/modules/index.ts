@@ -1,7 +1,7 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 
-import { UsersModule } from '../../users/modules/user.module';
 import { OrganizationsController } from '../controllers';
+import { UsersModule } from '../../users/modules/user.module';
 import { AuditModule } from '../../audit/modules/audit.module';
 import { FirebaseModule } from '../../firebase/module/firebase.module';
 import { InvitationsModule } from '../../invitations/modules/invitations.module';
@@ -11,33 +11,23 @@ import {
   OrganizationAccessService,
   OrganizationMembersService,
 } from '../services';
-import {
-  OrganizationRepository,
-  OrganizationSlugRepository,
-  OrganizationmembershipRepository,
-} from '../repositories';
+import { OrganizationPersistenceModule } from '../../organizationPersistence/modules';
 
 @Module({
   controllers: [OrganizationsController],
-  imports: [
-    FirebaseModule,
-    AuditModule,
-    UsersModule,
-    forwardRef(() => InvitationsModule),
-  ],
-  exports: [
-    OrganizationRepository,
-    OrganizationAccessService,
-    OrganizationmembershipRepository,
-  ],
+  exports: [OrganizationAccessService, OrganizationPersistenceModule],
   providers: [
     OrganizationsService,
-    OrganizationRepository,
     OrganizationLogoService,
     OrganizationAccessService,
     OrganizationMembersService,
-    OrganizationSlugRepository,
-    OrganizationmembershipRepository,
+  ],
+  imports: [
+    AuditModule,
+    UsersModule,
+    FirebaseModule,
+    InvitationsModule,
+    OrganizationPersistenceModule,
   ],
 })
 export class OrganizationModule {}

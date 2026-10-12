@@ -3,7 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 
 import { FirebaseModule } from '../../firebase/module/firebase.module';
-import { OrganizationModule } from '../../organizations/modules/organization.module';
+import { OrganizationModule } from '../../organizations/modules';
 import {
   FirebaseTokenGuard,
   VerifiedEmailGuard,

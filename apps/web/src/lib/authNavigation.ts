@@ -1,9 +1,11 @@
-const DEFAULT_RETURN_TO = "/dashboard";
+import { INVITATION_PATH_PATTERN } from './invitationLinks';
 
-const allowedReturnPaths = new Set(["/dashboard", "/profile"]);
+const DEFAULT_RETURN_TO = '/dashboard';
+
+const allowedReturnPaths = new Set(['/dashboard', '/profile']);
 
 export const getSafeReturnTo = (value: string | null | undefined): string => {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) {
     return DEFAULT_RETURN_TO;
   }
 
@@ -14,7 +16,11 @@ export const getSafeReturnTo = (value: string | null | undefined): string => {
       return DEFAULT_RETURN_TO;
     }
 
-    const pathname = url.pathname.replace(/\/+$/, "") || "/";
+    const pathname = url.pathname.replace(/\/+$/, '') || '/';
+
+    if (INVITATION_PATH_PATTERN.test(pathname)) {
+      return pathname;
+    }
 
     if (!allowedReturnPaths.has(pathname)) {
       return DEFAULT_RETURN_TO;
@@ -27,7 +33,7 @@ export const getSafeReturnTo = (value: string | null | undefined): string => {
 };
 
 export const getAuthUrl = (
-  page: "/sign-in" | "/register" | "/verify-email" | "/forgot-password",
+  page: '/sign-in' | '/register' | '/verify-email' | '/forgot-password',
   returnTo: string,
 ): string => {
   const search = new URLSearchParams({
@@ -47,7 +53,7 @@ export const getEmailReturnTo = (continueUrl: string | null): string => {
       return DEFAULT_RETURN_TO;
     }
 
-    return getSafeReturnTo(url.searchParams.get("returnTo"));
+    return getSafeReturnTo(url.searchParams.get('returnTo'));
   } catch {
     return DEFAULT_RETURN_TO;
   }

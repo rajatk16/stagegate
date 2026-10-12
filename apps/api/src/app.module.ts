@@ -11,7 +11,7 @@ import { HealthModule } from './health/modules/firebase.module';
 import { RequestValidationException } from './common/exceptions';
 import { FirebaseModule } from './firebase/module/firebase.module';
 import { InvitationsModule } from './invitations/modules/invitations.module';
-import { OrganizationModule } from './organizations/modules/organization.module';
+import { OrganizationModule } from './organizations/modules';
 import { ObservabilityModule } from './observalibility/modules/observability.module';
 
 @Module({
