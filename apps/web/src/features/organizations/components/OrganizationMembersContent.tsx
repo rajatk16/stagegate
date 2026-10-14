@@ -1,10 +1,15 @@
 import { User } from 'firebase/auth';
+import { useRef, useState } from 'react';
 
 import { Button, InlineAlert } from '@/components';
 
-import { Organization } from '../services';
-import { OrganizationMembersTable } from '../components';
+import { changeOrganizationMemberStatus } from '../services';
 import { useOrganizationMembers, useOrganizations } from '../hooks';
+import { Organization, ORGANIZATION_MEMBERSHIP_STATUSES } from '../types';
+import {
+  MembershipActionDialog,
+  OrganizationMembersTable,
+} from '../components';
 
 type ContentProps = {
   user: User;
@@ -21,6 +26,10 @@ export const OrganizationMembersContent = ({
     organization.id,
   );
 
+  const [mutationPending, setMutationPending] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
   return (
     <section
       aria-labelledby="organization-team-heading"
@@ -28,7 +37,12 @@ export const OrganizationMembersContent = ({
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <h2 id="organization-team-heading" className="text-xl font-semibold">
+          <h2
+            id="organization-team-heading"
+            className="text-xl font-semibold"
+            ref={headingRef}
+            tabIndex={-1}
+          >
             Organization team
           </h2>
 
@@ -42,7 +56,7 @@ export const OrganizationMembersContent = ({
           type="button"
           variant="outline"
           className="min-h-11 shrink-0"
-          disabled={state.status === 'loading'}
+          disabled={state.status === 'loading' || mutationPending}
           onClick={refresh}
         >
           Refresh list
@@ -56,6 +70,12 @@ export const OrganizationMembersContent = ({
         >
           Loading organization team…
         </div>
+      )}
+
+      {notice !== null && (
+        <InlineAlert tone="success" title="Membership updated">
+          {notice}
+        </InlineAlert>
       )}
 
       {state.status === 'error' && (
@@ -91,6 +111,60 @@ export const OrganizationMembersContent = ({
               members={state.items}
               currentUserUid={user.uid}
               organizationName={organization.name}
+              renderActions={(member) => {
+                if (!member.actions.suspend && !member.actions.reactivate) {
+                  return <span className="text-muted-foreground">-</span>;
+                }
+
+                const suspending = member.actions.suspend;
+                const nextStatus = suspending
+                  ? ORGANIZATION_MEMBERSHIP_STATUSES.SUSPENDED
+                  : ORGANIZATION_MEMBERSHIP_STATUSES.ACTIVE;
+                const person =
+                  member.displayName ?? member.email ?? 'This member';
+
+                return (
+                  <MembershipActionDialog
+                    context="member"
+                    triggerLabel={suspending ? 'Suspend' : 'Reactivate'}
+                    title={
+                      suspending ? `Suspend ${person}` : `Reactivate ${person}`
+                    }
+                    description={
+                      suspending
+                        ? `${person} will lose access to ${organization.name}. Their membership, role, and existing organization data will remain. An authorized member can reactivate them later.`
+                        : `${person} will regain access to ${organization.name} with their existing ${member.role.toLowerCase()} role. A new invitation is not required.`
+                    }
+                    confirmLabel={
+                      suspending ? 'Suspend member' : 'Reactivate member'
+                    }
+                    pendingLabel={
+                      suspending ? 'Suspending...' : 'Reactivating...'
+                    }
+                    destructive={suspending}
+                    disabled={mutationPending || state.loadingMore}
+                    restoreFocus={() => headingRef.current?.focus()}
+                    onPendingChange={setMutationPending}
+                    run={(signal) =>
+                      changeOrganizationMemberStatus(
+                        user,
+                        organization.id,
+                        member.uid,
+                        nextStatus,
+                        signal,
+                      )
+                    }
+                    onSuccess={() => {
+                      setNotice(
+                        suspending
+                          ? `${person} was suspended. Their role was preserved.`
+                          : `${person} was reactivated with their existing role.`,
+                      );
+                      refresh();
+                    }}
+                  />
+                );
+              }}
             />
           )}
 
@@ -121,6 +195,7 @@ export const OrganizationMembersContent = ({
                 variant="outline"
                 className="min-h-11"
                 disabled={
+                  mutationPending ||
                   state.loadingMore ||
                   state.nextCursor === null ||
                   state.restartRequired
@@ -136,6 +211,14 @@ export const OrganizationMembersContent = ({
                       : 'Load more'}
               </Button>
             )}
+            <Button
+              type="button"
+              variant="outline"
+              disabled={mutationPending}
+              onClick={reloadOrganizations}
+            >
+              Refresh access
+            </Button>
           </div>
         </>
       )}

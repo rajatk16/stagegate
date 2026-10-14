@@ -14,9 +14,9 @@ import {
   Controller,
   HttpStatus,
   UploadedFile,
+  ParseUUIDPipe,
   StreamableFile,
   UseInterceptors,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import { type OrganizationScope } from '../types';
@@ -63,6 +63,7 @@ import {
   OrganizationMembersResponseDto,
   UpdateOrganizationMemberRoleDto,
   ListOrganizationMembersQueryDto,
+  UpdateOrganizationMemberStatusDto,
 } from '../dtos';
 
 @Controller('organizations')
@@ -187,7 +188,7 @@ export class OrganizationsController {
   ): Promise<OrganizationMembersResponseDto> {
     const page = await this.organizationMembersService.list(scope, query);
 
-    return toOrganizationMembersResponseDto(page);
+    return toOrganizationMembersResponseDto(page, scope.membership);
   }
 
   @Patch(':organizationId/members/:uid/role')
@@ -249,5 +250,38 @@ export class OrganizationsController {
     invitationId: string,
   ): Promise<void> {
     await this.invitationsService.revoke(scope, invitationId);
+  }
+
+  @Post(':organizationId/leave')
+  @OrganizationScoped()
+  @RequireOrganizationPermissions('organization:read')
+  @RequireVerifiedEmail()
+  @ThrottleUserWrites()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Header('Cache-Control', 'no-store')
+  async leaveOrganization(
+    @CurrentOrganization() scope: OrganizationScope,
+  ): Promise<void> {
+    await this.organizationMembersService.leave(scope);
+  }
+
+  @Patch(':organizationId/members/:uid/status')
+  @OrganizationScoped()
+  @RequireOrganizationPermissions('organization:members:manage')
+  @RequireVerifiedEmail()
+  @ThrottleUserWrites()
+  @Header('Cache-Control', 'no-store')
+  async changeMemberStatus(
+    @CurrentOrganization() scope: OrganizationScope,
+    @Param('uid') uid: string,
+    @Body() dto: UpdateOrganizationMemberStatusDto,
+  ): Promise<OrganizationMemberResponseDto> {
+    const membership = await this.organizationMembersService.changeStatus(
+      scope,
+      uid,
+      dto,
+    );
+
+    return toOrganizationMemberResponseDto(membership);
   }
 }

@@ -1,10 +1,10 @@
-import { OrganizationRole } from '@/features/organizations';
+import { ORGANIZATION_ROLES } from '@/features/organizations/types';
 
 export type AcceptedInvitation = {
   organizationId: string;
   membership: {
     uid: string;
-    role: OrganizationRole;
+    role: ORGANIZATION_ROLES;
   };
   alreadyAccepted: boolean;
 };

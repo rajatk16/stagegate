@@ -1,4 +1,5 @@
 import { ORGANIZATION_ROLE_PERMISSIONS } from '../constants';
+import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
 import {
   MyOrganizationsPage,
   OrganizationCreation,
@@ -36,7 +37,8 @@ export const toNewOrganization = (
   ownerMembership: organizationMembershipSchema.parse({
     organizationId,
     uid: actorUid,
-    role: 'OWNER',
+    role: ORGANIZATION_ROLES.OWNER,
+    status: ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE,
     createdAt: now,
     updatedAt: now,
   }),
@@ -100,6 +102,9 @@ export const toOrganizationPrivateResponseDto = ({
         uid: membership.uid,
         role: membership.role,
       }),
-      capabilities: [...(ORGANIZATION_ROLE_PERMISSIONS[membership.role] ?? [])],
+      capabilities:
+        membership.status === ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE
+          ? [...(ORGANIZATION_ROLE_PERMISSIONS[membership.role] ?? [])]
+          : [],
     },
   );

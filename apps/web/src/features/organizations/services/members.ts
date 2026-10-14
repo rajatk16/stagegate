@@ -1,98 +1,14 @@
 import { User } from 'firebase/auth';
 
+import { isDateString, isRecord } from '@/app/utils';
 import { ApiError, authenticatedApiRequest } from '@/lib';
 
-import { isOrganizationRole, isRecord, OrganizationRole } from './organization';
-
-export type OrganizationMembershipStatus = 'ACTIVE';
-
-export type OrganizationMember = {
-  uid: string;
-  displayName: string | null;
-  email: string | null;
-  role: OrganizationRole;
-  status: OrganizationMembershipStatus;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type OrganizationMembersPage = {
-  items: OrganizationMember[];
-  nextCursor: string | null;
-};
-
-const PAGE_SIZE = 20;
-
-const isDateString = (value: unknown): value is string =>
-  typeof value === 'string' && Number.isFinite(Date.parse(value));
-
-const isNullableString = (value: unknown): value is string | null =>
-  value === null || typeof value === 'string';
-
-const parseMember = (value: unknown): OrganizationMember => {
-  if (
-    !isRecord(value) ||
-    typeof value.uid !== 'string' ||
-    value.uid.trim().length === 0 ||
-    value.uid.length > 128 ||
-    !isNullableString(value.displayName) ||
-    !isNullableString(value.email) ||
-    !isOrganizationRole(value.role) ||
-    value.status !== 'ACTIVE' ||
-    !isDateString(value.createdAt) ||
-    !isDateString(value.updatedAt)
-  ) {
-    throw new ApiError(
-      'The API returned an unexpected organization member.',
-      'response',
-    );
-  }
-
-  return {
-    uid: value.uid,
-    displayName: value.displayName?.trim() || null,
-    email: value.email?.trim() || null,
-    role: value.role,
-    status: value.status,
-    createdAt: value.createdAt,
-    updatedAt: value.updatedAt,
-  };
-};
-
-const parseMembersPage = (value: unknown): OrganizationMembersPage => {
-  if (!isRecord(value) || !Array.isArray(value.items)) {
-    throw new ApiError(
-      'The API returned an unexpected member list.',
-      'response',
-    );
-  }
-
-  const nextCursor = value.nextCursor;
-
-  if (
-    nextCursor !== null &&
-    (typeof nextCursor !== 'string' ||
-      nextCursor.length > 4096 ||
-      !/^[A-Za-z0-9_-]+$/.test(nextCursor))
-  ) {
-    throw new ApiError(
-      'The API returned an unexpected member cursor',
-      'response',
-    );
-  }
-
-  if (value.items.length === 0 && nextCursor !== null) {
-    throw new ApiError(
-      'The API returned an empty page with more members available.',
-      'response',
-    );
-  }
-
-  return {
-    items: value.items.map(parseMember),
-    nextCursor,
-  };
-};
+import { PAGE_SIZE } from '../constants';
+import { isOrganizationRole, parseMembersPage } from '../utils';
+import {
+  OrganizationMembersPage,
+  ORGANIZATION_MEMBERSHIP_STATUSES,
+} from '../types';
 
 export const listOrganizationMembers = async (
   user: User,
@@ -115,6 +31,118 @@ export const listOrganizationMembers = async (
   );
 
   return parseMembersPage(response);
+};
+
+export const changeOrganizationMemberStatus = async (
+  user: User,
+  organizationId: string,
+  uid: string,
+  status: ORGANIZATION_MEMBERSHIP_STATUSES,
+  signal: AbortSignal,
+): Promise<void> => {
+  const result = await authenticatedApiRequest(
+    user,
+    `/organizations/${encodeURIComponent(organizationId)}/members/${encodeURIComponent(uid)}/status`,
+    {
+      method: 'PATCH',
+      json: {
+        status,
+      },
+      signal,
+    },
+  );
+
+  if (
+    !isRecord(result) ||
+    result.uid !== uid ||
+    result.status !== status ||
+    !isOrganizationRole(result.role) ||
+    !isDateString(result.createdAt) ||
+    !isDateString(result.updatedAt)
+  ) {
+    throw new ApiError(
+      'The API returned an unexpected membership update.',
+      'response',
+    );
+  }
+};
+
+export const leaveOrganization = async (
+  user: User,
+  organizationId: string,
+  signal: AbortSignal,
+): Promise<void> => {
+  const result = await authenticatedApiRequest(
+    user,
+    `/organizations/${encodeURIComponent(organizationId)}/leave`,
+    {
+      method: 'POST',
+      signal,
+    },
+  );
+
+  if (result !== undefined) {
+    throw new ApiError(
+      'The API returned an unexpected leave response.',
+      'response',
+    );
+  }
+};
+
+export const getMembershipLifecycleErrorMessage = (
+  error: unknown,
+  context: 'member' | 'leave',
+): string => {
+  if (error instanceof ApiError) {
+    if (error.code === 'AUTH_EMAIL_NOT_VERIFIED') {
+      return 'Verify your email before changing organization membership.';
+    }
+
+    if (error.code === 'ORGANIZATION_LAST_ACTIVE_OWNER') {
+      return (
+        'The organization must retain an active owner. ' +
+        'Another active owner is required before you can leave. ' +
+        'Ownership transfer is not available on this screen.'
+      );
+    }
+
+    if (error.code === 'ORGANIZATION_SELF_STATUS_CHANGE_FORBIDDEN') {
+      return 'You cannot suspend yourself. Use Leave organization instead.';
+    }
+
+    if (error.code === 'ORGANIZATION_MEMBER_STATUS_CHANGE_FORBIDDEN') {
+      return 'You cannot change this member’s status. Close this dialog and refresh the team.';
+    }
+
+    if (error.code === 'ORGANIZATION_MEMBERSHIP_INACTIVE') {
+      return 'Your membership is suspended. An authorized member must reactivate it before you can continue.';
+    }
+
+    if (error.code === 'ORGANIZATION_MEMBER_NOT_FOUND') {
+      return 'This person is no longer a member. Close this dialog and refresh the team.';
+    }
+
+    if (error.status === 401) {
+      return 'Your session could not be verified. Sign in again before continuing.';
+    }
+
+    if (error.status === 403 || error.status === 404) {
+      return 'Your organization access may have changed. Close this dialog and refresh access.';
+    }
+
+    if (error.status === 400) {
+      return 'This request is no longer valid. Close this dialog and refresh before trying again.';
+    }
+
+    if (error.status === 429) {
+      return 'Too many attempts. Wait a moment before trying again.';
+    }
+  }
+
+  // A timeout or lost response does not prove that the write failed.
+  return context === 'leave'
+    ? 'We could not confirm whether you left. Close this dialog and refresh access before trying again.'
+    : 'We could not confirm the membership change. Close this dialog and refresh the team before trying again.';
 };
 
 export const getOrganizationMembersErrorMessage = (error: unknown): string => {

@@ -80,6 +80,18 @@ export const organizationInvitationRevokedAuditEventSchema =
     })
     .strict();
 
+export const organizationMemberStatusChangedAuditEventSchema = auditBaseSchema
+  .extend({
+    action: z.literal('organization.member.status.changed'),
+    targetType: z.literal('organizationMembership'),
+    organizationId: z.string().uuid(),
+    targetUid: z.string().min(1).max(128),
+    role: z.nativeEnum(ORGANIZATION_ROLES),
+    previousStatus: z.enum(['ACTIVE', 'SUSPENDED']),
+    nextStatus: z.enum(['ACTIVE', 'SUSPENDED', 'LEFT']),
+  })
+  .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
   profileUpdatedAuditEventSchema,
   organizationCreatedAuditEventSchema,
@@ -88,6 +100,7 @@ export const auditEventSchema = z.discriminatedUnion('action', [
   organizationMemberRoleChangedAuditEventSchema,
   organizationInvitationRevokedAuditEventSchema,
   organizationInvitationAcceptedAuditEventSchema,
+  organizationMemberStatusChangedAuditEventSchema,
 ]);
 
 export type AuditEvent = z.infer<typeof auditEventSchema>;

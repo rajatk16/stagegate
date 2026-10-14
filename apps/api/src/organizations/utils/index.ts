@@ -1,12 +1,12 @@
 import z from 'zod';
 import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
 
-import { ORGANIZATION_ROLES } from '../enums';
 import { OrganizationPermission } from '../types';
 import { OrganizationMembership } from '../models';
 import { ApiException } from '../../common/exceptions';
 import { DiagnosticError } from '../../observalibility/errors';
 import { RequestValidationException } from '../../common/exceptions';
+import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
 import {
   ORGANIZATION_ROLE_PERMISSIONS,
   ORGANIZATION_ROLE_CHANGE_TARGETS,
@@ -79,6 +79,7 @@ export const assertOrganizationPermissions = (
   membership: OrganizationMembership,
   required: readonly OrganizationPermission[],
 ): void => {
+  assertActiveOrganizationMembership(membership);
   if (required.length === 0) {
     throw new InternalServerErrorException(
       'An organization operation must declare a permission.',
@@ -111,6 +112,7 @@ export const assertOrganizationRoleChange = (
   }
 
   assertOrganizationPermissions(actor, ['organization:members:manage']);
+  assertActiveOrganizationMembership(target);
 
   if (actor.uid === target.uid) {
     throw new ApiException(
@@ -140,4 +142,42 @@ export const assertOrganizationRoleChange = (
       'You cannot perform this role change.',
     );
   }
+};
+
+export const assertActiveOrganizationMembership = (
+  membership: OrganizationMembership,
+): void => {
+  if (membership.status !== ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE) {
+    throw new ApiException(
+      HttpStatus.FORBIDDEN,
+      'ORGANIZATION_MEMBERSHIP_INACTIVE',
+      'An active organization membership is required.',
+    );
+  }
+};
+
+export const canManageOrganizationMemberStatus = (
+  actor: OrganizationMembership,
+  target: OrganizationMembership,
+): boolean => {
+  if (
+    actor.organizationId !== target.organizationId ||
+    actor.uid === target.uid ||
+    actor.status !== ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE
+  ) {
+    return false;
+  }
+
+  const permissions = ORGANIZATION_ROLE_PERMISSIONS[actor.role] ?? [];
+
+  if (!permissions.includes('organization:members:manage')) {
+    return false;
+  }
+
+  return (
+    actor.role === ORGANIZATION_ROLES.OWNER ||
+    (actor.role === ORGANIZATION_ROLES.ADMIN &&
+      (target.role === ORGANIZATION_ROLES.MEMBER ||
+        target.role === ORGANIZATION_ROLES.VIEWER))
+  );
 };

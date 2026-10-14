@@ -4,7 +4,8 @@ import { getOrganizationPath } from '@/lib';
 import { Button, InlineAlert } from '@/components';
 
 import { useActiveOrganization, useOrganizations } from '../hooks';
-import { hasOrganizationCapability, OrganizationCapability } from '../services';
+import { OrganizationCapability } from '../types';
+import { hasOrganizationCapability } from '../utils';
 
 type Props = {
   capability: OrganizationCapability;

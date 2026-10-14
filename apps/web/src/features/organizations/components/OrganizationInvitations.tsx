@@ -1,12 +1,11 @@
 import { User } from 'firebase/auth';
 import {
   createOrganizationInvitation,
-  Organization,
   revokeOrganizationInvitation,
 } from '../services';
 import { useOrganizations } from '../hooks';
 import { useEffect, useRef, useState } from 'react';
-import { INVITATION_ROLES } from '../types';
+import { INVITATION_ROLES, Organization } from '../types';
 import { useOrganizationInvitation } from '../hooks/useOrganizationInvitation';
 import { getInvitationErrorMessage, isInvitationRole } from '../utils';
 import { ApiError } from '@/lib';

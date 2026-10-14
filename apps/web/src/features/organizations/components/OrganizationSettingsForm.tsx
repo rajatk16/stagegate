@@ -15,16 +15,16 @@ import {
   ConfirmDialog,
 } from '@/components';
 import {
-  Organization,
   removeOrganizationLogo,
   uploadOrganizationLogo,
-  hasOrganizationCapability,
-  ORGANIZATION_COLOR_PATTERN,
   OrganizationSettingsUpdate,
   OrganizationSettingsValues,
   updateOrganizationSettings,
   getOrganizationSettingsErrorMessage,
 } from '../services';
+import { Organization } from '../types';
+import { hasOrganizationCapability } from '../utils';
+import { ORGANIZATION_COLOR_PATTERN } from '../constants';
 
 type Props = {
   user: User;

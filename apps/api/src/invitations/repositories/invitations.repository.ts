@@ -8,6 +8,8 @@ import { DiagnosticError } from '../../observalibility/errors';
 import { organizationInvitationConverter } from '../converters';
 import { ORGANIZATION_INVITATIONS_COLLECTION } from '../constants';
 import { organizationMembershipSchema } from '../../organizations/models';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../../organizations/enums';
+import { assertActiveOrganizationMembership } from '../../organizations/utils';
 import {
   OrganizationInvitation,
   organizationInvitationSchema,
@@ -18,7 +20,7 @@ import {
 } from '../../common/exceptions';
 import {
   OrganizationRepository,
-  OrganizationmembershipRepository,
+  OrganizationMembershipRepository,
 } from '../../organizations/repositories';
 import {
   InvitationCreationResult,
@@ -44,7 +46,7 @@ export class InvitationsRepository {
     private readonly auditWriter: AuditWriter,
     private readonly firebaseService: FirebaseService,
     private readonly organizationsRepository: OrganizationRepository,
-    private readonly organizationMembershipRepository: OrganizationmembershipRepository,
+    private readonly organizationMembershipRepository: OrganizationMembershipRepository,
   ) {}
 
   private collection() {
@@ -252,6 +254,8 @@ export class InvitationsRepository {
             );
           }
 
+          assertActiveOrganizationMembership(existingMembership);
+
           return {
             organizationId,
             membership: existingMembership,
@@ -303,6 +307,7 @@ export class InvitationsRepository {
           organizationId,
           uid: input.recipientUid,
           role: invitation.role,
+          status: ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE,
           createdAt: now,
           updatedAt: now,
         });

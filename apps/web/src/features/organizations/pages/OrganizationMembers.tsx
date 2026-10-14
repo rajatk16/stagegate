@@ -5,7 +5,7 @@ import {
   OrganizationInvitations,
   OrganizationMembersContent,
 } from '../components';
-import { hasOrganizationCapability } from '../services';
+import { hasOrganizationCapability } from '../utils';
 
 export const OrganizationMembers = () => {
   const session = useAuth();

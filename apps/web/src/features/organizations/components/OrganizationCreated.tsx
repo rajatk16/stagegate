@@ -11,7 +11,7 @@ import {
   CardDescription,
 } from '@/components';
 
-import { Organization } from '../services';
+import { Organization } from '../types';
 
 export const OrganizationCreated = ({
   organization,

@@ -1,7 +1,8 @@
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums';
 import { OrganizationMembershipResponseDto } from './organizationMembershipResponse.dto';
 
 export class OrganizationMemberResponseDto extends OrganizationMembershipResponseDto {
-  status!: 'ACTIVE';
+  status!: ORGANIZATION_MEMBERSHIP_STATUS;
   createdAt!: string;
   updatedAt!: string;
 }
@@ -9,6 +10,10 @@ export class OrganizationMemberResponseDto extends OrganizationMembershipRespons
 export class OrganizationTeamMemberResponseDto extends OrganizationMemberResponseDto {
   displayName!: string | null;
   email!: string | null;
+  actions!: {
+    suspend: boolean;
+    reactivate: boolean;
+  };
 }
 
 export class OrganizationMembersResponseDto {

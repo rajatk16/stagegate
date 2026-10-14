@@ -47,12 +47,15 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
   const refreshButton = useRef<HTMLButtonElement>(null);
 
   const load = useCallback(
-    async (cursor: string | null = null) => {
+    async (cursor: string | null = null, showLoading = true) => {
       readRequest.current?.abort();
 
       const controller = new AbortController();
       readRequest.current = controller;
-      setState({ status: 'loading' });
+
+      if (showLoading) {
+        setState({ status: 'loading' });
+      }
 
       try {
         const page = await listReceivedInvitations(
@@ -81,9 +84,12 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
   );
 
   useEffect(() => {
-    void load();
+    const timeoutId = window.setTimeout(() => {
+      void load(null, false);
+    }, 0);
 
     return () => {
+      window.clearTimeout(timeoutId);
       readRequest.current?.abort();
       writeRequest.current?.abort();
     };
@@ -273,7 +279,7 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
                     </h3>
 
                     <Badge variant="outline">
-                      {roleLabels[invitation.role]}
+                      {roleLabels[invitation.role as keyof typeof roleLabels]}
                     </Badge>
 
                     <p className="text-sm text-muted-foreground">

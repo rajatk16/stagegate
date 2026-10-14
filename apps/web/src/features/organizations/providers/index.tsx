@@ -6,10 +6,10 @@ import { useAuth } from '@/features/auth';
 
 import { OrganizationsContext, OrganizationsState } from '../context';
 import {
-  Organization,
   listMyOrganizations,
   getOrganizationListErrorMessage,
 } from '../services';
+import { Organization } from '../types';
 
 const OrganizationSession = ({ user }: { user: User }) => {
   const [attempt, setAttempt] = useState(0);
