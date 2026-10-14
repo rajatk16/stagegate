@@ -5,10 +5,11 @@ import {
   INVITATION_ID_PATTERN,
   authenticatedApiRequest,
 } from '@/lib';
-import { isRecord, isOrganizationRole } from '@/features/organizations';
 
 import { parseAcceptedInvitation } from './acceptInvitation';
 import { ReceivedInvitation, ReceivedInvitationsPage } from '../types';
+import { isRecord } from '@/app/utils';
+import { isOrganizationRole } from '@/features/organizations/utils';
 
 const invalidResponse = () =>
   new ApiError(

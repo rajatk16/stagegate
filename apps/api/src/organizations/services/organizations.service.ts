@@ -4,13 +4,14 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { toNewOrganization } from '../mappers';
 import { ApiException } from '../../common/exceptions';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums';
 import { RESERVED_ORGANIZATION_SLUGS } from '../constants';
 import { organizationSettingsChangesSchema } from '../models';
 import { DiagnosticError } from '../../observalibility/errors';
 import { RequestValidationException } from '../../common/exceptions';
 import {
   OrganizationRepository,
-  OrganizationmembershipRepository,
+  OrganizationMembershipRepository,
 } from '../repositories';
 import {
   CreateOrganizationDto,
@@ -33,7 +34,7 @@ import {
 export class OrganizationsService {
   constructor(
     private readonly organizationRepository: OrganizationRepository,
-    private readonly organizationMembershipRepository: OrganizationmembershipRepository,
+    private readonly organizationMembershipRepository: OrganizationMembershipRepository,
   ) {}
 
   create(
@@ -75,11 +76,16 @@ export class OrganizationsService {
       afterOrganizationId,
     );
 
-    const organizations = await this.organizationRepository.findByIds(
-      page.items.map((membership) => membership.organizationId),
+    const activeMemberships = page.items.filter(
+      (membership) =>
+        membership.status === ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE,
     );
 
-    const items = page.items.map((membership) => {
+    const organizations = await this.organizationRepository.findByIds(
+      activeMemberships.map((membership) => membership.organizationId),
+    );
+
+    const items = activeMemberships.map((membership) => {
       const organization = organizations.get(membership.organizationId);
 
       if (!organization || membership.uid !== user.uid) {

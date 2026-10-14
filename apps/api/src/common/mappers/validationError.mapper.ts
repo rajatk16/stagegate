@@ -12,6 +12,7 @@ const publicFields = new Set([
   'limit',
   'token',
   'cursor',
+  'status',
   'photoURL',
   'timezone',
   'biography',

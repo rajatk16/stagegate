@@ -1,26 +1,28 @@
 import { Badge } from '@/components';
-
-import type { OrganizationRole } from '../services/organization';
-import type {
+import {
+  ORGANIZATION_ROLES,
   OrganizationMember,
-  OrganizationMembershipStatus,
-} from '../services/members';
+  ORGANIZATION_MEMBERSHIP_STATUSES,
+} from '../types';
+import { ReactNode } from 'react';
 
 type Props = {
   members: OrganizationMember[];
   currentUserUid: string;
   organizationName: string;
+  renderActions: (member: OrganizationMember) => ReactNode;
 };
 
-const roleLabels: Record<OrganizationRole, string> = {
+const roleLabels: Record<ORGANIZATION_ROLES, string> = {
   OWNER: 'Owner',
   ADMIN: 'Admin',
   MEMBER: 'Member',
   VIEWER: 'Viewer',
 };
 
-const statusLabels: Record<OrganizationMembershipStatus, string> = {
+const statusLabels: Record<ORGANIZATION_MEMBERSHIP_STATUSES, string> = {
   ACTIVE: 'Active',
+  SUSPENDED: 'Suspended',
 };
 
 const joinedDateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -31,6 +33,7 @@ export const OrganizationMembersTable = ({
   members,
   currentUserUid,
   organizationName,
+  renderActions,
 }: Props) => (
   <div
     role="region"
@@ -60,6 +63,9 @@ export const OrganizationMembersTable = ({
           </th>
           <th scope="col" className="px-5 py-4 font-medium">
             Joined
+          </th>
+          <th scope="col" className="px-5 py-4 font-medium">
+            Actions
           </th>
         </tr>
       </thead>
@@ -110,8 +116,9 @@ export const OrganizationMembersTable = ({
               <Badge
                 variant="outline"
                 className={
-                  'border-emerald-600/30 bg-emerald-500/10 ' +
-                  'text-emerald-800 dark:text-emerald-200'
+                  member.status === 'ACTIVE'
+                    ? 'border-emerald-600/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200'
+                    : 'border-amber-600/30 bg-amber-500/10 text-amber-900 darl:text-amber-200'
                 }
               >
                 {statusLabels[member.status]}
@@ -123,6 +130,8 @@ export const OrganizationMembersTable = ({
                 {joinedDateFormatter.format(new Date(member.createdAt))}
               </time>
             </td>
+
+            <td className="px-5 py-4">{renderActions(member)}</td>
           </tr>
         ))}
       </tbody>

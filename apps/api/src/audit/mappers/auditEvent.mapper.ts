@@ -134,3 +134,36 @@ export const toOrganizationInvitationAuditEvent = (
     requestId: input.requestId,
     occurredAt: input.occurredAt,
   });
+
+export interface OrganizationMemberStatusAuditInput {
+  actorUid: string;
+  organizationId: string;
+  targetUid: string;
+  role: ORGANIZATION_ROLES;
+  previousStatus: 'ACTIVE' | 'SUSPENDED';
+  nextStatus: 'ACTIVE' | 'SUSPENDED' | 'LEFT';
+  occurredAt: Date;
+}
+
+export const toOrganizationMemberStatusChangedAuditEvent = (
+  input: OrganizationMemberStatusAuditInput & {
+    requestId: string;
+  },
+): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: 'organization.member.status.changed',
+    outcome: 'succeeded',
+    targetType: 'organizationMembership',
+
+    actorUid: input.actorUid,
+    organizationId: input.organizationId,
+    targetUid: input.targetUid,
+    role: input.role,
+    previousStatus: input.previousStatus,
+    nextStatus: input.nextStatus,
+
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
+  });

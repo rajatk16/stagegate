@@ -1,16 +1,12 @@
 import z from 'zod';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { FieldPath, Timestamp } from 'firebase-admin/firestore';
+import { FieldPath, Timestamp, Transaction } from 'firebase-admin/firestore';
 
 import { ORGANIZATION_ROLES } from '../enums';
 import { AuditWriter } from '../../audit/services';
 import { ApiException } from '../../common/exceptions';
 import { FirebaseService } from '../../firebase/services';
 import { DiagnosticError } from '../../observalibility/errors';
-import {
-  assertOrganizationRoleChange,
-  assertOrganizationPermissions,
-} from '../utils';
 import {
   OrganizationMembership,
   organizationMembershipSchema,
@@ -28,9 +24,25 @@ import {
   OrganizationMembershipPage,
   OrganizationMembershipDocument,
 } from '../types';
+import {
+  assertOrganizationRoleChange,
+  assertOrganizationPermissions,
+  canManageOrganizationMemberStatus,
+  assertActiveOrganizationMembership,
+} from '../utils';
+
+type MembershipLifecycleCommand =
+  | {
+      kind: 'leave';
+    }
+  | {
+      kind: 'status';
+      targetUid: string;
+      status: 'ACTIVE' | 'SUSPENDED';
+    };
 
 @Injectable()
-export class OrganizationmembershipRepository {
+export class OrganizationMembershipRepository {
   constructor(
     private readonly firebaseService: FirebaseService,
     private readonly audit: AuditWriter,
@@ -213,6 +225,222 @@ export class OrganizationmembershipRepository {
 
         transaction.update(targetReference, documentPatch);
         this.audit.append(transaction, auditEvent);
+
+        return updated;
+      },
+    );
+  }
+
+  async requireActiveInTransaction(
+    transaction: Transaction,
+    organizationId: string,
+    uid: string,
+  ): Promise<OrganizationMembership> {
+    const snapshot = await transaction.get(
+      this.getDocumentReference(organizationId, uid),
+    );
+
+    const membership = snapshot.data();
+
+    if (!membership) {
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        'ORGANIZATION_MEMBERSHIP_REQUIRED',
+        'An active organization membership is required.',
+      );
+    }
+
+    assertActiveOrganizationMembership(membership);
+
+    return membership;
+  }
+
+  async leave(scope: OrganizationScope): Promise<void> {
+    await this.changeLifecycle(scope, {
+      kind: 'leave',
+    });
+  }
+
+  async changeStatus(
+    scope: OrganizationScope,
+    targetUid: string,
+    status: 'ACTIVE' | 'SUSPENDED',
+  ): Promise<OrganizationMembership> {
+    const membership = await this.changeLifecycle(scope, {
+      kind: 'status',
+      targetUid,
+      status,
+    });
+
+    if (!membership) {
+      throw new DiagnosticError('ORGANIZATION_STORAGE_INVARIANT_FAILED');
+    }
+
+    return membership;
+  }
+
+  private async changeLifecycle(
+    scope: OrganizationScope,
+    command: MembershipLifecycleCommand,
+  ): Promise<OrganizationMembership | null> {
+    const targetUid =
+      command.kind === 'leave'
+        ? scope.actorUid
+        : organizationMembershipSchema.shape.uid.parse(command.targetUid);
+
+    const organizationReference = this.firebaseService.firestore
+      .collection(ORGANIZATIONS_COLLECTION)
+      .withConverter(organizationConverter)
+      .doc(scope.organizationId);
+
+    const actorReference = this.getDocumentReference(
+      scope.organizationId,
+      scope.actorUid,
+    );
+
+    const targetReference = this.getDocumentReference(
+      scope.organizationId,
+      targetUid,
+    );
+
+    return this.firebaseService.firestore.runTransaction(
+      async (transaction): Promise<OrganizationMembership | null> => {
+        const organizationSnapshot = await transaction.get(
+          organizationReference,
+        );
+
+        const actorSnapshot = await transaction.get(actorReference);
+
+        const targetSnapshot =
+          command.kind === 'leave'
+            ? actorSnapshot
+            : await transaction.get(targetReference);
+
+        const organization = organizationSnapshot.data();
+        const actor = actorSnapshot.data();
+        const target = targetSnapshot.data();
+
+        if (!organization || !actor) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'ORGANIZATION_NOT_FOUND',
+            'Organization not found.',
+          );
+        }
+
+        if (!target) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'ORGANIZATION_MEMBER_NOT_FOUND',
+            'Organization member not found.',
+          );
+        }
+
+        if (
+          organization.id !== scope.organizationId ||
+          actor.organizationId !== scope.organizationId ||
+          actor.uid !== scope.actorUid ||
+          target.organizationId !== scope.organizationId ||
+          target.uid !== targetUid
+        ) {
+          throw new DiagnosticError('ORGANIZATION_STORAGE_INVARIANT_FAILED');
+        }
+
+        assertActiveOrganizationMembership(actor);
+
+        if (command.kind === 'status') {
+          assertOrganizationPermissions(actor, ['organization:members:manage']);
+
+          if (actor.uid === target.uid) {
+            throw new ApiException(
+              HttpStatus.FORBIDDEN,
+              'ORGANIZATION_SELF_STATUS_CHANGE_FORBIDDEN',
+              'Use the leave operation to leave this organization.',
+            );
+          }
+
+          const canManageTarget = canManageOrganizationMemberStatus(
+            actor,
+            target,
+          );
+
+          if (!canManageTarget) {
+            throw new ApiException(
+              HttpStatus.FORBIDDEN,
+              'ORGANIZATION_MEMBER_STATUS_CHANGE_FORBIDDEN',
+              'You cannot change this member’s status.',
+            );
+          }
+
+          if (target.status === command.status) {
+            return target;
+          }
+        }
+
+        const removesActiveOwner =
+          target.role === ORGANIZATION_ROLES.OWNER &&
+          target.status === 'ACTIVE' &&
+          (command.kind === 'leave' || command.status === 'SUSPENDED');
+
+        if (removesActiveOwner) {
+          // Query by role so legacy documents without a stored
+          // status still pass through the converter's ACTIVE default.
+          const ownersSnapshot = await transaction.get(
+            this.getCollection(scope.organizationId).where(
+              'role',
+              '==',
+              ORGANIZATION_ROLES.OWNER,
+            ),
+          );
+
+          const activeOwnerCount = ownersSnapshot.docs
+            .map((document) => document.data())
+            .filter((membership) => membership.status === 'ACTIVE').length;
+
+          if (activeOwnerCount <= 1) {
+            throw new ApiException(
+              HttpStatus.CONFLICT,
+              'ORGANIZATION_LAST_ACTIVE_OWNER',
+              'The organization must retain an active owner.',
+            );
+          }
+        }
+
+        const now = new Date();
+
+        const updated =
+          command.kind === 'status'
+            ? organizationMembershipSchema.parse({
+                ...target,
+                status: command.status,
+                updatedAt: now,
+              })
+            : null;
+
+        const event = this.audit.prepareOrganizationMemberStatusChanged({
+          actorUid: actor.uid,
+          organizationId: scope.organizationId,
+          targetUid: target.uid,
+          role: target.role,
+          previousStatus: target.status,
+          nextStatus: command.kind === 'leave' ? 'LEFT' : command.status,
+          occurredAt: now,
+        });
+
+        // All reads are complete before staging writes.
+        if (updated) {
+          transaction.set(targetReference, updated);
+        } else {
+          transaction.delete(targetReference);
+        }
+
+        // Every lifecycle operation contends on the same organization
+        // document, including changes affecting different members.
+        transaction.update(organizationReference, {
+          membershipRevision: organization.membershipRevision + 1,
+        });
+
+        this.audit.append(transaction, event);
 
         return updated;
       },

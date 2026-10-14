@@ -1,9 +1,9 @@
-import { OrganizationRole } from '@/features/organizations';
+import { ORGANIZATION_ROLES } from '@/features/organizations/types';
 
 export type ReceivedInvitation = {
   id: string;
   organizationId: string;
   organizationName: string;
-  role: Exclude<OrganizationRole, 'OWNER'>;
+  role: Exclude<ORGANIZATION_ROLES, 'OWNER'>;
   expiresAt: string;
 };

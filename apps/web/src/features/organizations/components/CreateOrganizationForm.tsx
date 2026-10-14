@@ -5,15 +5,10 @@ import { useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/lib';
 import { InlineAlert, InputField, SubmitButton } from '@/components';
 
-import {
-  Organization,
-  createOrganization,
-  CreateOrganizationInput,
-  suggestOrganizationSlug,
-  normalizeOrganizationSlug,
-  ORGANIZATION_SLUG_PATTERN,
-  getOrganizationErrorMessage,
-} from '../services';
+import { createOrganization, getOrganizationErrorMessage } from '../services';
+import { CreateOrganizationInput, Organization } from '../types';
+import { normalizeOrganizationSlug, suggestOrganizationSlug } from '../utils';
+import { ORGANIZATION_SLUG_PATTERN } from '../constants';
 
 type CreateOrganizationFormProps = {
   user: User;

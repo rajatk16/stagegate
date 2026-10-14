@@ -5,7 +5,7 @@ import {
   PendingInvitation,
 } from '../types';
 import { ApiError, authenticatedApiRequest } from '@/lib';
-import { isRecord } from './organization';
+import { isRecord } from '@/app/utils';
 import { UUID_PATTERN } from '../constants';
 import {
   isInvitationRole,

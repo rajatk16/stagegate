@@ -1,8 +1,8 @@
 import z from 'zod';
 import { length as hasValidLength, isURL } from 'class-validator';
 
-import { ORGANIZATION_ROLES } from '../enums';
 import { ORGANIZATION_SLUG_PATTERN } from '../constants';
+import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
 
 const uidSchema = z
   .string()
@@ -59,6 +59,7 @@ export const organizationSchema = z
     secondaryColor: nullableColorSchema,
     logoVersion: z.string().uuid().nullable().default(null),
     logoStoragePath: z.string().min(1).nullable().default(null),
+    membershipRevision: z.number().int().nonnegative().default(0),
     createdByUid: uidSchema,
     createdAt: z.date(),
     updatedAt: z.date(),
@@ -70,6 +71,9 @@ export const organizationMembershipSchema = z
     organizationId: z.string().uuid(),
     uid: uidSchema,
     role: z.nativeEnum(ORGANIZATION_ROLES),
+    status: z
+      .nativeEnum(ORGANIZATION_MEMBERSHIP_STATUS)
+      .default(ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE),
     createdAt: z.date(),
     updatedAt: z.date(),
   })

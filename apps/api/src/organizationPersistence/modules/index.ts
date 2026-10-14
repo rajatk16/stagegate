@@ -5,7 +5,7 @@ import { FirebaseModule } from '../../firebase/module/firebase.module';
 import {
   OrganizationRepository,
   OrganizationSlugRepository,
-  OrganizationmembershipRepository,
+  OrganizationMembershipRepository,
 } from '../../organizations/repositories';
 
 @Module({
@@ -13,12 +13,12 @@ import {
   providers: [
     OrganizationRepository,
     OrganizationSlugRepository,
-    OrganizationmembershipRepository,
+    OrganizationMembershipRepository,
   ],
   exports: [
     OrganizationRepository,
     OrganizationSlugRepository,
-    OrganizationmembershipRepository,
+    OrganizationMembershipRepository,
   ],
 })
 export class OrganizationPersistenceModule {}

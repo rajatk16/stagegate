@@ -37,15 +37,14 @@ export class OrganizationScopeGuard implements CanActivate {
       readonly OrganizationPermission[] | undefined
     >(ORGANIZATION_PERMISSIONS_KEY, context.getHandler());
 
-    const hasOrganizationParameter = Object.hasOwn(
-      request.params,
-      'organizationId',
+    const hasTenantParameter = ['organizationId', 'tenantId', 'teamId'].some(
+      (parameter) => Object.hasOwn(request.params, parameter),
     );
 
     if (!scoped) {
-      if (hasOrganizationParameter || required !== undefined) {
+      if (hasTenantParameter || required !== undefined) {
         throw new InternalServerErrorException(
-          'Organization routes must declare organization scope.',
+          'Tenant routes must declare organization scope.',
         );
       }
 

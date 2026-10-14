@@ -4,10 +4,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError } from '@/lib';
 
 import {
-  OrganizationMember,
   listOrganizationMembers,
   getOrganizationMembersErrorMessage,
 } from '../services';
+import { OrganizationMember } from '../types';
 
 type MembersState =
   | {

@@ -4,7 +4,7 @@ import { Badge, Button, InlineAlert } from '@/components';
 import { getOrganizationSectionPath, ORGANIZATION_SECTIONS } from '@/lib';
 
 import { useOrganizations } from '../hooks';
-import { hasOrganizationCapability } from '../services';
+import { hasOrganizationCapability } from '../utils';
 
 export const OrganizationShell = () => {
   const { organizationSlug } = useParams<{
@@ -51,8 +51,11 @@ export const OrganizationShell = () => {
     return (
       <div className="space-y-4">
         <InlineAlert tone="warning" title="Organization unavailable">
-          This organization could not be found in your memberships. Refresh the
-          list or choose another organization.
+          This organization is not available through your active memberships.
+          Your membership may have been suspended or removed, or the
+          organization may no longer exist. Refresh access or choose another
+          organization. If your membership was suspended, an authorized member
+          must reactivate it.
         </InlineAlert>
 
         <div className="flex flex-wrap gap-3">

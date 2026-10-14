@@ -11,7 +11,7 @@ import {
   CardDescription,
 } from '@/components';
 
-import { Organization } from '../services';
+import { Organization } from '../types';
 import { useOrganizations } from '../hooks';
 import { OrganizationCreated } from './OrganizationCreated';
 import { CreateOrganizationForm } from './CreateOrganizationForm';

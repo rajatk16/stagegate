@@ -9,7 +9,7 @@ import { FirebaseService } from '../../firebase/services';
 import { DiagnosticError } from '../../observalibility/errors';
 import { ORGANIZATION_SETTINGS_FIELDS } from '../../audit/enums';
 import { OrganizationSlugRepository } from './organizationSlugs.repository';
-import { OrganizationmembershipRepository } from './organizationMembership.repository';
+import { OrganizationMembershipRepository } from './organizationMembership.repository';
 import {
   getOrganizationLogoPath,
   assertOrganizationPermissions,
@@ -35,7 +35,7 @@ export class OrganizationRepository {
     private readonly audit: AuditWriter,
     private readonly firebaseService: FirebaseService,
     private readonly organizationSlugsRepository: OrganizationSlugRepository,
-    private readonly organizationMembershipRepository: OrganizationmembershipRepository,
+    private readonly organizationMembershipRepository: OrganizationMembershipRepository,
   ) {}
 
   private collection() {

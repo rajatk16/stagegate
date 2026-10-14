@@ -12,9 +12,11 @@ import {
   toProfileUpdatedAuditEvent,
   toOrganizationCreatedAuditEvent,
   OrganizationInvitationAuditInput,
+  OrganizationMemberStatusAuditInput,
   toOrganizationInvitationAuditEvent,
   toOrganizationSettingsUpdatedAuditEvent,
   toOrganizationMemberRoleChangedAuditEvent,
+  toOrganizationMemberStatusChangedAuditEvent,
 } from '../mappers';
 
 @Injectable()
@@ -126,6 +128,21 @@ export class AuditWriter {
     }
 
     return toOrganizationInvitationAuditEvent({
+      ...input,
+      requestId: context.requestId,
+    });
+  }
+
+  prepareOrganizationMemberStatusChanged(
+    input: OrganizationMemberStatusAuditInput,
+  ): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== input.actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return toOrganizationMemberStatusChangedAuditEvent({
       ...input,
       requestId: context.requestId,
     });

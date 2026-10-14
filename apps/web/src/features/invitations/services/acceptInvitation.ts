@@ -1,13 +1,13 @@
 import { User } from 'firebase/auth';
 
-import { isOrganizationRole, isRecord } from '@/features/organizations';
-
 import { AcceptanceProblem, AcceptedInvitation } from '../types';
 import {
   ApiError,
   INVITATION_ID_PATTERN,
   authenticatedApiRequest,
 } from '@/lib';
+import { isRecord } from '@/app/utils';
+import { isOrganizationRole } from '@/features/organizations/utils';
 
 export const acceptInvitation = async (
   user: User,

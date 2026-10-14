@@ -2,12 +2,15 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { organizationSchema } from '../models';
 import { ApiException } from '../../common/exceptions';
-import { assertOrganizationPermissions } from '../utils';
 import { DiagnosticError } from '../../observalibility/errors';
 import { OrganizationPermission, OrganizationScope } from '../types';
 import {
+  assertOrganizationPermissions,
+  assertActiveOrganizationMembership,
+} from '../utils';
+import {
   OrganizationRepository,
-  OrganizationmembershipRepository,
+  OrganizationMembershipRepository,
 } from '../repositories';
 
 const organizationNotFound = (): ApiException =>
@@ -21,7 +24,7 @@ const organizationNotFound = (): ApiException =>
 export class OrganizationAccessService {
   constructor(
     private readonly organizationRepository: OrganizationRepository,
-    private readonly organizationMembershipRepository: OrganizationmembershipRepository,
+    private readonly organizationMembershipRepository: OrganizationMembershipRepository,
   ) {}
 
   async resolve(
@@ -76,6 +79,8 @@ export class OrganizationAccessService {
     ) {
       throw new DiagnosticError('ORGANIZATION_STORAGE_INVARIANT_FAILED');
     }
+
+    assertActiveOrganizationMembership(membership);
 
     return {
       actorUid,

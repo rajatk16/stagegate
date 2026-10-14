@@ -1,16 +1,12 @@
 import z from 'zod';
 import { Injectable } from '@nestjs/common';
 
-import { ORGANIZATION_ROLES } from '../enums';
 import { UsersService } from '../../users/services';
 import { assertOrganizationPermissions } from '../utils';
-import { OrganizationmembershipRepository } from '../repositories';
+import { OrganizationMembershipRepository } from '../repositories';
 import { RequestValidationException } from '../../common/exceptions';
 import { OrganizationMembersPage, OrganizationScope } from '../types';
-import {
-  ListOrganizationMembersQueryDto,
-  UpdateOrganizationMemberRoleDto,
-} from '../dtos';
+import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
 import {
   OrganizationMembership,
   organizationMembershipSchema,
@@ -19,12 +15,17 @@ import {
   decodeOrganizationMembersCursor,
   encodeOrganizationMembersCursor,
 } from '../utils/organizationMembersCursor.util';
+import {
+  ListOrganizationMembersQueryDto,
+  UpdateOrganizationMemberRoleDto,
+  UpdateOrganizationMemberStatusDto,
+} from '../dtos';
 
 @Injectable()
 export class OrganizationMembersService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly memberships: OrganizationmembershipRepository,
+    private readonly memberships: OrganizationMembershipRepository,
   ) {}
 
   async list(
@@ -44,13 +45,13 @@ export class OrganizationMembersService {
     );
 
     const identities = await this.usersService.getIdentitySummaries(
-      page.items.map((membership) => membership.uid),
+      page.items.map((membership: OrganizationMembership) => membership.uid),
     );
 
     const lastMember = page.items.at(-1);
 
     return {
-      items: page.items.map((membership) => {
+      items: page.items.map((membership: OrganizationMembership) => {
         const identity = identities.get(membership.uid);
 
         return {
@@ -88,5 +89,45 @@ export class OrganizationMembersService {
     }
 
     return this.memberships.changeRole(scope, uidResult.data, roleResult.data);
+  }
+
+  leave(scope: OrganizationScope): Promise<void> {
+    return this.memberships.leave(scope);
+  }
+
+  changeStatus(
+    scope: OrganizationScope,
+    rawUid: string,
+    dto: UpdateOrganizationMemberStatusDto,
+  ): Promise<OrganizationMembership> {
+    const uidResult = organizationMembershipSchema.shape.uid.safeParse(rawUid);
+
+    if (!uidResult.success) {
+      throw new RequestValidationException([
+        {
+          field: 'uid',
+          code: 'INVALID_VALUE',
+        },
+      ]);
+    }
+
+    const statusResult = z
+      .nativeEnum(ORGANIZATION_MEMBERSHIP_STATUS)
+      .safeParse(dto.status);
+
+    if (!statusResult.success) {
+      throw new RequestValidationException([
+        {
+          field: 'status',
+          code: 'INVALID_VALUE',
+        },
+      ]);
+    }
+
+    return this.memberships.changeStatus(
+      scope,
+      uidResult.data,
+      statusResult.data,
+    );
   }
 }

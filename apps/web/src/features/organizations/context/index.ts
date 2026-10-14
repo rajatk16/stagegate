@@ -1,6 +1,5 @@
 import { createContext } from 'react';
-
-import { Organization } from '../services';
+import { Organization } from '../types';
 
 export type OrganizationsState =
   | { status: 'loading' }
