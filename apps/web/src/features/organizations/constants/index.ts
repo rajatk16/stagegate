@@ -8,6 +8,8 @@ export const ORGANIZATION_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const ORGANIZATION_CAPABILITIES = [
   'organization:read',
   'organization:update',
+  'organization:audit:read',
   'organization:members:read',
   'organization:members:manage',
+  'organization:ownership:transfer',
 ];

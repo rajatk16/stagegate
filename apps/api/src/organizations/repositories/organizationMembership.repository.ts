@@ -6,6 +6,7 @@ import { ORGANIZATION_ROLES } from '../enums';
 import { AuditWriter } from '../../audit/services';
 import { ApiException } from '../../common/exceptions';
 import { FirebaseService } from '../../firebase/services';
+import { assertRecentAuthentication } from '../../auth/utils';
 import { DiagnosticError } from '../../observalibility/errors';
 import {
   OrganizationMembership,
@@ -21,6 +22,7 @@ import {
 } from '../converters';
 import {
   OrganizationScope,
+  OwnershipTransferResult,
   OrganizationMembershipPage,
   OrganizationMembershipDocument,
 } from '../types';
@@ -277,6 +279,140 @@ export class OrganizationMembershipRepository {
     }
 
     return membership;
+  }
+
+  async transferOwnership(
+    scope: OrganizationScope,
+    targetUid: string,
+    authTime: number,
+  ): Promise<OwnershipTransferResult> {
+    const organizationReference = this.firebaseService.firestore
+      .collection(ORGANIZATIONS_COLLECTION)
+      .withConverter(organizationConverter)
+      .doc(scope.organizationId);
+
+    const actorReference = this.getDocumentReference(
+      scope.organizationId,
+      scope.actorUid,
+    );
+
+    const targetReference = this.getDocumentReference(
+      scope.organizationId,
+      targetUid,
+    );
+
+    return this.firebaseService.firestore.runTransaction(
+      async (transaction): Promise<OwnershipTransferResult> => {
+        assertRecentAuthentication(authTime);
+
+        const organizationSnapshot = await transaction.get(
+          organizationReference,
+        );
+
+        const actorSnapshot = await transaction.get(actorReference);
+
+        const targetSnapshot = await transaction.get(targetReference);
+
+        const organization = organizationSnapshot.data();
+        const actor = actorSnapshot.data();
+        const target = targetSnapshot.data();
+
+        if (!organization || !actor) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'ORGANIZATION_NOT_FOUND',
+            'Organization not found.',
+          );
+        }
+
+        assertOrganizationPermissions(actor, [
+          'organization:ownership:transfer',
+        ]);
+
+        if (actor.role !== ORGANIZATION_ROLES.OWNER) {
+          throw new ApiException(
+            HttpStatus.FORBIDDEN,
+            'ORGANIZATION_OWNER_REQUIRED',
+            'An active owner must perform this operation.',
+          );
+        }
+
+        if (!target) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'ORGANIZATION_MEMBER_NOT_FOUND',
+            'Organization member not found',
+          );
+        }
+
+        if (
+          organization.id !== scope.organizationId ||
+          actor.organizationId !== scope.organizationId ||
+          actor.uid !== scope.actorUid ||
+          target.organizationId !== scope.organizationId ||
+          target.uid !== targetUid
+        ) {
+          throw new DiagnosticError('ORGANIZATION_STORAGE_INVARIANT_FAILED');
+        }
+
+        if (actor.uid === target.uid) {
+          throw new ApiException(
+            HttpStatus.BAD_REQUEST,
+            'ORGANIZATION_SELF_TRANSFER_FORBIDDEN',
+            'Choose another organization member.',
+          );
+        }
+
+        assertActiveOrganizationMembership(target);
+
+        if (target.role === ORGANIZATION_ROLES.OWNER) {
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            'ORGANIZATION_TARGET_ALREADY_OWNER',
+            'This member is already an owner.',
+          );
+        }
+
+        assertRecentAuthentication(authTime);
+
+        const now = new Date();
+
+        const previousOwner = organizationMembershipSchema.parse({
+          ...actor,
+          role: ORGANIZATION_ROLES.ADMIN,
+          updatedAt: now,
+        });
+
+        const newOwner = organizationMembershipSchema.parse({
+          ...target,
+          role: ORGANIZATION_ROLES.OWNER,
+          updatedAt: now,
+        });
+
+        const event = this.audit.prepareOrganizationOwnershipTransferred({
+          actorUid: actor.uid,
+          organizationId: scope.organizationId,
+          newOwnerUid: target.uid,
+          newOwnerPreviousRole: target.role,
+          occurredAt: now,
+        });
+
+        transaction.set(actorReference, previousOwner);
+        transaction.set(targetReference, newOwner);
+
+        transaction.update(organizationReference, {
+          membershipRevision: organization.membershipRevision + 1,
+        });
+
+        this.audit.append(transaction, event);
+
+        return {
+          newOwner,
+          previousOwner,
+          organizationId: scope.organizationId,
+        };
+      },
+    );
   }
 
   private async changeLifecycle(

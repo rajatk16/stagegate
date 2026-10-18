@@ -37,6 +37,18 @@ export const sensitiveActionPolicies = {
       blockDuration: HOUR,
     },
   },
+  transferOrganizationOwnership: {
+    ip: {
+      limit: 20,
+      ttl: MINUTE,
+      blockDuration: MINUTE,
+    },
+    user: {
+      limit: 5,
+      ttl: HOUR,
+      blockDuration: HOUR,
+    },
+  },
 };
 
 export type SensitiveActionName = keyof typeof sensitiveActionPolicies;

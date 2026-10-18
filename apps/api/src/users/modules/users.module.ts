@@ -3,8 +3,8 @@ import { Module } from '@nestjs/common';
 import { UsersService } from '../services';
 import { UsersController } from '../controllers';
 import { UsersRepository } from '../repositories';
-import { AuditModule } from '../../audit/modules/audit.module';
-import { FirebaseModule } from '../../firebase/module/firebase.module';
+import { AuditModule } from '../../audit/modules';
+import { FirebaseModule } from '../../firebase/module';
 
 @Module({
   exports: [UsersService],

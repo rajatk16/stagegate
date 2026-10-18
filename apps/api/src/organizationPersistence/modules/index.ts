@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { AuditModule } from '../../audit/modules/audit.module';
-import { FirebaseModule } from '../../firebase/module/firebase.module';
+import { AuditModule } from '../../audit/modules';
+import { FirebaseModule } from '../../firebase/module';
 import {
   OrganizationRepository,
   OrganizationSlugRepository,

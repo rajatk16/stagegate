@@ -16,6 +16,7 @@ const publicFields = new Set([
   'photoURL',
   'timezone',
   'biography',
+  'targetUid',
   'websiteURL',
   'affiliation',
   'displayName',

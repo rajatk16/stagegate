@@ -1,6 +1,6 @@
 import { AlertDialog } from 'radix-ui';
 import { LoaderCircle } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { PropsWithChildren, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@/components';
 
@@ -32,7 +32,8 @@ export const ConfirmDialog = ({
   disabled = false,
   onConfirm,
   restoreFocus,
-}: ConfirmDialogProps) => {
+  children,
+}: PropsWithChildren<ConfirmDialogProps>) => {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -111,6 +112,7 @@ export const ConfirmDialog = ({
             <AlertDialog.Description className="mt-2 text-sm text-muted-foreground">
               {description}
             </AlertDialog.Description>
+            {children}
             {failed && (
               <InlineAlert tone="error" className="mt-4">
                 {errorMessage}

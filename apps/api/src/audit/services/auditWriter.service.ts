@@ -9,14 +9,18 @@ import { DiagnosticError } from '../../observalibility/errors';
 import { RequestContextService } from '../../observalibility/services';
 import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
 import {
+  OwnershipTransferredAuditInput,
+  OrganizationInvitationAuditInput,
+} from '../types';
+import {
   toProfileUpdatedAuditEvent,
   toOrganizationCreatedAuditEvent,
-  OrganizationInvitationAuditInput,
   OrganizationMemberStatusAuditInput,
   toOrganizationInvitationAuditEvent,
   toOrganizationSettingsUpdatedAuditEvent,
   toOrganizationMemberRoleChangedAuditEvent,
   toOrganizationMemberStatusChangedAuditEvent,
+  toOrganizationOwnershipTransferredAuditEvent,
 } from '../mappers';
 
 @Injectable()
@@ -143,6 +147,20 @@ export class AuditWriter {
     }
 
     return toOrganizationMemberStatusChangedAuditEvent({
+      ...input,
+      requestId: context.requestId,
+    });
+  }
+
+  prepareOrganizationOwnershipTransferred(
+    input: OwnershipTransferredAuditInput,
+  ): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== input.actorUid)
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+
+    return toOrganizationOwnershipTransferredAuditEvent({
       ...input,
       requestId: context.requestId,
     });

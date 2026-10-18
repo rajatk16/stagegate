@@ -8,5 +8,6 @@ export * from './organizationMembersResponse.dto';
 export * from './organizationPrivateResponse.dto';
 export * from './listOrganizationMembersQuery.dto';
 export * from './updateOrganizationMemberRole.dto';
+export * from './transferOrganizationOwnership.dto';
 export * from './organizationMembershipResponse.dto';
 export * from './updateOrganizationMemberStatus.dto';

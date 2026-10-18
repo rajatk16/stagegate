@@ -30,14 +30,17 @@ export const ORGANIZATION_ROLE_PERMISSIONS: Readonly<
   ADMIN: [
     'organization:read',
     'organization:update',
+    'organization:audit:read',
     'organization:members:read',
     'organization:members:manage',
   ],
   OWNER: [
     'organization:read',
     'organization:update',
+    'organization:audit:read',
     'organization:members:read',
     'organization:members:manage',
+    'organization:ownership:transfer',
   ],
 };
 

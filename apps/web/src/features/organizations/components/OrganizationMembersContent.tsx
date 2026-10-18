@@ -1,9 +1,12 @@
 import { User } from 'firebase/auth';
 import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import { Button, InlineAlert } from '@/components';
+import { getOrganizationSectionPath } from '@/lib';
 
 import { changeOrganizationMemberStatus } from '../services';
+import { OwnershipTranferAction } from './OwnershipTranferAction';
 import { useOrganizationMembers, useOrganizations } from '../hooks';
 import { Organization, ORGANIZATION_MEMBERSHIP_STATUSES } from '../types';
 import {
@@ -20,6 +23,7 @@ export const OrganizationMembersContent = ({
   user,
   organization,
 }: ContentProps) => {
+  const navigate = useNavigate();
   const { reload: reloadOrganizations } = useOrganizations();
   const { state, refresh, loadMore } = useOrganizationMembers(
     user,
@@ -112,7 +116,11 @@ export const OrganizationMembersContent = ({
               currentUserUid={user.uid}
               organizationName={organization.name}
               renderActions={(member) => {
-                if (!member.actions.suspend && !member.actions.reactivate) {
+                if (
+                  !member.actions.suspend &&
+                  !member.actions.reactivate &&
+                  !member.actions.transferOwnership
+                ) {
                   return <span className="text-muted-foreground">-</span>;
                 }
 
@@ -124,45 +132,78 @@ export const OrganizationMembersContent = ({
                   member.displayName ?? member.email ?? 'This member';
 
                 return (
-                  <MembershipActionDialog
-                    context="member"
-                    triggerLabel={suspending ? 'Suspend' : 'Reactivate'}
-                    title={
-                      suspending ? `Suspend ${person}` : `Reactivate ${person}`
-                    }
-                    description={
-                      suspending
-                        ? `${person} will lose access to ${organization.name}. Their membership, role, and existing organization data will remain. An authorized member can reactivate them later.`
-                        : `${person} will regain access to ${organization.name} with their existing ${member.role.toLowerCase()} role. A new invitation is not required.`
-                    }
-                    confirmLabel={
-                      suspending ? 'Suspend member' : 'Reactivate member'
-                    }
-                    pendingLabel={
-                      suspending ? 'Suspending...' : 'Reactivating...'
-                    }
-                    destructive={suspending}
-                    disabled={mutationPending || state.loadingMore}
-                    restoreFocus={() => headingRef.current?.focus()}
-                    onPendingChange={setMutationPending}
-                    run={(signal) =>
-                      changeOrganizationMemberStatus(
-                        user,
-                        organization.id,
-                        member.uid,
-                        nextStatus,
-                        signal,
-                      )
-                    }
-                    onSuccess={() => {
-                      setNotice(
+                  <div className="flex flex-wrap gap-2">
+                    <MembershipActionDialog
+                      context="member"
+                      triggerLabel={suspending ? 'Suspend' : 'Reactivate'}
+                      title={
                         suspending
-                          ? `${person} was suspended. Their role was preserved.`
-                          : `${person} was reactivated with their existing role.`,
-                      );
-                      refresh();
-                    }}
-                  />
+                          ? `Suspend ${person}`
+                          : `Reactivate ${person}`
+                      }
+                      description={
+                        suspending
+                          ? `${person} will lose access to ${organization.name}. Their membership, role, and existing organization data will remain. An authorized member can reactivate them later.`
+                          : `${person} will regain access to ${organization.name} with their existing ${member.role.toLowerCase()} role. A new invitation is not required.`
+                      }
+                      confirmLabel={
+                        suspending ? 'Suspend member' : 'Reactivate member'
+                      }
+                      pendingLabel={
+                        suspending ? 'Suspending...' : 'Reactivating...'
+                      }
+                      destructive={suspending}
+                      disabled={mutationPending || state.loadingMore}
+                      restoreFocus={() => headingRef.current?.focus()}
+                      onPendingChange={setMutationPending}
+                      run={(signal) =>
+                        changeOrganizationMemberStatus(
+                          user,
+                          organization.id,
+                          member.uid,
+                          nextStatus,
+                          signal,
+                        )
+                      }
+                      onSuccess={() => {
+                        setNotice(
+                          suspending
+                            ? `${person} was suspended. Their role was preserved.`
+                            : `${person} was reactivated with their existing role.`,
+                        );
+                        refresh();
+                      }}
+                    />
+                    {member.actions.transferOwnership && (
+                      <OwnershipTranferAction
+                        user={user}
+                        member={member}
+                        organization={organization}
+                        disabled={mutationPending || state.loadingMore}
+                        onPendingChange={setMutationPending}
+                        restoreFocus={() => headingRef.current?.focus()}
+                        onSuccess={() => {
+                          reloadOrganizations();
+
+                          void navigate(
+                            getOrganizationSectionPath(
+                              organization.slug,
+                              'activity',
+                            ),
+                            {
+                              replace: true,
+                              state: {
+                                ownershipTransferred: {
+                                  organziationId: organization.id,
+                                  uid: user.uid,
+                                },
+                              },
+                            },
+                          );
+                        }}
+                      />
+                    )}
+                  </div>
                 );
               }}
             />

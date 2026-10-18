@@ -18,6 +18,7 @@ import {
   CreateOrganization,
   OrganizationMembers,
   RequireOrganization,
+  OrganizationActivity,
   OrganizationSettings,
   OrganizationDashboard,
   OrganizationsProvider,
@@ -87,6 +88,18 @@ export const App = () => (
               <Route
                 path={ORGANIZATION_SECTIONS.members.segment}
                 element={<OrganizationMembers />}
+              />
+            </Route>
+            <Route
+              element={
+                <RequireOrganization
+                  capability={ORGANIZATION_SECTIONS.activity.capability}
+                />
+              }
+            >
+              <Route
+                path={ORGANIZATION_SECTIONS.activity.segment}
+                element={<OrganizationActivity />}
               />
             </Route>
           </Route>
