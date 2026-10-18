@@ -12,5 +12,6 @@ export type OrganizationMember = {
   actions: {
     suspend: boolean;
     reactivate: boolean;
+    transferOwnership: boolean;
   };
 };

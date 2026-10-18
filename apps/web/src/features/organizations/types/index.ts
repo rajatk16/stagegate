@@ -10,4 +10,6 @@ export * from './organizationCapability';
 export * from './organizationInvitation';
 export * from './organizationMembersPage';
 export * from './createOrganizationInput';
+export * from './organizationActivityPage';
+export * from './organizationActivityEvent';
 export * from './organizationMembershipStatus';

@@ -99,11 +99,7 @@ export const getMembershipLifecycleErrorMessage = (
     }
 
     if (error.code === 'ORGANIZATION_LAST_ACTIVE_OWNER') {
-      return (
-        'The organization must retain an active owner. ' +
-        'Another active owner is required before you can leave. ' +
-        'Ownership transfer is not available on this screen.'
-      );
+      return 'The organization must retain an active owner. Transfer ownership to another active member from the Members page before leaving.';
     }
 
     if (error.code === 'ORGANIZATION_SELF_STATUS_CHANGE_FORBIDDEN') {

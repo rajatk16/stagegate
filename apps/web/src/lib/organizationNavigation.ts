@@ -19,6 +19,12 @@ export const ORGANIZATION_SECTIONS = {
     capability: 'organization:members:read',
     actionLabel: 'View team',
   },
+  activity: {
+    segment: 'activity',
+    label: 'Activity',
+    capability: 'organization:audit:read',
+    actionLabel: 'View activity',
+  },
 };
 
 export const getOrganizationPath = (slug: string): string =>

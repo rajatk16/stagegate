@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 
+import { AuditModule } from '../../audit/modules';
+import { UsersModule } from '../../users/modules';
+import { FirebaseModule } from '../../firebase/module';
 import { OrganizationsController } from '../controllers';
-import { UsersModule } from '../../users/modules/user.module';
-import { AuditModule } from '../../audit/modules/audit.module';
-import { FirebaseModule } from '../../firebase/module/firebase.module';
-import { InvitationsModule } from '../../invitations/modules/invitations.module';
+import { InvitationsModule } from '../../invitations/modules';
 import {
   OrganizationsService,
   OrganizationLogoService,

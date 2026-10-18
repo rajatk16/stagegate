@@ -1,22 +1,14 @@
 import { randomUUID } from 'node:crypto';
 
+import { ORGANIZATION_SETTINGS_FIELDS } from '../enums';
 import { AuditEvent, auditEventSchema } from '../models';
 import { ORGANIZATION_ROLES } from '../../organizations/enums';
-import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
-
-interface ProfileUpdatedEventInput {
-  actorUid: string;
-  targetUid: string;
-  requestId: string;
-  fields: readonly PROFILE_FIELDS[];
-}
-
-interface OrganizationCreatedEventInput {
-  actorUid: string;
-  organizationId: string;
-  requestId: string;
-  occurredAt: Date;
-}
+import {
+  ProfileUpdatedEventInput,
+  OrganizationCreatedEventInput,
+  OwnershipTransferredAuditInput,
+  OrganizationInvitationAuditInput,
+} from '../types';
 
 export const toProfileUpdatedAuditEvent = (
   input: ProfileUpdatedEventInput,
@@ -102,18 +94,6 @@ export const toOrganizationMemberRoleChangedAuditEvent = (input: {
     occurredAt: input.occurredAt,
   });
 
-export interface OrganizationInvitationAuditInput {
-  action:
-    | 'organization.invitation.created'
-    | 'organization.invitation.accepted'
-    | 'organization.invitation.revoked';
-  actorUid: string;
-  organizationId: string;
-  invitationId: string;
-  role: Exclude<ORGANIZATION_ROLES, ORGANIZATION_ROLES.OWNER>;
-  occurredAt: Date;
-}
-
 export const toOrganizationInvitationAuditEvent = (
   input: OrganizationInvitationAuditInput & {
     requestId: string;
@@ -163,6 +143,30 @@ export const toOrganizationMemberStatusChangedAuditEvent = (
     role: input.role,
     previousStatus: input.previousStatus,
     nextStatus: input.nextStatus,
+
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
+  });
+
+export const toOrganizationOwnershipTransferredAuditEvent = (
+  input: OwnershipTransferredAuditInput & {
+    requestId: string;
+  },
+): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: 'organization.ownership.transferred',
+    outcome: 'succeeded',
+    targetType: 'organization',
+
+    actorUid: input.actorUid,
+    organizationId: input.organizationId,
+    previousOwnerUid: input.actorUid,
+    newOwnerUid: input.newOwnerUid,
+    previousOwnerNextRole: ORGANIZATION_ROLES.ADMIN,
+    newOwnerPreviousRole: input.newOwnerPreviousRole,
+    newOwnerNextRole: ORGANIZATION_ROLES.OWNER,
 
     requestId: input.requestId,
     occurredAt: input.occurredAt,

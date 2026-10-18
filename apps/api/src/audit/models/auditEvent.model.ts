@@ -92,6 +92,23 @@ export const organizationMemberStatusChangedAuditEventSchema = auditBaseSchema
   })
   .strict();
 
+export const organizationOwnershipTransferredAuditEventSchema = auditBaseSchema
+  .extend({
+    action: z.literal('organization.ownership.transferred'),
+    targetType: z.literal('organization'),
+    organizationId: z.string().uuid(),
+    previousOwnerUid: z.string().min(1).max(128),
+    newOwnerUid: z.string().min(1).max(128),
+    previousOwnerNextRole: z.literal(ORGANIZATION_ROLES.ADMIN),
+    newOwnerPreviousRole: z.enum([
+      ORGANIZATION_ROLES.ADMIN,
+      ORGANIZATION_ROLES.MEMBER,
+      ORGANIZATION_ROLES.VIEWER,
+    ]),
+    newOwnerNextRole: z.literal(ORGANIZATION_ROLES.OWNER),
+  })
+  .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
   profileUpdatedAuditEventSchema,
   organizationCreatedAuditEventSchema,
@@ -101,6 +118,7 @@ export const auditEventSchema = z.discriminatedUnion('action', [
   organizationInvitationRevokedAuditEventSchema,
   organizationInvitationAcceptedAuditEventSchema,
   organizationMemberStatusChangedAuditEventSchema,
+  organizationOwnershipTransferredAuditEventSchema,
 ]);
 
 export type AuditEvent = z.infer<typeof auditEventSchema>;

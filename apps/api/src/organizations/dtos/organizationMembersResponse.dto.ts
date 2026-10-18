@@ -13,6 +13,7 @@ export class OrganizationTeamMemberResponseDto extends OrganizationMemberRespons
   actions!: {
     suspend: boolean;
     reactivate: boolean;
+    transferOwnership: boolean;
   };
 }
 

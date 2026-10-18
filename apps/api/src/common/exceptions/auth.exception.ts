@@ -31,6 +31,10 @@ const authErrors = {
     status: HttpStatus.FORBIDDEN,
     message: 'Verify your email address before performing this action.',
   },
+  AUTH_RECENT_LOGIN_REQUIRED: {
+    status: HttpStatus.FORBIDDEN,
+    message: 'Sign in again before performing this action.',
+  },
 };
 
 export type AuthErrorCode = keyof typeof authErrors;

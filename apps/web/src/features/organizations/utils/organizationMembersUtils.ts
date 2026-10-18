@@ -35,7 +35,8 @@ const parseMember = (value: unknown): OrganizationMember => {
     !isDateString(value.updatedAt) ||
     !isRecord(value.actions) ||
     typeof value.actions.suspend !== 'boolean' ||
-    typeof value.actions.reactivate !== 'boolean'
+    typeof value.actions.reactivate !== 'boolean' ||
+    typeof value.actions.transferOwnership !== 'boolean'
   ) {
     throw new ApiError(
       'The API returned an unexpected organization member.',
@@ -54,6 +55,7 @@ const parseMember = (value: unknown): OrganizationMember => {
     actions: {
       suspend: value.actions.suspend,
       reactivate: value.actions.reactivate,
+      transferOwnership: value.actions.transferOwnership,
     },
   };
 };

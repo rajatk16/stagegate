@@ -181,3 +181,19 @@ export const canManageOrganizationMemberStatus = (
         target.role === ORGANIZATION_ROLES.VIEWER))
   );
 };
+
+export const canTransferOrganizationOwnership = (
+  actor: OrganizationMembership,
+  target: OrganizationMembership,
+): boolean => {
+  const permissions = ORGANIZATION_ROLE_PERMISSIONS[actor.role] ?? [];
+
+  return (
+    actor.organizationId === target.organizationId &&
+    actor.uid !== target.uid &&
+    actor.status === ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE &&
+    permissions.includes('organization:ownership:transfer') &&
+    target.status === ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE &&
+    target.role !== ORGANIZATION_ROLES.OWNER
+  );
+};

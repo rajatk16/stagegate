@@ -1,11 +1,13 @@
 import z from 'zod';
 import { Injectable } from '@nestjs/common';
+import { DecodedIdToken } from 'firebase-admin/auth';
 
 import { UsersService } from '../../users/services';
 import { assertOrganizationPermissions } from '../utils';
+import { assertRecentAuthentication } from '../../auth/utils';
+import { DiagnosticError } from '../../observalibility/errors';
 import { OrganizationMembershipRepository } from '../repositories';
 import { RequestValidationException } from '../../common/exceptions';
-import { OrganizationMembersPage, OrganizationScope } from '../types';
 import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
 import {
   OrganizationMembership,
@@ -16,8 +18,14 @@ import {
   encodeOrganizationMembersCursor,
 } from '../utils/organizationMembersCursor.util';
 import {
+  OrganizationScope,
+  OrganizationMembersPage,
+  OwnershipTransferResult,
+} from '../types';
+import {
   ListOrganizationMembersQueryDto,
   UpdateOrganizationMemberRoleDto,
+  TransferOrganizationOwnershipDto,
   UpdateOrganizationMemberStatusDto,
 } from '../dtos';
 
@@ -128,6 +136,37 @@ export class OrganizationMembersService {
       scope,
       uidResult.data,
       statusResult.data,
+    );
+  }
+
+  transferOwnership(
+    scope: OrganizationScope,
+    user: DecodedIdToken,
+    dto: TransferOrganizationOwnershipDto,
+  ): Promise<OwnershipTransferResult> {
+    if (user.uid !== scope.actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    assertRecentAuthentication(user.auth_time);
+
+    const target = organizationMembershipSchema.shape.uid.safeParse(
+      dto.targetUid,
+    );
+
+    if (!target.success) {
+      throw new RequestValidationException([
+        {
+          field: 'targetUid',
+          code: 'INVALID_VALUE',
+        },
+      ]);
+    }
+
+    return this.memberships.transferOwnership(
+      scope,
+      target.data,
+      user.auth_time,
     );
   }
 }

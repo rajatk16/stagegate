@@ -20,8 +20,14 @@ import {
 } from '@nestjs/common';
 
 import { type OrganizationScope } from '../types';
+import { UsersService } from '../../users/services';
+import { OrganizationAuditReader } from '../../audit/services';
 import { InvitationsService } from '../../invitations/services';
 import { toOrganizationInvitationResponseDto } from '../../invitations/mappers';
+import {
+  ListOrganizationAuditQueryDto,
+  OrganizationAuditPageResponseDto,
+} from '../../audit/dtos';
 import {
   OrganizationScoped,
   CurrentOrganization,
@@ -43,6 +49,7 @@ import {
   SensitiveAction,
   ThrottleUserWrites,
   RequireVerifiedEmail,
+  RequireRecentAuthentication,
 } from '../../auth/decorators';
 import {
   toOrganizationResponseDto,
@@ -64,13 +71,17 @@ import {
   UpdateOrganizationMemberRoleDto,
   ListOrganizationMembersQueryDto,
   UpdateOrganizationMemberStatusDto,
+  TransferOrganizationOwnershipDto,
+  TransferOrganizationOwnershipResponseDto,
 } from '../dtos';
 
 @Controller('organizations')
 export class OrganizationsController {
   constructor(
+    private readonly usersService: UsersService,
     private readonly invitationsService: InvitationsService,
     private readonly organizationsService: OrganizationsService,
+    private readonly organizationAuditReader: OrganizationAuditReader,
     private readonly organizationLogoService: OrganizationLogoService,
     private readonly organizationMembersService: OrganizationMembersService,
   ) {}
@@ -283,5 +294,65 @@ export class OrganizationsController {
     );
 
     return toOrganizationMemberResponseDto(membership);
+  }
+
+  @Post(':organizationId/ownership/transfer')
+  @HttpCode(HttpStatus.OK)
+  @OrganizationScoped()
+  @RequireOrganizationPermissions('organization:ownership:transfer')
+  @SensitiveAction('transferOrganizationOwnership')
+  @RequireRecentAuthentication()
+  @Header('Cache-Control', 'no-store')
+  async transferOwnership(
+    @CurrentOrganization() scope: OrganizationScope,
+    @CurrentUser() user: DecodedIdToken,
+    @Body() dto: TransferOrganizationOwnershipDto,
+  ): Promise<TransferOrganizationOwnershipResponseDto> {
+    const result = await this.organizationMembersService.transferOwnership(
+      scope,
+      user,
+      dto,
+    );
+
+    return {
+      organizationId: result.organizationId,
+      previousOwner: toOrganizationMemberResponseDto(result.previousOwner),
+      newOwner: toOrganizationMemberResponseDto(result.newOwner),
+    };
+  }
+
+  @Get(':organizationId/audit')
+  @OrganizationScoped()
+  @RequireOrganizationPermissions('organization:audit:read')
+  @RequireVerifiedEmail()
+  @Header('Cache-Control', 'no-store')
+  async listOrganizationAudit(
+    @CurrentOrganization() scope: OrganizationScope,
+    @Query() query: ListOrganizationAuditQueryDto,
+  ): Promise<OrganizationAuditPageResponseDto> {
+    const page = await this.organizationAuditReader.list(scope, query);
+
+    const identities = await this.usersService.getIdentitySummaries(
+      page.items.map((event) => event.actorUid),
+    );
+
+    return {
+      nextCursor: page.nextCursor,
+      items: page.items.map((event) => {
+        const identity = identities.get(event.actorUid);
+
+        return {
+          actorDisplayName: identity?.displayName ?? null,
+          actorEmail: identity?.email ?? null,
+          action: event.action,
+          actorUid: event.actorUid,
+          details: event.details,
+          eventId: event.eventId,
+          occurredAt: event.occurredAt,
+          organizationId: event.organizationId,
+          outcome: event.outcome,
+        };
+      }),
+    };
   }
 }

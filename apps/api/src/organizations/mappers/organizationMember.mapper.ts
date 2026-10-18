@@ -5,7 +5,10 @@ import {
   OrganizationMembersResponseDto,
   OrganizationTeamMemberResponseDto,
 } from '../dtos';
-import { canManageOrganizationMemberStatus } from '../utils';
+import {
+  canManageOrganizationMemberStatus,
+  canTransferOrganizationOwnership,
+} from '../utils';
 import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums';
 
 export const toOrganizationMemberResponseDto = (
@@ -40,6 +43,7 @@ export const toOrganizationMembersResponseDto = (
             reactivate:
               canManage &&
               member.status === ORGANIZATION_MEMBERSHIP_STATUS.SUSPENDED,
+            transferOwnership: canTransferOrganizationOwnership(actor, member),
           },
         },
       );

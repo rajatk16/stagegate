@@ -4,6 +4,7 @@ export * from './organizationRequest.type';
 export * from './organizationCreation.type';
 export * from './organizationDocument.type';
 export * from './organizationPermission.type';
+export * from './ownershipTranferResult.type';
 export * from './organizationWriteResult.type';
 export * from './organizationMembersPage.type';
 export * from './organizationWriteChanges.type';
