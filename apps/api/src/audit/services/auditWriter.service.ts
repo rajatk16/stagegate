@@ -13,6 +13,7 @@ import {
   OrganizationInvitationAuditInput,
 } from '../types';
 import {
+  toEventCreatedAuditEvent,
   toProfileUpdatedAuditEvent,
   toOrganizationCreatedAuditEvent,
   OrganizationMemberStatusAuditInput,
@@ -162,6 +163,27 @@ export class AuditWriter {
 
     return toOrganizationOwnershipTransferredAuditEvent({
       ...input,
+      requestId: context.requestId,
+    });
+  }
+
+  prepareEventCreated(
+    organizationId: string,
+    targetId: string,
+    actorUid: string,
+    occurredAt: Date,
+  ): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return toEventCreatedAuditEvent({
+      organizationId,
+      targetId,
+      actorUid,
+      occurredAt,
       requestId: context.requestId,
     });
   }

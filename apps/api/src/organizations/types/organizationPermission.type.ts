@@ -3,5 +3,6 @@ export type OrganizationPermission =
   | 'organization:update'
   | 'organization:audit:read'
   | 'organization:members:read'
+  | 'organization:events:create'
   | 'organization:members:manage'
   | 'organization:ownership:transfer';

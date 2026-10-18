@@ -107,6 +107,8 @@ export const getActivityLabel = (event: OrganizationActivityEvent): string => {
       return 'Revoked an invitation';
     case 'organization.ownership.transferred':
       return 'Transferred ownership';
+    case 'event.created':
+      return 'Created an Event';
     default:
       return 'Organization activity';
   }

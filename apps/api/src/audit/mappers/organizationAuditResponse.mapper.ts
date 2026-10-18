@@ -47,6 +47,11 @@ const toDetails = (event: AuditEvent): Record<string, string | string[]> => {
 
     case 'user.profile.updated':
       throw new DiagnosticError('AUDIT_SCOPE_MISMATCH');
+
+    case 'event.created':
+      return {
+        targetId: event.targetId,
+      };
   }
 };
 

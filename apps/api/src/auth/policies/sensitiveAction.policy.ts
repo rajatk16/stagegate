@@ -49,6 +49,18 @@ export const sensitiveActionPolicies = {
       blockDuration: HOUR,
     },
   },
+  createEvent: {
+    id: {
+      limit: 30,
+      ttl: MINUTE,
+      blockDuration: MINUTE,
+    },
+    user: {
+      limit: 20,
+      ttl: HOUR,
+      blockDuration: HOUR,
+    },
+  },
 };
 
 export type SensitiveActionName = keyof typeof sensitiveActionPolicies;

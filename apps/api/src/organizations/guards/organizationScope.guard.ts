@@ -37,9 +37,12 @@ export class OrganizationScopeGuard implements CanActivate {
       readonly OrganizationPermission[] | undefined
     >(ORGANIZATION_PERMISSIONS_KEY, context.getHandler());
 
-    const hasTenantParameter = ['organizationId', 'tenantId', 'teamId'].some(
-      (parameter) => Object.hasOwn(request.params, parameter),
-    );
+    const hasTenantParameter = [
+      'organizationId',
+      'tenantId',
+      'eventId',
+      'teamId',
+    ].some((parameter) => Object.hasOwn(request.params, parameter));
 
     if (!scoped) {
       if (hasTenantParameter || required !== undefined) {

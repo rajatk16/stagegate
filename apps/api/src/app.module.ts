@@ -5,6 +5,7 @@ import { Module, ValidationPipe } from '@nestjs/common';
 import { AuthModule } from './auth/modules';
 import { UsersModule } from './users/modules';
 import { validateEnvironment } from './config';
+import { EventsModule } from './events/modules';
 import { HealthModule } from './health/modules';
 import { FirebaseModule } from './firebase/module';
 import { ApiExceptionFilter } from './common/filters';
@@ -23,6 +24,7 @@ import { RequestValidationException } from './common/exceptions';
     }),
     AuthModule,
     UsersModule,
+    EventsModule,
     HealthModule,
     FirebaseModule,
     InvitationsModule,
