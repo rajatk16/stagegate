@@ -13,7 +13,7 @@ export class MemoryEmailProvider extends TransactionalEmailProvider {
     this.messages.push({ ...message });
 
     return {
-      status: 'ACCEPTED',
+      status: 'CAPTURED',
       messageId: randomUUID(),
     };
   }

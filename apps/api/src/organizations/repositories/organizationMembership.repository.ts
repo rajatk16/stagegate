@@ -2,7 +2,7 @@ import z from 'zod';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { FieldPath, Timestamp, Transaction } from 'firebase-admin/firestore';
 
-import { ORGANIZATION_ROLES } from '../enums';
+import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
 import { AuditWriter } from '../../audit/services';
 import { ApiException } from '../../common/exceptions';
 import { FirebaseService } from '../../firebase/services';
@@ -76,6 +76,7 @@ export class OrganizationMembershipRepository {
   ): Promise<OrganizationMembershipPage> {
     let query = this.getCollectionGroup()
       .where('uid', '==', uid)
+      .where('status', '==', ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE)
       .orderBy('organizationId', 'asc');
 
     if (afterOrganizationId !== undefined) {

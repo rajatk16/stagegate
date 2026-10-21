@@ -7,6 +7,7 @@ import { toDiagnostic } from '../../observalibility/mappers';
 const SUCCESS_CACHE_MS = 10_000;
 const FAILURE_CACHE_MS = 2_000;
 const RESPONSE_DEADLINE_MS = 2_000;
+const MAX_UNSETTLED_PROBES = 2;
 
 @Injectable()
 export class ReadinessService implements OnModuleDestroy {
@@ -16,6 +17,7 @@ export class ReadinessService implements OnModuleDestroy {
   });
 
   private draining = false;
+  private unsettledProbes = 0;
 
   private cached:
     | {
@@ -32,7 +34,7 @@ export class ReadinessService implements OnModuleDestroy {
     this.draining = true;
   }
 
-  async isReady() {
+  async isReady(): Promise<boolean> {
     if (this.draining) {
       return false;
     }
@@ -45,20 +47,12 @@ export class ReadinessService implements OnModuleDestroy {
     }
 
     if (this.inFlight === undefined) {
-      this.inFlight = this.probe()
-        .catch((error: unknown) => {
-          this.logger.error({
-            event: 'readiness.probe.failed',
-            ...toDiagnostic(error),
-          });
-
-          return false;
-        })
+      this.inFlight = this.runBoundedProbe()
         .then((ready) => {
           this.cached = {
             ready,
             expiresAt:
-              performance.now() | (ready ? SUCCESS_CACHE_MS : FAILURE_CACHE_MS),
+              performance.now() + (ready ? SUCCESS_CACHE_MS : FAILURE_CACHE_MS),
           };
 
           return ready;
@@ -68,7 +62,7 @@ export class ReadinessService implements OnModuleDestroy {
         });
     }
 
-    const ready = await this.withResponseDeadline(this.inFlight);
+    const ready = await this.inFlight;
 
     return !this.draining && ready;
   }
@@ -120,5 +114,28 @@ export class ReadinessService implements OnModuleDestroy {
         },
       );
     });
+  }
+
+  private async runBoundedProbe(): Promise<boolean> {
+    if (this.unsettledProbes >= MAX_UNSETTLED_PROBES) {
+      return false;
+    }
+
+    this.unsettledProbes += 1;
+
+    const pending = this.probe()
+      .catch((error: unknown) => {
+        this.logger.error({
+          event: 'readiness.probe.failed',
+          ...toDiagnostic(error),
+        });
+
+        return false;
+      })
+      .finally(() => {
+        this.unsettledProbes -= 1;
+      });
+
+    return this.withResponseDeadline(pending);
   }
 }
