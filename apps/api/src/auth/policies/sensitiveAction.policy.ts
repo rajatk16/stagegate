@@ -50,7 +50,7 @@ export const sensitiveActionPolicies = {
     },
   },
   createEvent: {
-    id: {
+    ip: {
       limit: 30,
       ttl: MINUTE,
       blockDuration: MINUTE,

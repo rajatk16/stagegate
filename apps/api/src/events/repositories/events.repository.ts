@@ -1,3 +1,4 @@
+import { FieldPath } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { eventConverter } from '../converters';
@@ -14,6 +15,11 @@ import {
   OrganizationRepository,
   OrganizationMembershipRepository,
 } from '../../organizations/repositories';
+import {
+  decodeEventCursor,
+  encodeEventCursor,
+  invalidEventCursor,
+} from '../utils';
 
 @Injectable()
 export class EventsRepository {
@@ -123,6 +129,81 @@ export class EventsRepository {
         this.auditWriter.append(transaction, auditEvent);
 
         return event;
+      },
+    );
+  }
+
+  async list(
+    scope: OrganizationScope,
+    limit: number,
+    cursor?: string,
+  ): Promise<{ items: Event[]; nextCursor: string | null }> {
+    const afterEventId = decodeEventCursor(cursor, scope);
+
+    return this.firebaseService.firestore.runTransaction(
+      async (transaction) => {
+        const organizationSnapshot = await transaction.get(
+          this.organizationRepository.getDocumentReference(
+            scope.organizationId,
+          ),
+        );
+
+        const organization = organizationSnapshot.data();
+
+        if (!organization) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'ORGANIZATION_NOT_FOUND',
+            'Organization not found.',
+          );
+        }
+
+        const membership =
+          await this.organizationMembershipRepository.requireActiveInTransaction(
+            transaction,
+            scope.organizationId,
+            scope.actorUid,
+          );
+
+        if (
+          organization.id !== scope.organizationId ||
+          membership.organizationId !== scope.organizationId ||
+          membership.uid !== scope.actorUid
+        ) {
+          throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
+        }
+
+        assertOrganizationPermissions(membership, ['organization:events:read']);
+
+        let query = this.collection(scope.organizationId)
+          .orderBy('createdAt', 'desc')
+          .orderBy(FieldPath.documentId(), 'desc');
+
+        if (afterEventId !== undefined) {
+          const anchor = await transaction.get(
+            this.getDocumentReference(scope.organizationId, afterEventId),
+          );
+
+          const event = anchor.data();
+
+          if (!event || event.organizationId !== scope.organizationId) {
+            throw invalidEventCursor();
+          }
+
+          query = query.startAfter(anchor);
+        }
+
+        const snapshot = await transaction.get(query.limit(limit + 1));
+        const documents = snapshot.docs.slice(0, limit);
+        const last = documents.at(-1);
+
+        return {
+          items: documents.map((document) => document.data()),
+          nextCursor:
+            snapshot.docs.length > limit && last
+              ? encodeEventCursor(scope, last.id)
+              : null,
+        };
       },
     );
   }

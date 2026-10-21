@@ -27,6 +27,12 @@ const assertIdentity = (valid: boolean): void => {
   }
 };
 
+const rejectPartialWrite = (options?: SetOptions): void => {
+  if (options !== undefined) {
+    throw new DiagnosticError('EVENT_PARTIAL_WRITE_UNSUPPORTED');
+  }
+};
+
 export const eventSlugReservationConverter: FirestoreDataConverter<
   EventSlugReservation,
   EventSlugReservationDocument
@@ -35,6 +41,7 @@ export const eventSlugReservationConverter: FirestoreDataConverter<
     value: unknown,
     options?: SetOptions,
   ): EventSlugReservationDocument {
+    rejectPartialWrite(options);
     const reservation = eventSlugReservationSchema.parse(value);
 
     return {

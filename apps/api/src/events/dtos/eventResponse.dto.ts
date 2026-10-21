@@ -7,3 +7,8 @@ export class EventResponseDto {
   createdAt!: string;
   updatedAt!: string;
 }
+
+export class EventPageResponseDto {
+  items!: EventResponseDto[];
+  nextCursor!: string | null;
+}

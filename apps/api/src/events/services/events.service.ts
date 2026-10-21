@@ -1,9 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 
-import { CreateEventDto } from '../dtos';
 import { Event, eventSchema } from '../models';
 import { EventsRepository } from '../repositories';
+import { CreateEventDto, ListEventQueryDto } from '../dtos';
 import { OrganizationScope } from '../../organizations/types';
 
 @Injectable()
@@ -28,5 +28,9 @@ export class EventsService {
     });
 
     return this.eventsRepository.create(scope, event);
+  }
+
+  list(scope: OrganizationScope, input: ListEventQueryDto) {
+    return this.eventsRepository.list(scope, input.limit, input.cursor);
   }
 }

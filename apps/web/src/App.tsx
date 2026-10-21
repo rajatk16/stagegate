@@ -16,12 +16,14 @@ import {
   AcceptInvitation,
   OrganizationShell,
   CreateOrganization,
+  OrganizationEvents,
   OrganizationMembers,
   RequireOrganization,
   OrganizationActivity,
   OrganizationSettings,
   OrganizationDashboard,
   OrganizationsProvider,
+  CreateOrganizationEvent,
 } from '@/features';
 
 export const App = () => (
@@ -101,6 +103,24 @@ export const App = () => (
                 path={ORGANIZATION_SECTIONS.activity.segment}
                 element={<OrganizationActivity />}
               />
+            </Route>
+            <Route
+              element={
+                <RequireOrganization capability="organization:events:read" />
+              }
+            >
+              <Route
+                path={ORGANIZATION_SECTIONS.events.segment}
+                element={<OrganizationEvents />}
+              />
+            </Route>
+
+            <Route
+              element={
+                <RequireOrganization capability="organization:events:create" />
+              }
+            >
+              <Route path="events/new" element={<CreateOrganizationEvent />} />
             </Route>
           </Route>
         </Route>
