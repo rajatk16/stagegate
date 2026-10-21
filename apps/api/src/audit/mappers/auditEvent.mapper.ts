@@ -171,3 +171,25 @@ export const toOrganizationOwnershipTransferredAuditEvent = (
     requestId: input.requestId,
     occurredAt: input.occurredAt,
   });
+
+export const toEventCreatedAuditEvent = (input: {
+  actorUid: string;
+  organizationId: string;
+  targetId: string;
+  requestId: string;
+  occurredAt: Date;
+}): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: 'event.created',
+    outcome: 'succeeded',
+
+    actorUid: input.actorUid,
+    targetType: 'event',
+    targetId: input.targetId,
+    organizationId: input.organizationId,
+
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
+  });

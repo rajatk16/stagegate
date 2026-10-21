@@ -25,20 +25,27 @@ export const ORGANIZATION_SLUGS_COLLECTION = 'organizationSlugs';
 export const ORGANIZATION_ROLE_PERMISSIONS: Readonly<
   Record<OrganizationMembership['role'], readonly OrganizationPermission[]>
 > = {
-  VIEWER: ['organization:read'],
-  MEMBER: ['organization:read', 'organization:members:read'],
+  VIEWER: ['organization:read', 'organization:events:read'],
+  MEMBER: [
+    'organization:read',
+    'organization:members:read',
+    'organization:events:read',
+  ],
   ADMIN: [
     'organization:read',
     'organization:update',
-    'organization:audit:read',
+    'organization:events:read',
     'organization:members:read',
+    'organization:events:create',
     'organization:members:manage',
   ],
   OWNER: [
     'organization:read',
     'organization:update',
     'organization:audit:read',
+    'organization:events:read',
     'organization:members:read',
+    'organization:events:create',
     'organization:members:manage',
     'organization:ownership:transfer',
   ],

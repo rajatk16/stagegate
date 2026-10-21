@@ -109,7 +109,17 @@ export const organizationOwnershipTransferredAuditEventSchema = auditBaseSchema
   })
   .strict();
 
+export const eventCreatedAuditEventSchema = auditBaseSchema
+  .extend({
+    action: z.literal('event.created'),
+    targetType: z.literal('event'),
+    organizationId: z.string().uuid(),
+    targetId: z.string().uuid(),
+  })
+  .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
+  eventCreatedAuditEventSchema,
   profileUpdatedAuditEventSchema,
   organizationCreatedAuditEventSchema,
   organizationSettingsUpdatedAuditEventSchema,
