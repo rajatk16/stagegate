@@ -106,6 +106,7 @@ export const environmentSchema = z
       for (const key of [
         'FIRESTORE_EMULATOR_HOST',
         'FIREBASE_AUTH_EMULATOR_HOST',
+        'FIREBASE_STORAGE_EMULATOR_HOST',
       ] as const) {
         if (env[key] !== undefined) {
           issue(key, 'Must be absent in production');
@@ -140,6 +141,7 @@ export const environmentSchema = z
     for (const key of [
       'FIRESTORE_EMULATOR_HOST',
       'FIREBASE_AUTH_EMULATOR_HOST',
+      'FIREBASE_STORAGE_EMULATOR_HOST',
     ] as const) {
       if (!env[key]) {
         issue(key, 'Required when using the emulator');
