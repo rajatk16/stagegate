@@ -1,50 +1,46 @@
-import { useAuth } from '@/features';
+import { Navigate, useLocation } from 'react-router';
 
-import { DashboardContent } from '../components';
-import { ReceivedInvitations } from '@/features/invitations/components';
-import { useLocation } from 'react-router';
-import { isRecord } from '../utils';
-import { InlineAlert } from '@/components';
+import { getOrganizationPath } from '@/lib';
+import { useOrganizations } from '@/features';
+import { Button, InlineAlert } from '@/components';
 
 export const Dashboard = () => {
-  const session = useAuth();
   const location = useLocation();
-  const navigationState: unknown = location.state;
+  const { state, reload } = useOrganizations();
 
-  if (session.status !== 'authenticated') {
-    return null;
+  if (state.status === 'loading') {
+    return (
+      <p role="status" className="text-muted-foreground">
+        Opening your dashboard...
+      </p>
+    );
   }
 
-  const leftOrganization =
-    isRecord(navigationState) &&
-    isRecord(navigationState.leftOrganization) &&
-    navigationState.leftOrganization.uid === session.user.uid &&
-    typeof navigationState.leftOrganization.name === 'string'
-      ? navigationState.leftOrganization.name
-      : null;
+  if (state.status === 'error') {
+    return (
+      <div className="space-y-4">
+        <InlineAlert tone="error" title="Could not load your organizations">
+          {state.message}
+        </InlineAlert>
+
+        <Button type="button" variant="outline" onClick={reload}>
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
+  const firstOrganization = state.organizations[0];
 
   return (
-    <div className="space-y-8">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="mt-2 text-muted-foreground">
-          Your profile, account, and next steps.
-        </p>
-      </header>
-
-      {leftOrganization !== null && (
-        <InlineAlert tone="success" title="You left the organization">
-          You no longer have access to {leftOrganization}. You will need a new
-          invitation to return.
-        </InlineAlert>
-      )}
-
-      <ReceivedInvitations
-        key={`${session.user.uid}:${session.user.email ?? ''}`}
-        user={session.user}
-      />
-
-      <DashboardContent key={session.user.uid} user={session.user} />
-    </div>
+    <Navigate
+      to={
+        firstOrganization
+          ? getOrganizationPath(firstOrganization.slug)
+          : '/organizations/new'
+      }
+      replace
+      state={location.state}
+    />
   );
 };

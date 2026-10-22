@@ -1,8 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { InvitationPage } from '../types';
 import { User } from 'firebase/auth';
 import { getInvitationErrorMessage } from '../utils';
-import { listOrganizationInvitations } from '../services';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  hasRepeatedCursor,
+  isAccessError,
+  queryKeys,
+  useSentInvitationsQuery,
+} from '@/app/query';
+import { ApiError } from '@/lib';
 
 type State =
   | {
@@ -21,70 +28,81 @@ export const useOrganizationInvitation = (
   user: User,
   organizationId: string,
 ) => {
-  const [state, setState] = useState<State>({ status: 'loading' });
-  const request = useRef<AbortController | null>(null);
+  const client = useQueryClient();
+  const query = useSentInvitationsQuery(user, organizationId);
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
 
-  const load = useCallback(
-    async (cursor: string | null = null, showLoading = true) => {
-      request.current?.abort();
+  const key = queryKeys.resources(user.uid, organizationId, 'invitations');
 
-      const controller = new AbortController();
-      request.current = controller;
+  const accessChanged = isAccessError(query.error);
+  const repeatedCursor = hasRepeatedCursor(query.data);
 
-      if (showLoading) {
-        setState({ status: 'loading' });
-      }
+  const restartRequired =
+    repeatedCursor ||
+    (query.error instanceof ApiError &&
+      (query.error.status === 400 || query.error.kind === 'response'));
 
-      try {
-        const page = await listOrganizationInvitations(
-          user,
-          organizationId,
-          controller.signal,
-          cursor,
-        );
+  const pageError = query.error
+    ? getInvitationErrorMessage(query.error)
+    : repeatedCursor
+      ? 'The server repeated a page cursor. Refresh invitations.'
+      : null;
 
-        if (!controller.signal.aborted) {
-          setState({ status: 'ready', page });
-        }
-      } catch (error: unknown) {
-        if (!controller.signal.aborted) {
-          setState({
-            status: 'error',
-            message: getInvitationErrorMessage(error),
-          });
-        }
-      } finally {
-        if (request.current === controller) {
-          request.current = null;
-        }
-      }
-    },
-    [user, organizationId],
-  );
+  const lastPage = query.data?.pages.at(-1);
+  let state: State;
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void load(null, false);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      request.current?.abort();
+  if (blockedMessage !== null) {
+    state = { status: 'error', message: blockedMessage };
+  } else if (accessChanged || (query.isError && lastPage === undefined)) {
+    state = {
+      status: 'error',
+      message: pageError ?? 'Could not load invitations.',
     };
-  }, [load]);
+  } else if (lastPage !== undefined) {
+    const items = [
+      ...new Map(
+        query
+          .data!.pages.flatMap((page) => page.items)
+          .map((invitation) => [invitation.id, invitation]),
+      ).values(),
+    ];
 
-  const invalidate = (message: string) => {
-    request.current?.abort();
-    setState({ status: 'error', message });
-  };
+    state = {
+      status: 'ready',
+      page: {
+        items,
+        allowedRoles: lastPage.allowedRoles,
+        nextCursor: query.hasNextPage ? lastPage.nextCursor : null,
+      },
+    };
+  } else {
+    state = { status: 'loading' };
+  }
 
   return {
     state,
-    invalidate,
-    refresh: () => void load(),
+    pageError,
+    fetching: query.isFetching,
+    restartRequired,
+    invalidate: (message: string) => {
+      void client.cancelQueries({ queryKey: key, exact: true });
+      setBlockedMessage(message);
+    },
+
+    refresh: () => {
+      (setBlockedMessage(null),
+        void client.resetQueries({ queryKey: key, exact: true }));
+    },
+
     nextPage: () => {
-      if (state.status === 'ready' && state.page.nextCursor !== null) {
-        void load(state.page.nextCursor);
+      if (
+        query.hasNextPage &&
+        !query.isFetching &&
+        !accessChanged &&
+        !restartRequired &&
+        blockedMessage === null
+      ) {
+        void query.fetchNextPage({ cancelRefetch: false });
       }
     },
   };

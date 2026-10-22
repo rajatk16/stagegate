@@ -1,6 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router';
 import { User } from 'firebase/auth';
+import { Link, useNavigate } from 'react-router';
 
 import {
   Card,
@@ -12,18 +11,35 @@ import {
 } from '@/components';
 
 import { Organization } from '../types';
-import { useOrganizations } from '../hooks';
-import { OrganizationCreated } from './OrganizationCreated';
 import { CreateOrganizationForm } from './CreateOrganizationForm';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@/app/query';
+import { getOrganizationPath } from '@/lib';
 
 export const CreateOrganizationContent = ({ user }: { user: User }) => {
-  const [createdOrganization, setCreatedOrganization] =
-    useState<Organization | null>(null);
-  const { reload } = useOrganizations();
+  const navigate = useNavigate();
+  const client = useQueryClient();
 
-  if (createdOrganization) {
-    return <OrganizationCreated organization={createdOrganization} />;
-  }
+  const openCreatedOrganization = (created: Organization) => {
+    client.setQueryData<Organization[]>(
+      queryKeys.organizations(user.uid),
+      (current) =>
+        [
+          ...(current ?? []).filter(
+            (organization) => organization.id !== created.id,
+          ),
+          created,
+        ].sort(
+          (left, right) =>
+            left.name.localeCompare(right.name) ||
+            left.id.localeCompare(right.id),
+        ),
+    );
+
+    void navigate(getOrganizationPath(created.slug), {
+      replace: true,
+    });
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -52,10 +68,7 @@ export const CreateOrganizationContent = ({ user }: { user: User }) => {
           <CardContent>
             <CreateOrganizationForm
               user={user}
-              onCreated={(organization) => {
-                setCreatedOrganization(organization);
-                reload();
-              }}
+              onCreated={openCreatedOrganization}
             />
           </CardContent>
         </Card>

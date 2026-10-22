@@ -1,37 +1,69 @@
 import { onIdTokenChanged } from 'firebase/auth';
-import { PropsWithChildren, useEffect, useState } from 'react';
+import {
+  Fragment,
+  PropsWithChildren,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { firebaseAuth } from '@/lib';
 
 import { AuthContext, AuthSession } from '../context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createAppQueryClient } from '@/app/query';
+
+type Snapshot = {
+  session: AuthSession;
+  client: QueryClient;
+  revision: number;
+};
 
 export const AuthProvider = (props: PropsWithChildren) => {
-  const [session, setSession] = useState<AuthSession>({
-    status: 'loading',
-    user: null,
-  });
+  const [snapshot, setSnapshot] = useState<Snapshot>(() => ({
+    session: {
+      status: 'loading',
+      user: null,
+    },
+    client: createAppQueryClient(),
+    revision: 0,
+  }));
+
+  const snapshotRef = useRef(snapshot);
 
   useEffect(() => {
-    const unsubscribe = onIdTokenChanged(firebaseAuth, (user) => {
-      if (user) {
-        setSession({
-          status: 'authenticated',
-          user,
-        });
-      } else {
-        setSession({
-          status: 'unauthenticated',
-          user: null,
-        });
+    return onIdTokenChanged(firebaseAuth, (user) => {
+      const previous = snapshotRef.current;
+
+      const changed =
+        previous.session.status === 'loading' || previous.session.user !== user;
+
+      const next: Snapshot = {
+        session: user
+          ? { status: 'authenticated', user }
+          : {
+              status: 'unauthenticated',
+              user: null,
+            },
+        client: changed ? createAppQueryClient() : previous.client,
+        revision: previous.revision + (changed ? 1 : 0),
+      };
+
+      snapshotRef.current = next;
+      setSnapshot(next);
+
+      if (changed) {
+        void previous.client.cancelQueries();
+        previous.client.clear();
       }
     });
-
-    return unsubscribe;
   }, []);
 
   return (
-    <AuthContext.Provider value={session}>
-      {props.children}
+    <AuthContext.Provider value={snapshot.session}>
+      <QueryClientProvider client={snapshot.client}>
+        <Fragment key={snapshot.revision}>{props.children}</Fragment>
+      </QueryClientProvider>
     </AuthContext.Provider>
   );
 };

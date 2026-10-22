@@ -1,6 +1,6 @@
 import { Link } from 'react-router';
 import type { User } from 'firebase/auth';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { Badge, Button, InlineAlert } from '@/components';
 import { useOrganizations } from '@/features/organizations';
@@ -9,10 +9,17 @@ import { ApiError, getOrganizationPath, clearInvitationToken } from '@/lib';
 import { ReceivedInvitation, ReceivedInvitationsPage } from '../types';
 import {
   getAcceptanceProblem,
-  listReceivedInvitations,
   acceptReceivedInvitation,
   getReceivedInvitationsError,
 } from '../services';
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  hasRepeatedCursor,
+  isAccessError,
+  queryKeys,
+  useApiMutation,
+  useReceivedInvitationsQuery,
+} from '@/app/query';
 
 type State =
   | { status: 'loading' }
@@ -34,7 +41,18 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
   const { state: organizationsState, reload: reloadOrganizations } =
     useOrganizations();
 
-  const [state, setState] = useState<State>({ status: 'loading' });
+  const client = useQueryClient();
+  const query = useReceivedInvitationsQuery(user);
+
+  const key = queryKeys.receivedInvitations(user.uid, user.email);
+
+  const acceptMutation = useApiMutation({
+    user,
+    request: acceptReceivedInvitation,
+    affected: [queryKeys.account(user.uid)],
+  });
+
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [joinedId, setJoinedId] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
@@ -42,63 +60,81 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
     message: string;
   } | null>(null);
 
-  const readRequest = useRef<AbortController | null>(null);
   const writeRequest = useRef<AbortController | null>(null);
   const refreshButton = useRef<HTMLButtonElement>(null);
 
-  const load = useCallback(
-    async (cursor: string | null = null, showLoading = true) => {
-      readRequest.current?.abort();
+  const accessChanged = isAccessError(query.error);
+  const repeatedCursor = hasRepeatedCursor(query.data);
 
-      const controller = new AbortController();
-      readRequest.current = controller;
+  const restartRequired =
+    repeatedCursor ||
+    (query.error instanceof ApiError &&
+      (query.error.status === 400 || query.error.kind === 'response'));
 
-      if (showLoading) {
-        setState({ status: 'loading' });
-      }
+  const pageError = query.error
+    ? getReceivedInvitationsError(query.error)
+    : repeatedCursor
+      ? 'The server repeated a page cursor. Refresh invitations.'
+      : null;
 
-      try {
-        const page = await listReceivedInvitations(
-          user,
-          controller.signal,
-          cursor,
-        );
+  const lastPage = query.data?.pages.at(-1);
+  let state: State;
 
-        if (!controller.signal.aborted) {
-          setState({ status: 'ready', page });
-        }
-      } catch (error: unknown) {
-        if (!controller.signal.aborted) {
-          setState({
-            status: 'error',
-            message: getReceivedInvitationsError(error),
-          });
-        }
-      } finally {
-        if (readRequest.current === controller) {
-          readRequest.current = null;
-        }
-      }
-    },
-    [user],
-  );
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void load(null, false);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      readRequest.current?.abort();
-      writeRequest.current?.abort();
+  if (blockedMessage !== null) {
+    state = { status: 'error', message: blockedMessage };
+  } else if (accessChanged || (query.isError && lastPage === undefined)) {
+    state = {
+      status: 'error',
+      message: pageError ?? 'Could not load invitations.',
     };
-  }, [load]);
+  } else if (lastPage !== undefined) {
+    state = {
+      status: 'ready',
+      page: {
+        items: [
+          ...new Map(
+            query
+              .data!.pages.flatMap((page) => page.items)
+              .map((invitation) => [invitation.id, invitation]),
+          ).values(),
+        ],
+        nextCursor: query.hasNextPage ? lastPage.nextCursor : null,
+      },
+    };
+  } else {
+    state = { status: 'loading' };
+  }
+
+  const load = (cursor: string | null = null) => {
+    if (query.isFetching || writeRequest.current !== null) return;
+
+    if (cursor === null) {
+      setBlockedMessage(null);
+      void client.resetQueries({ queryKey: key, exact: true });
+      return;
+    }
+
+    if (
+      query.hasNextPage &&
+      !accessChanged &&
+      !restartRequired &&
+      blockedMessage === null
+    ) {
+      void query.fetchNextPage({ cancelRefetch: false });
+    }
+  };
+
+  useEffect(
+    () => () => {
+      writeRequest.current?.abort();
+    },
+    [],
+  );
 
   const accept = async (invitation: ReceivedInvitation) => {
     if (
       writeRequest.current !== null ||
-      readRequest.current !== null ||
+      query.isFetching ||
       state.status !== 'ready'
     ) {
       return;
@@ -112,8 +148,7 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
     setJoinedId(null);
 
     try {
-      const result = await acceptReceivedInvitation(
-        user,
+      const result = await acceptMutation.execute(
         invitation,
         controller.signal,
       );
@@ -129,8 +164,6 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
           : `You have joined ${invitation.organizationName}.`,
       });
 
-      reloadOrganizations();
-      void load();
       refreshButton.current?.focus();
     } catch (error: unknown) {
       if (controller.signal.aborted) return;
@@ -143,20 +176,13 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
       });
 
       if (problem.kind === 'already-member') {
+        clearInvitationToken(invitation.id);
         setJoinedId(invitation.organizationId);
-        reloadOrganizations();
-        void load();
       } else if (
         error instanceof ApiError &&
         (error.status === 401 || error.status === 403)
       ) {
-        // Do not retain recipient data after an authorization failure.
-        setState({
-          status: 'error',
-          message: getReceivedInvitationsError(error),
-        });
-      } else if (problem.kind === 'unavailable') {
-        void load();
+        setBlockedMessage(getReceivedInvitationsError(error));
       }
 
       refreshButton.current?.focus();
@@ -178,7 +204,7 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
         )
       : undefined;
 
-  const busy = acceptingId !== null;
+  const busy = acceptingId !== null || query.isFetching;
 
   return (
     <section
@@ -204,10 +230,8 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
           ref={refreshButton}
           type="button"
           variant="outline"
-          aria-disabled={busy || state.status === 'loading'}
-          onClick={() => {
-            if (!busy && state.status !== 'loading') void load();
-          }}
+          disabled={busy}
+          onClick={() => reloadOrganizations()}
         >
           Refresh invitations
         </Button>
@@ -215,6 +239,15 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
 
       {feedback && (
         <InlineAlert tone={feedback.tone}>{feedback.message}</InlineAlert>
+      )}
+
+      {state.status === 'ready' && pageError && (
+        <InlineAlert tone="error">
+          {pageError}
+          {restartRequired && (
+            <p className="mt-2">Refresh invitations to restart pagination.</p>
+          )}
+        </InlineAlert>
       )}
 
       {joinedId !== null && (
@@ -239,7 +272,8 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={reloadOrganizations}
+                disabled={busy}
+                onClick={() => load()}
               >
                 Refresh organizations
               </Button>
@@ -262,9 +296,7 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
         <>
           {state.page.items.length === 0 ? (
             <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-              {state.page.nextCursor === null
-                ? 'No pending invitations on this page.'
-                : 'No invitations to show on this page. Check the next page.'}
+              No pending invitations.
             </p>
           ) : (
             <ul className="divide-y rounded-xl border">
@@ -313,10 +345,12 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
             <Button
               type="button"
               variant="outline"
-              disabled={busy || state.page.nextCursor === null}
-              onClick={() => void load(state.page.nextCursor)}
+              disabled={
+                busy || restartRequired || state.page.nextCursor === null
+              }
+              onClick={() => load(state.page.nextCursor)}
             >
-              Next page
+              {query.isFetching ? 'Loading…' : 'Load more'}
             </Button>
           </div>
         </>

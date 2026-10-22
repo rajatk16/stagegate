@@ -14,6 +14,7 @@ import {
   normalizeEventSlug,
   isEventCreationUncertain,
 } from '../utils';
+import { queryKeys, useApiMutation } from '@/app/query';
 
 type Props = {
   user: User;
@@ -28,6 +29,15 @@ export const CreateEventForm = ({ user, organizationId, onCreated }: Props) => {
 
   const requestRef = useRef<AbortController | null>(null);
   const focusSlugRef = useRef(false);
+
+  const createMutation = useApiMutation({
+    user,
+    request: createOrganizationEvent,
+    affected: [
+      queryKeys.resources(user.uid, organizationId, 'events'),
+      queryKeys.resources(user.uid, organizationId, 'activity'),
+    ],
+  });
 
   const {
     register,
@@ -62,8 +72,7 @@ export const CreateEventForm = ({ user, organizationId, onCreated }: Props) => {
 
     let created: OrganizationEvent | null = null;
     try {
-      created = await createOrganizationEvent(
-        user,
+      created = await createMutation.execute(
         organizationId,
         values,
         controller.signal,

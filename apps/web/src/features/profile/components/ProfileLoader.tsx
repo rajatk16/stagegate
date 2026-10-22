@@ -1,48 +1,17 @@
 import { User } from 'firebase/auth';
-import { useEffect, useState } from 'react';
 
 import { Button, InlineAlert } from '@/components';
 
 import { ProfileForm } from './ProfileForm';
-import { getProfile, getProfileErrorMessage, Profile } from '../services';
-
-type ProfileState =
-  | { status: 'loading' }
-  | { status: 'error'; message: string }
-  | { status: 'ready'; profile: Profile };
+import { useProfileState } from '@/app/query';
+import { Navigate, useLocation, useSearchParams } from 'react-router';
+import { isProfileComplete } from '../utils';
 
 export const ProfileLoader = ({ user }: { user: User }) => {
-  const [attempt, setAttempt] = useState(0);
-  const [state, setState] = useState<ProfileState>({
-    status: 'loading',
-  });
-
-  useEffect(() => {
-    const controller = new AbortController();
-
-    const load = async () => {
-      try {
-        const profile = await getProfile(user, controller.signal);
-
-        if (!controller.signal.aborted) {
-          setState({ status: 'ready', profile });
-        }
-      } catch (error: unknown) {
-        if (!controller.signal.aborted) {
-          setState({
-            status: 'error',
-            message: getProfileErrorMessage(error),
-          });
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      controller.abort();
-    };
-  }, [user, attempt]);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const onboarding = searchParams.get('onboarding') === '1';
+  const { state, refresh, refreshing, refreshError } = useProfileState(user);
 
   if (state.status === 'loading') {
     return (
@@ -66,10 +35,8 @@ export const ProfileLoader = ({ user }: { user: User }) => {
         <Button
           type="button"
           variant="outline"
-          onClick={() => {
-            setState({ status: 'loading' });
-            setAttempt((value) => value + 1);
-          }}
+          disabled={refreshing}
+          onClick={refresh}
         >
           Try again
         </Button>
@@ -77,5 +44,25 @@ export const ProfileLoader = ({ user }: { user: User }) => {
     );
   }
 
-  return <ProfileForm user={user} profile={state.profile} />;
+  if (onboarding && isProfileComplete(state.profile)) {
+    return <Navigate to="/dashboard" replace state={location.state} />;
+  }
+
+  return (
+    <div className="space-y-4 flex justify-center flex-col flex-1">
+      {onboarding && (
+        <InlineAlert tone="info" title="Complete your profile">
+          Add your name and timezone to continue to your workspace.
+        </InlineAlert>
+      )}
+      {refreshError && (
+        <InlineAlert tone="warning">
+          Could not refresh your profile. Your current edits are preserved.{' '}
+          {refreshError}
+        </InlineAlert>
+      )}
+
+      <ProfileForm user={user} profile={state.profile} />
+    </div>
+  );
 };

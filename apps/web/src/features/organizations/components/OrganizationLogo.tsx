@@ -1,7 +1,7 @@
-import { User } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 import { useEffect, useState } from 'react';
 
-import { getOrganizationLogo } from '../services';
+import { isAccessError, useOrganizationLogoQuery } from '@/app/query';
 
 type Props = {
   user: User;
@@ -10,39 +10,32 @@ type Props = {
   name: string;
 };
 
-const LoadedLogo = ({ user, organizationId, name }: Props) => {
-  const [url, setUrl] = useState<string | null>(null);
+type ImageState = {
+  blob: Blob;
+  url: string;
+};
+
+const initial = (name: string) =>
+  Array.from(name.trim())[0]?.toUpperCase() ?? 'O';
+
+const LoadedLogo = ({ user, organizationId, version, name }: Props) => {
+  const query = useOrganizationLogoQuery(user, organizationId, version);
+
+  const blob = isAccessError(query.error) ? undefined : query.data;
+  const [image, setImage] = useState<ImageState | null>(null);
 
   useEffect(() => {
-    const controller = new AbortController();
-    let objectUrl: string | undefined;
+    if (!blob) return;
 
-    const load = async () => {
-      try {
-        const image = await getOrganizationLogo(
-          user,
-          organizationId,
-          controller.signal,
-        );
-
-        if (controller.signal.aborted) return;
-
-        objectUrl = URL.createObjectURL(image);
-
-        setUrl(objectUrl);
-      } catch {}
-    };
-
-    void load();
+    const url = URL.createObjectURL(blob);
+    setImage({ blob, url });
 
     return () => {
-      controller.abort();
-
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
+      URL.revokeObjectURL(url);
     };
-  }, [user, organizationId]);
+  }, [blob]);
+
+  const url = image !== null && image.blob === blob ? image.url : null;
 
   return (
     <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border bg-muted font-semibold">
@@ -51,12 +44,10 @@ const LoadedLogo = ({ user, organizationId, name }: Props) => {
           src={url}
           alt={`${name} logo`}
           className="size-full object-contain p-1"
-          onError={() => setUrl(null)}
+          onError={() => setImage(null)}
         />
       ) : (
-        <span aria-label="Logo unavailable">
-          {Array.from(name.trim().toUpperCase() || '0')}
-        </span>
+        <span aria-label="Logo unavailable">{initial(name)}</span>
       )}
     </div>
   );
@@ -70,6 +61,6 @@ export const OrganizationLogo = (props: Props) =>
     />
   ) : (
     <div className="flex size-16 shrink-0 items-center justify-center rounded-2xl border bg-muted font-semibold">
-      {Array.from(props.name.trim()[0]?.toUpperCase() || '0')}
+      {initial(props.name)}
     </div>
   );

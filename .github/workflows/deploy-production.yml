@@ -1,0 +1,187 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stagegate-production
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  backend:
+    name: Validate backend
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/backend-ci.yml
+    with:
+      upload_image: true
+
+  frontend:
+    name: Validate frontend
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/frontend-ci.yml
+    with:
+      upload_image: true
+
+  deploy:
+    name: Deploy Firebase and Fly apps
+    needs: [backend, frontend]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    environment: production
+
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      FIREBASE_PROJECT_ID: stagegate-c6df0
+
+    steps:
+      - name: Checkout merged commit
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      - name: Set up npm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global npm@11.19.0
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Download tested backend image
+        uses: actions/download-artifact@v8
+        with:
+          name: backend-image-${{ github.sha }}
+          path: ${{ runner.temp }}/backend-image
+
+      - name: Download tested frontend image
+        uses: actions/download-artifact@v8
+        with:
+          name: frontend-image-${{ github.sha }}
+          path: ${{ runner.temp }}/frontend-image
+
+      - name: Load tested images
+        run: |
+          docker load \
+            --input "$RUNNER_TEMP/backend-image/stagegate-api.tar"
+
+          docker load \
+            --input "$RUNNER_TEMP/frontend-image/stagegate-web.tar"
+
+      - name: Set up Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ env.FIREBASE_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+
+      - name: Deploy Firestore rules, indexes, and Storage rules
+        run: |
+          npx --no-install firebase deploy \
+            --project "$FIREBASE_PROJECT_ID" \
+            --only firestore:rules,firestore:indexes,storage \
+            --non-interactive
+
+      - name: Wait for required Firestore indexes
+        run: python3 scripts/ci/wait-firestore-indexes.py
+
+      - name: Push and deploy backend image
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_BACKEND }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          image="registry.fly.io/stagegate-api:${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+          flyctl auth docker
+
+          docker tag stagegate-api:ci "$image"
+          docker push "$image"
+
+          digest="$(docker image inspect "$image" \
+            --format '{{index .RepoDigests 0}}')"
+
+          flyctl deploy \
+            --app stagegate-api \
+            --config fly.toml \
+            --image "$digest" \
+            --yes
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 12 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            --retry-max-time 120 \
+            --max-time 10 \
+            https://stagegate-api.fly.dev/api/v1/health/ready
+
+          printf '%s\n' "Backend image: $digest" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Push and deploy frontend image
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_FRONTEND }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          image="registry.fly.io/stagegate-web:${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+
+          flyctl auth docker
+
+          docker tag stagegate-web:ci "$image"
+          docker push "$image"
+
+          digest="$(docker image inspect "$image" \
+            --format '{{index .RepoDigests 0}}')"
+
+          flyctl deploy \
+            --app stagegate-web \
+            --config fly.web.toml \
+            --image "$digest" \
+            --yes
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 12 \
+            --retry-all-errors \
+            --retry-delay 5 \
+            --retry-max-time 120 \
+            --max-time 10 \
+            https://stagegate-web.fly.dev/healthz
+
+          printf '%s\n' "Frontend image: $digest" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record deployed commit
+        env:
+          DEPLOYED_SHA: ${{ github.sha }}
+        run: |
+          printf '%s\n' \
+            "Deployed commit: $DEPLOYED_SHA" \
+            >> "$GITHUB_STEP_SUMMARY"

@@ -118,7 +118,7 @@ export const OrganizationMembersTable = ({
                 className={
                   member.status === 'ACTIVE'
                     ? 'border-emerald-600/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200'
-                    : 'border-amber-600/30 bg-amber-500/10 text-amber-900 darl:text-amber-200'
+                    : 'border-amber-600/30 bg-amber-500/10 text-amber-900 dark:text-amber-200'
                 }
               >
                 {statusLabels[member.status]}

@@ -21,6 +21,7 @@ const pageTitles: Record<string, string> = {
   '/auth/action': 'Account recovery',
   '/organizations/new': 'Create organization',
   '/organizations': 'Organizations',
+  '/invitations': 'Invitations',
 };
 
 export const PageContent = (props: PropsWithChildren<Props>) => {
@@ -41,7 +42,9 @@ export const PageContent = (props: PropsWithChildren<Props>) => {
   const title =
     pageTitles[location.pathname] ??
     (organizationSection
-      ? `Organization ${organizationSection.label.toLowerCase()}`
+      ? organizationSection.segment === ''
+        ? 'Dashboard'
+        : `Organization ${organizationSection.label.toLowerCase()}`
       : 'Page not found');
   const boundaryKey = `${location.key}:${session.user?.uid ?? session.status}`;
 

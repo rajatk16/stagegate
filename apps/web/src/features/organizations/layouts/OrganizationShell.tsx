@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useParams } from 'react-router';
+import { Link, Navigate, NavLink, Outlet, useParams } from 'react-router';
 
 import { Badge, Button, InlineAlert } from '@/components';
 import { getOrganizationSectionPath, ORGANIZATION_SECTIONS } from '@/lib';
@@ -11,7 +11,7 @@ export const OrganizationShell = () => {
     organizationSlug: string;
   }>();
 
-  const { state, reload } = useOrganizations();
+  const { state, reload, refreshError } = useOrganizations();
 
   if (state.status === 'loading') {
     return (
@@ -41,6 +41,10 @@ export const OrganizationShell = () => {
         </Button>
       </div>
     );
+  }
+
+  if (state.organizations.length === 0) {
+    return <Navigate to="/organizations/new" replace />;
   }
 
   const organization = state.organizations.find(
@@ -102,6 +106,11 @@ export const OrganizationShell = () => {
 
   return (
     <div className="space-y-8">
+      {refreshError && (
+        <InlineAlert tone="warning" title="Could not refresh organization">
+          {refreshError}
+        </InlineAlert>
+      )}
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <Badge variant="outline" className="capitalize">

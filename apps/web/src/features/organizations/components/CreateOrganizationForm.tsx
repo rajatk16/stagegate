@@ -9,6 +9,7 @@ import { createOrganization, getOrganizationErrorMessage } from '../services';
 import { CreateOrganizationInput, Organization } from '../types';
 import { normalizeOrganizationSlug, suggestOrganizationSlug } from '../utils';
 import { ORGANIZATION_SLUG_PATTERN } from '../constants';
+import { queryKeys, useApiMutation } from '@/app/query';
 
 type CreateOrganizationFormProps = {
   user: User;
@@ -23,6 +24,12 @@ export const CreateOrganizationForm = ({
   const [slugEdited, setSlugEdited] = useState(false);
   const requestRef = useRef<AbortController | null>(null);
   const focusSlugRef = useRef(false);
+
+  const createMutation = useApiMutation({
+    user,
+    request: createOrganization,
+    affected: [queryKeys.organizations(user.uid)],
+  });
 
   const {
     register,
@@ -63,8 +70,7 @@ export const CreateOrganizationForm = ({
     clearErrors('root');
 
     try {
-      const organization = await createOrganization(
-        user,
+      const organization = await createMutation.execute(
         values,
         controller.signal,
       );

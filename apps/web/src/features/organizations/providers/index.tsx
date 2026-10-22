@@ -1,102 +1,87 @@
 import { User } from 'firebase/auth';
 import { Outlet } from 'react-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useAuth } from '@/features/auth';
-
+import { useQueryClient } from '@tanstack/react-query';
+import { isAccessError, queryKeys, useMyOrganizationsQuery } from '@/app/query';
 import { OrganizationsContext, OrganizationsState } from '../context';
-import {
-  listMyOrganizations,
-  getOrganizationListErrorMessage,
-} from '../services';
+import { getOrganizationListErrorMessage } from '../services';
 import { Organization } from '../types';
 
 const OrganizationSession = ({ user }: { user: User }) => {
-  const [attempt, setAttempt] = useState(0);
-  const [state, setState] = useState<OrganizationsState>({
-    status: 'loading',
-  });
+  const client = useQueryClient();
+  const query = useMyOrganizationsQuery(user);
+  const key = queryKeys.organizations(user.uid);
 
-  const requestRef = useRef<AbortController | null>(null);
+  let state: OrganizationsState;
 
-  const reload = useCallback(() => {
-    requestRef.current?.abort();
-    setState({ status: 'loading' });
-    setAttempt((value) => value + 1);
-  }, []);
+  if (isAccessError(query.error)) {
+    state = {
+      status: 'error',
+      message: getOrganizationListErrorMessage(query.error),
+    };
+  } else if (query.data !== undefined) {
+    state = {
+      status: 'ready',
+      organizations: query.data,
+    };
+  } else if (query.isError) {
+    state = {
+      status: 'error',
+      message: getOrganizationListErrorMessage(query.error),
+    };
+  } else {
+    state = { status: 'loading' };
+  }
 
-  const replaceOrganization = useCallback(
-    (updated: Organization) => {
-      if (updated.membership.uid !== user.uid) return;
+  const reload = () => {
+    void client.invalidateQueries({
+      queryKey: queryKeys.account(user.uid),
+      refetchType: 'none',
+    });
 
-      setState((current) => {
-        if (current.status !== 'ready') return current;
+    void client.resetQueries({
+      queryKey: key,
+      exact: true,
+    });
+  };
 
-        return {
-          status: 'ready',
-          organizations: current.organizations
-            .map((organization) => {
-              if (organization.id !== updated.id) {
-                return organization;
-              }
+  const replaceOrganization = (updated: Organization) => {
+    if (updated.membership.uid !== user.uid) return;
 
-              return Date.parse(updated.updatedAt) >=
-                Date.parse(organization.updatedAt)
-                ? updated
-                : organization;
-            })
-            .sort(
-              (left, right) =>
-                left.name.localeCompare(right.name) ||
-                left.id.localeCompare(right.id),
-            ),
-        };
-      });
-    },
-    [user.uid],
-  );
+    client.setQueryData<Organization[]>(key, (current) => {
+      if (!current) return current;
 
-  useEffect(() => {
-    const controller = new AbortController();
-    requestRef.current = controller;
+      return current
+        .map((organization) => {
+          if (organization.id !== updated.id) return organization;
 
-    const load = async () => {
-      try {
-        const organizations = await listMyOrganizations(
-          user,
-          controller.signal,
+          return Date.parse(updated.updatedAt) >=
+            Date.parse(organization.updatedAt)
+            ? updated
+            : organization;
+        })
+        .sort(
+          (left, right) =>
+            left.name.localeCompare(right.name) ||
+            left.id.localeCompare(right.id),
         );
+    });
+  };
 
-        if (!controller.signal.aborted) {
-          setState({
-            status: 'ready',
-            organizations,
-          });
-        }
-      } catch (error: unknown) {
-        if (!controller.signal.aborted) {
-          setState({
-            status: 'error',
-            message: getOrganizationListErrorMessage(error),
-          });
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      controller.abort();
-
-      if (requestRef.current === controller) {
-        requestRef.current = null;
-      }
-    };
-  }, [user, attempt]);
+  const refreshError =
+    query.error && query.data && !isAccessError(query.error)
+      ? getOrganizationListErrorMessage(query.error)
+      : null;
 
   return (
     <OrganizationsContext.Provider
-      value={{ state, reload, replaceOrganization }}
+      value={{
+        state,
+        reload,
+        replaceOrganization,
+        refreshError,
+      }}
     >
       <Outlet />
     </OrganizationsContext.Provider>

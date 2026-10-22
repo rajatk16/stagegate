@@ -13,6 +13,7 @@ import {
   MembershipActionDialog,
   OrganizationMembersTable,
 } from '../components';
+import { queryKeys, useApiMutation } from '@/app/query';
 
 type ContentProps = {
   user: User;
@@ -29,6 +30,15 @@ export const OrganizationMembersContent = ({
     user,
     organization.id,
   );
+
+  const statusMutation = useApiMutation({
+    user,
+    request: changeOrganizationMemberStatus,
+    affected: [
+      queryKeys.organizations(user.uid),
+      queryKeys.organization(user.uid, organization.id),
+    ],
+  });
 
   const [mutationPending, setMutationPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -157,8 +167,7 @@ export const OrganizationMembersContent = ({
                       restoreFocus={() => headingRef.current?.focus()}
                       onPendingChange={setMutationPending}
                       run={(signal) =>
-                        changeOrganizationMemberStatus(
-                          user,
+                        statusMutation.execute(
                           organization.id,
                           member.uid,
                           nextStatus,
@@ -171,7 +180,6 @@ export const OrganizationMembersContent = ({
                             ? `${person} was suspended. Their role was preserved.`
                             : `${person} was reactivated with their existing role.`,
                         );
-                        refresh();
                       }}
                     />
                     {member.actions.transferOwnership && (
@@ -183,8 +191,6 @@ export const OrganizationMembersContent = ({
                         onPendingChange={setMutationPending}
                         restoreFocus={() => headingRef.current?.focus()}
                         onSuccess={() => {
-                          reloadOrganizations();
-
                           void navigate(
                             getOrganizationSectionPath(
                               organization.slug,
@@ -194,7 +200,7 @@ export const OrganizationMembersContent = ({
                               replace: true,
                               state: {
                                 ownershipTransferred: {
-                                  organziationId: organization.id,
+                                  organizationId: organization.id,
                                   uid: user.uid,
                                 },
                               },

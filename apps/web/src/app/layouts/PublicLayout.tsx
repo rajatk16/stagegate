@@ -15,20 +15,20 @@ export const PublicLayout = () => (
 
         <nav
           aria-label="Public navigation"
-          className="flex items-center gap-5 text-sm text-muted-foreground"
+          className="flex flex-wrap items-center gap-x-5 gap-y-3 text-sm text-muted-foreground"
         >
+          <Link
+            to="/#for-organizers"
+            className="rounded hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+          >
+            For organizers
+          </Link>
+
           <Link
             to="/#how-it-works"
             className="rounded hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
           >
             How it works
-          </Link>
-
-          <Link
-            to="/#whats-next"
-            className="rounded hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-          >
-            What’s next
           </Link>
         </nav>
 

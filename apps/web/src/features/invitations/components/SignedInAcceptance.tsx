@@ -12,6 +12,7 @@ import {
   AcceptanceProblem,
   AcceptedInvitation as AcceptanceResult,
 } from '../types';
+import { queryKeys, useApiMutation } from '@/app/query';
 
 type AcceptanceState =
   | { status: 'ready' }
@@ -36,6 +37,13 @@ export const SignedInAcceptance = ({
 }: SignedInProps) => {
   const [state, setState] = useState<AcceptanceState>({
     status: 'ready',
+  });
+
+  const acceptMutation = useApiMutation({
+    user,
+    request: (currentUser: User, signal: AbortSignal) =>
+      acceptInvitation(currentUser, invitationId, token, signal),
+    affected: [queryKeys.account(user.uid)],
   });
 
   const request = useRef<AbortController | null>(null);
@@ -69,12 +77,7 @@ export const SignedInAcceptance = ({
         );
       }
 
-      const result = await acceptInvitation(
-        user,
-        invitationId,
-        token,
-        controller.signal,
-      );
+      const result = await acceptMutation.execute(controller.signal);
 
       if (controller.signal.aborted) return;
 

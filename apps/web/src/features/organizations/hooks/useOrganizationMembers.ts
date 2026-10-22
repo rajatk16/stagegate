@@ -1,192 +1,79 @@
 import { User } from 'firebase/auth';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ApiError } from '@/lib';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
-  listOrganizationMembers,
-  getOrganizationMembersErrorMessage,
-} from '../services';
-import { OrganizationMember } from '../types';
+  queryKeys,
+  isAccessError,
+  useMembersQuery,
+  hasRepeatedCursor,
+} from '@/app/query';
 
-type MembersState =
-  | {
-      status: 'loading';
-    }
-  | {
-      status: 'error';
-      message: string;
-      accessChanged: boolean;
-    }
-  | {
-      status: 'ready';
-      items: OrganizationMember[];
-      nextCursor: string | null;
-      loadingMore: boolean;
-      pageError: string | null;
-      restartRequired: boolean;
-    };
+import { getOrganizationMembersErrorMessage } from '../services';
 
 export const useOrganizationMembers = (user: User, organizationId: string) => {
-  const [state, setState] = useState<MembersState>({
-    status: 'loading',
-  });
+  const client = useQueryClient();
+  const query = useMembersQuery(user, organizationId);
 
-  const requestRef = useRef<AbortController | null>(null);
-  const seenCursorRef = useRef(new Set<string>());
+  const key = queryKeys.resources(user.uid, organizationId, 'members');
+  const accessChanged = isAccessError(query.error);
+  const repeatedCursor = hasRepeatedCursor(query.data);
 
-  const loadPage = useCallback(
-    async (cursor: string | null, append: boolean, showLoading = true) => {
-      if (append && requestRef.current !== null) {
-        return;
-      }
+  const restartRequired =
+    repeatedCursor ||
+    (query.error instanceof ApiError &&
+      (query.error.status === 400 || query.error.kind === 'response'));
 
-      requestRef.current?.abort();
+  const message = query.error
+    ? getOrganizationMembersErrorMessage(query.error)
+    : repeatedCursor
+      ? 'The server repeated a page cursor. Refresh the team.'
+      : null;
 
-      const controller = new AbortController();
-      requestRef.current = controller;
+  const items = [
+    ...new Map(
+      (query.data?.pages.flatMap((page) => page.items) ?? []).map((member) => [
+        member.uid,
+        member,
+      ]),
+    ).values(),
+  ];
 
-      if (append) {
-        setState((current) =>
-          current.status === 'ready'
-            ? {
-                ...current,
-                loadingMore: true,
-                pageError: null,
-              }
-            : current,
-        );
-      } else {
-        seenCursorRef.current.clear();
-
-        if (showLoading) {
-          setState({ status: 'loading' });
+  const state =
+    accessChanged || (query.isError && !query.data)
+      ? {
+          status: 'error' as const,
+          message: message ?? 'Could not load the team.',
+          accessChanged,
         }
-      }
-
-      try {
-        const page = await listOrganizationMembers(
-          user,
-          organizationId,
-          controller.signal,
-          cursor,
-        );
-
-        if (controller.signal.aborted) {
-          return;
-        }
-
-        if (
-          page.nextCursor !== null &&
-          seenCursorRef.current.has(page.nextCursor)
-        ) {
-          throw new ApiError(
-            'The API repeated a member pagination cursor.',
-            'response',
-          );
-        }
-
-        if (page.nextCursor !== null) {
-          seenCursorRef.current.add(page.nextCursor);
-        }
-
-        setState((current) => {
-          const previousItems =
-            append && current.status === 'ready' ? current.items : [];
-
-          const membersByUid = new Map(
-            previousItems.map((member) => [member.uid, member]),
-          );
-
-          for (const member of page.items) {
-            membersByUid.set(member.uid, member);
-          }
-
-          return {
-            status: 'ready',
-            items: [...membersByUid.values()],
-            nextCursor: page.nextCursor,
-            loadingMore: false,
-            pageError: null,
-            restartRequired: false,
+      : query.isPending
+        ? { status: 'loading' as const }
+        : {
+            status: 'ready' as const,
+            items,
+            nextCursor: query.hasNextPage
+              ? (query.data?.pages.at(-1)?.nextCursor ?? null)
+              : null,
+            loadingMore: query.isFetching,
+            pageError: message,
+            restartRequired,
           };
-        });
-      } catch (error: unknown) {
-        if (controller.signal.aborted) {
-          return;
-        }
-
-        const message = getOrganizationMembersErrorMessage(error);
-
-        const accessChanged =
-          error instanceof ApiError &&
-          (error.status === 401 ||
-            error.status === 403 ||
-            error.status === 404);
-
-        if (!append || accessChanged) {
-          setState({
-            status: 'error',
-            message,
-            accessChanged,
-          });
-          return;
-        }
-
-        const restartRequired =
-          error instanceof ApiError &&
-          (error.status === 400 || error.kind === 'response');
-
-        setState((current) =>
-          current.status === 'ready'
-            ? {
-                ...current,
-                loadingMore: false,
-                pageError: message,
-                restartRequired,
-              }
-            : current,
-        );
-      } finally {
-        if (requestRef.current === controller) {
-          requestRef.current = null;
-        }
-      }
-    },
-    [user, organizationId],
-  );
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      void loadPage(null, false, false);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-      requestRef.current?.abort();
-    };
-  }, [loadPage]);
-
-  const refresh = () => {
-    void loadPage(null, false);
-  };
-
-  const loadMore = () => {
-    if (
-      state.status !== 'ready' ||
-      state.nextCursor === null ||
-      state.loadingMore ||
-      state.restartRequired
-    ) {
-      return;
-    }
-
-    void loadPage(state.nextCursor, true);
-  };
 
   return {
     state,
-    refresh,
-    loadMore,
+    refresh: () => {
+      void client.resetQueries({ queryKey: key, exact: true });
+    },
+    loadMore: () => {
+      if (
+        query.hasNextPage &&
+        !query.isFetching &&
+        !restartRequired &&
+        !accessChanged
+      ) {
+        void query.fetchNextPage({ cancelRefetch: false });
+      }
+    },
   };
 };

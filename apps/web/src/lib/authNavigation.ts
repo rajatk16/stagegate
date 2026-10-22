@@ -2,7 +2,7 @@ import { INVITATION_PATH_PATTERN } from './invitationLinks';
 
 const DEFAULT_RETURN_TO = '/dashboard';
 
-const allowedReturnPaths = new Set(['/dashboard', '/profile']);
+const allowedReturnPaths = new Set(['/dashboard', '/profile', '/invitations']);
 
 export const getSafeReturnTo = (value: string | null | undefined): string => {
   if (!value || !value.startsWith('/') || value.startsWith('//')) {
