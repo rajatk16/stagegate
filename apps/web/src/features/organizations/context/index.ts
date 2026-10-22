@@ -10,6 +10,7 @@ export type OrganizationsContextValue = {
   state: OrganizationsState;
   replaceOrganization: (organization: Organization) => void;
   reload: () => void;
+  refreshError: string | null;
 };
 
 export const OrganizationsContext = createContext<

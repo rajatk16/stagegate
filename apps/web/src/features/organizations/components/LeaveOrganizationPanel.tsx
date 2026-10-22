@@ -7,6 +7,8 @@ import { hasOrganizationCapability } from '../utils';
 import { Button } from '@/components';
 import { leaveOrganization } from '../services';
 import { MembershipActionDialog } from './MembershiActionDialog';
+import { queryKeys, useApiMutation } from '@/app/query';
+import { useQueryClient } from '@tanstack/react-query';
 
 type Props = {
   user: User;
@@ -18,6 +20,40 @@ export const LeaveOrganizationPanel = (props: Props) => {
   const { reload } = useOrganizations();
   const [pending, setPending] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const client = useQueryClient();
+
+  const leaveMutation = useApiMutation({
+    user: props.user,
+    request: leaveOrganization,
+    affected: [
+      queryKeys.organizations(props.user.uid),
+      queryKeys.organization(props.user.uid, props.organization.id),
+    ],
+    onSuccess: () => {
+      void navigate('/dashboard', {
+        replace: true,
+        state: {
+          leftOrganization: {
+            uid: props.user.uid,
+            name: props.organization.name,
+          },
+        },
+      });
+
+      client.setQueryData<Organization[]>(
+        queryKeys.organizations(props.user.uid),
+        (current) =>
+          current?.filter(
+            (organization) => organization.id !== props.organization.id,
+          ),
+      );
+
+      client.removeQueries({
+        queryKey: queryKeys.organization(props.user.uid, props.organization.id),
+      });
+    },
+  });
 
   const canLeave = hasOrganizationCapability(
     props.organization,
@@ -72,23 +108,8 @@ export const LeaveOrganizationPanel = (props: Props) => {
           disabled={pending}
           restoreFocus={() => headingRef.current?.focus()}
           onPendingChange={setPending}
-          run={(signal) =>
-            leaveOrganization(props.user, props.organization.id, signal)
-          }
-          onSuccess={() => {
-            // Immediately invalidate the switcher's membership list.
-            reload();
-
-            void navigate('/dashboard', {
-              replace: true,
-              state: {
-                leftOrganization: {
-                  uid: props.user.uid,
-                  name: props.organization.name,
-                },
-              },
-            });
-          }}
+          run={(signal) => leaveMutation.execute(props.organization.id, signal)}
+          onSuccess={() => {}}
         />
 
         <Button

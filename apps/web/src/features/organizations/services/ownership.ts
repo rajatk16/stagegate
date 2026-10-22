@@ -15,7 +15,7 @@ export const transferOrganizationOwnership = async (
 ): Promise<void> => {
   const result = await authenticatedApiRequest(
     user,
-    `/organizaitons/${encodeURIComponent(organizationId)}/ownership/transfer`,
+    `/organizations/${encodeURIComponent(organizationId)}/ownership/transfer`,
     {
       method: 'POST',
       json: { targetUid },

@@ -12,3 +12,6 @@ public/dist
 .firebase/
 *.tsbuildinfo
 coverage/
+playwright-report/
+test-results/
+gha-credis-*.json

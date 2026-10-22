@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router';
 
-import { RequireAuth } from '@/app/components';
+import { RequireAuth, RequireCompleteProfile } from '@/app/components';
 import { AppShell, PublicLayout } from '@/app/layouts';
 import { Dashboard, Landing, NotFound } from '@/app/pages';
 import { ORGANIZATION_ROUTE_PATTERN, ORGANIZATION_SECTIONS } from '@/lib';
@@ -24,6 +24,7 @@ import {
   OrganizationDashboard,
   OrganizationsProvider,
   CreateOrganizationEvent,
+  Invitations,
 } from '@/features';
 
 export const App = () => (
@@ -57,70 +58,74 @@ export const App = () => (
     >
       <Route element={<OrganizationsProvider />}>
         <Route element={<AppShell />}>
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/organizations" element={<Organizations />} />
-          <Route path="/organizations/new" element={<CreateOrganization />} />
-          <Route
-            path={ORGANIZATION_ROUTE_PATTERN}
-            element={<OrganizationShell />}
-          >
-            <Route index element={<OrganizationDashboard />} />
+          <Route element={<RequireCompleteProfile />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/invitations" element={<Invitations />} />
 
+            <Route path="/organizations" element={<Organizations />} />
+            <Route path="/organizations/new" element={<CreateOrganization />} />
             <Route
-              element={
-                <RequireOrganization
-                  capability={ORGANIZATION_SECTIONS.settings.capability}
+              path={ORGANIZATION_ROUTE_PATTERN}
+              element={<OrganizationShell />}
+            >
+              <Route index element={<OrganizationDashboard />} />
+              <Route
+                element={
+                  <RequireOrganization
+                    capability={ORGANIZATION_SECTIONS.settings.capability}
+                  />
+                }
+              >
+                <Route
+                  path={ORGANIZATION_SECTIONS.settings.segment}
+                  element={<OrganizationSettings />}
                 />
-              }
-            >
+              </Route>
               <Route
-                path={ORGANIZATION_SECTIONS.settings.segment}
-                element={<OrganizationSettings />}
-              />
-            </Route>
-
-            <Route
-              element={
-                <RequireOrganization
-                  capability={ORGANIZATION_SECTIONS.members.capability}
+                element={
+                  <RequireOrganization
+                    capability={ORGANIZATION_SECTIONS.members.capability}
+                  />
+                }
+              >
+                <Route
+                  path={ORGANIZATION_SECTIONS.members.segment}
+                  element={<OrganizationMembers />}
                 />
-              }
-            >
+              </Route>
               <Route
-                path={ORGANIZATION_SECTIONS.members.segment}
-                element={<OrganizationMembers />}
-              />
-            </Route>
-            <Route
-              element={
-                <RequireOrganization
-                  capability={ORGANIZATION_SECTIONS.activity.capability}
+                element={
+                  <RequireOrganization
+                    capability={ORGANIZATION_SECTIONS.activity.capability}
+                  />
+                }
+              >
+                <Route
+                  path={ORGANIZATION_SECTIONS.activity.segment}
+                  element={<OrganizationActivity />}
                 />
-              }
-            >
+              </Route>
               <Route
-                path={ORGANIZATION_SECTIONS.activity.segment}
-                element={<OrganizationActivity />}
-              />
-            </Route>
-            <Route
-              element={
-                <RequireOrganization capability="organization:events:read" />
-              }
-            >
+                element={
+                  <RequireOrganization capability="organization:events:read" />
+                }
+              >
+                <Route
+                  path={ORGANIZATION_SECTIONS.events.segment}
+                  element={<OrganizationEvents />}
+                />
+              </Route>
               <Route
-                path={ORGANIZATION_SECTIONS.events.segment}
-                element={<OrganizationEvents />}
-              />
-            </Route>
-
-            <Route
-              element={
-                <RequireOrganization capability="organization:events:create" />
-              }
-            >
-              <Route path="events/new" element={<CreateOrganizationEvent />} />
+                element={
+                  <RequireOrganization capability="organization:events:create" />
+                }
+              >
+                <Route
+                  path="events/new"
+                  element={<CreateOrganizationEvent />}
+                />
+              </Route>
             </Route>
           </Route>
         </Route>

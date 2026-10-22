@@ -1,0 +1,30 @@
+export const queryKeys = {
+  account: (uid: string) => ['account', uid],
+  profile: (uid: string) => ['account', uid, 'profile'],
+  organizations: (uid: string) => ['account', uid, 'organizations'],
+  organization: (uid: string, organizationId: string) => [
+    'account',
+    uid,
+    'organization',
+    organizationId,
+  ],
+  resources: (
+    uid: string,
+    organizationId: string,
+    resource: 'members' | 'events' | 'activity' | 'invitations',
+  ) => ['account', uid, 'organization', organizationId, resource],
+  logo: (uid: string, organizationId: string, version: string | null) => [
+    'account',
+    uid,
+    'organization',
+    organizationId,
+    'logo',
+    version,
+  ],
+  receivedInvitations: (uid: string, email: string | null) => [
+    'account',
+    uid,
+    'received-invitations',
+    email,
+  ],
+};

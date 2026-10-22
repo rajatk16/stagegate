@@ -1,31 +1,19 @@
 import { User } from 'firebase/auth';
-import { Organization, OrganizationActivityEvent } from '../types';
+import { Organization } from '../types';
 import { useOrganizations } from '../hooks';
 import { useLocation } from 'react-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { isRecord } from '@/app/utils';
-import { listOrganizationActivity } from '../services/activity';
 import { ApiError } from '@/lib';
 import { getActivityError, getActivityLabel } from '../utils';
 import { Button, InlineAlert } from '@/components';
-
-type State = {
-  items: OrganizationActivityEvent[];
-  nextCursor: string | null;
-  loading: boolean;
-  error: string | null;
-  accessChanged: boolean;
-  restartRequired: boolean;
-};
-
-const initialState: State = {
-  items: [],
-  nextCursor: null,
-  loading: true,
-  error: null,
-  accessChanged: false,
-  restartRequired: false,
-};
+import { useQueryClient } from '@tanstack/react-query';
+import {
+  hasRepeatedCursor,
+  isAccessError,
+  queryKeys,
+  useActivityQuery,
+} from '@/app/query';
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
@@ -39,14 +27,48 @@ export const ActivityContent = ({
   user: User;
   organization: Organization;
 }) => {
+  const client = useQueryClient();
+  const query = useActivityQuery(user, organization.id);
   const { reload } = useOrganizations();
+
   const location = useLocation();
   const navigationState: unknown = location.state;
-
-  const [state, setState] = useState<State>(initialState);
-  const requestRef = useRef<AbortController | null>(null);
-  const seenCursors = useRef(new Set<string>());
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const key = queryKeys.resources(user.uid, organization.id, 'activity');
+
+  const accessChanged = isAccessError(query.error);
+  const repeatedCursor = hasRepeatedCursor(query.data);
+
+  const restartRequired =
+    repeatedCursor ||
+    (query.error instanceof ApiError &&
+      (query.error.status === 400 || query.error.kind === 'response'));
+
+  const items = accessChanged
+    ? []
+    : [
+        ...new Map(
+          (query.data?.pages.flatMap((page) => page.items) ?? []).map(
+            (event) => [event.eventId, event],
+          ),
+        ).values(),
+      ];
+
+  const state = {
+    items,
+    nextCursor: query.hasNextPage
+      ? (query.data?.pages.at(-1)?.nextCursor ?? null)
+      : null,
+    loading: query.isPending || query.isFetching,
+    error: query.error
+      ? getActivityError(query.error)
+      : repeatedCursor
+        ? 'The server repeated a page cursor. Refresh activity.'
+        : null,
+    accessChanged,
+    restartRequired,
+  };
 
   const transferred =
     isRecord(navigationState) &&
@@ -54,118 +76,25 @@ export const ActivityContent = ({
     navigationState.ownershipTransferred.organizationId === organization.id &&
     navigationState.ownershipTransferred.uid === user.uid;
 
-  const load = useCallback(
-    async (cursor: string | null) => {
-      const append = cursor !== null;
+  const load = (cursor: string | null) => {
+    if (query.isFetching) return;
 
-      if (append && requestRef.current !== null) {
-        return;
-      }
+    if (cursor === null) {
+      void client.resetQueries({
+        queryKey: key,
+        exact: true,
+      });
+      return;
+    }
 
-      requestRef.current?.abort();
-
-      const controller = new AbortController();
-      requestRef.current = controller;
-
-      if (!append) {
-        seenCursors.current.clear();
-      }
-
-      setState((current) =>
-        append
-          ? { ...current, loading: true, error: null }
-          : { ...initialState },
-      );
-
-      try {
-        const page = await listOrganizationActivity(
-          user,
-          organization.id,
-          controller.signal,
-          cursor,
-        );
-
-        if (controller.signal.aborted) return;
-
-        if (
-          page.nextCursor !== null &&
-          seenCursors.current.has(page.nextCursor)
-        ) {
-          throw new ApiError(
-            'The API repeated an activity cursor.',
-            'response',
-          );
-        }
-
-        if (page.nextCursor !== null) {
-          seenCursors.current.add(page.nextCursor);
-        }
-
-        setState((current) => {
-          const byId = new Map(
-            (append ? current.items : []).map((event) => [
-              event.eventId,
-              event,
-            ]),
-          );
-
-          for (const event of page.items) {
-            byId.set(event.eventId, event);
-          }
-
-          return {
-            items: [...byId.values()],
-            nextCursor: page.nextCursor,
-            loading: false,
-            error: null,
-            accessChanged: false,
-            restartRequired: false,
-          };
-        });
-      } catch (error: unknown) {
-        if (controller.signal.aborted) return;
-
-        const accessChanged =
-          error instanceof ApiError &&
-          (error.status === 401 ||
-            error.status === 403 ||
-            error.status === 404);
-
-        const restartRequired =
-          error instanceof ApiError &&
-          (error.status === 400 || error.kind === 'response');
-
-        setState((current) => ({
-          ...current,
-          items: accessChanged ? [] : current.items,
-          nextCursor: accessChanged ? null : current.nextCursor,
-          loading: false,
-          error: getActivityError(error),
-          accessChanged,
-          restartRequired,
-        }));
-      } finally {
-        if (requestRef.current === controller) {
-          requestRef.current = null;
-        }
-      }
-    },
-    [user, organization.id],
-  );
+    if (query.hasNextPage && !accessChanged && !restartRequired) {
+      void query.fetchNextPage({ cancelRefetch: false });
+    }
+  };
 
   useEffect(() => {
     headingRef.current?.focus();
-
-    const timer = window.setTimeout(() => {
-      void load(null);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timer);
-      requestRef.current?.abort();
-    };
-  }, [load]);
-
+  }, []);
   return (
     <section
       aria-labelledby="organization-activity-heading"

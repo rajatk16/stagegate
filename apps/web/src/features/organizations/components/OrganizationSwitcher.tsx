@@ -58,9 +58,11 @@ export const OrganizationSwitcher = () => {
 
   const organizations = state.status === 'ready' ? state.organizations : [];
 
-  const activeOrganization = organizations.find(
-    (organization) => organization.slug === organizationSlug,
-  );
+  const activeOrganization = organizationSlug
+    ? organizations.find(
+        (organization) => organization.slug === organizationSlug,
+      )
+    : organizations[0];
 
   const search = query.trim().toLowerCase();
 

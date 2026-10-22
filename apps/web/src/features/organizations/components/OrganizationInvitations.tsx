@@ -17,6 +17,7 @@ import {
   InputField,
   SelectField,
 } from '@/components';
+import { queryKeys, useApiMutation } from '@/app/query';
 
 type Props = {
   user: User;
@@ -36,10 +37,15 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
 
 export const OrganizationInvitations = (props: Props) => {
   const { reload } = useOrganizations();
-  const { state, refresh, nextPage, invalidate } = useOrganizationInvitation(
-    props.user,
-    props.organization.id,
-  );
+  const {
+    state,
+    refresh,
+    nextPage,
+    invalidate,
+    pageError,
+    fetching,
+    restartRequired,
+  } = useOrganizationInvitation(props.user, props.organization.id);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<INVITATION_ROLES>(INVITATION_ROLES.MEMBER);
   const [busy, setBusy] = useState(false);
@@ -47,6 +53,24 @@ export const OrganizationInvitations = (props: Props) => {
     tone: 'success' | 'error';
     message: string;
   } | null>(null);
+
+  const affected = [
+    queryKeys.organizations(props.user.uid),
+    queryKeys.resources(props.user.uid, props.organization.id, 'invitations'),
+    queryKeys.resources(props.user.uid, props.organization.id, 'activity'),
+  ];
+
+  const createMutation = useApiMutation({
+    user: props.user,
+    request: createOrganizationInvitation,
+    affected,
+  });
+
+  const revokeMutation = useApiMutation({
+    user: props.user,
+    request: revokeOrganizationInvitation,
+    affected,
+  });
 
   const writeRequest = useRef<AbortController | null>(null);
   const refreshButton = useRef<HTMLButtonElement>(null);
@@ -81,7 +105,6 @@ export const OrganizationInvitations = (props: Props) => {
       if (controller.signal.aborted) return false;
 
       setFeedback({ tone: 'success', message });
-      refresh();
       refreshButton.current?.focus();
 
       return true;
@@ -116,8 +139,7 @@ export const OrganizationInvitations = (props: Props) => {
     if (selectedRole === undefined) return;
 
     const succeeded = await runAction(async (signal) => {
-      const emailStatus = await createOrganizationInvitation(
-        props.user,
+      const emailStatus = await createMutation.execute(
         props.organization.id,
         { email, role: selectedRole },
         signal,
@@ -135,7 +157,7 @@ export const OrganizationInvitations = (props: Props) => {
 
   return (
     <section
-      aria-labelledBy="organization-invitations-heading"
+      aria-labelledby="organization-invitations-heading"
       className="space-y-6 rounded-2xl border bg-card p-4 sm:p-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -170,6 +192,15 @@ export const OrganizationInvitations = (props: Props) => {
         <InlineAlert tone={feedback.tone}>{feedback.message}</InlineAlert>
       )}
 
+      {state.status === 'ready' && pageError && (
+        <InlineAlert tone="error">
+          {pageError}
+          {restartRequired && (
+            <p className="mt-2">Refresh invitaitons to restart pagination</p>
+          )}
+        </InlineAlert>
+      )}
+
       {!props.user.emailVerified && (
         <InlineAlert tone="warning">
           Verify your email before creating or revoking invitations.
@@ -186,7 +217,12 @@ export const OrganizationInvitations = (props: Props) => {
         <div className="space-y-3">
           <InlineAlert tone="error">{state.message}</InlineAlert>
 
-          <Button type="button" variant="outline" onClick={reload}>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy || fetching}
+            onClick={reload}
+          >
             Refresh access
           </Button>
         </div>
@@ -257,7 +293,7 @@ export const OrganizationInvitations = (props: Props) => {
 
             {state.page.items.length === 0 ? (
               <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">
-                No pending invitations on this page.
+                No pending invitations.
               </p>
             ) : (
               <ul className="divide-y rounded-xl border">
@@ -302,8 +338,7 @@ export const OrganizationInvitations = (props: Props) => {
                         restoreFocus={() => refreshButton.current?.focus()}
                         onConfirm={async () => {
                           const succeeded = await runAction(async (signal) => {
-                            await revokeOrganizationInvitation(
-                              props.user,
+                            await revokeMutation.execute(
                               props.organization.id,
                               invitation.id,
                               signal,
@@ -325,16 +360,21 @@ export const OrganizationInvitations = (props: Props) => {
 
             <div className="flex items-center justify-between gap-4">
               <p role="status" className="text-sm text-muted-foreground">
-                {state.page.items.length} invitations on this page.
+                {state.page.items.length} invitations shown.
               </p>
 
               <Button
                 type="button"
                 variant="outline"
-                disabled={busy || state.page.nextCursor === null}
+                disabled={
+                  busy ||
+                  fetching ||
+                  restartRequired ||
+                  state.page.nextCursor === null
+                }
                 onClick={nextPage}
               >
-                Next page
+                {fetching ? 'Loadding...' : 'Load more'}
               </Button>
             </div>
 

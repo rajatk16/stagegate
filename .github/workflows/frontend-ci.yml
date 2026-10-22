@@ -1,0 +1,133 @@
+name: Frontend CI
+
+on:
+  pull_request:
+    branches: [main]
+
+  merge_group:
+    types: [checks_requested]
+
+  workflow_call:
+    inputs:
+      upload_image:
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Set up npm
+        working-directory: ${{ runner.temp }}
+        run: npm install --global npm@11.19.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and check production frontend
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          import tomllib
+          from pathlib import Path
+
+          config = tomllib.loads(
+              Path("fly.web.toml").read_text()
+          )
+
+          arguments = [
+              "docker", "build",
+              "--file", "apps/web/Dockerfile",
+              "--tag", "stagegate-web:ci",
+          ]
+
+          for name, value in config["build"]["args"].items():
+              arguments.extend([
+                  "--build-arg",
+                  f"{name}={value}",
+              ])
+
+          arguments.append(".")
+          subprocess.run(arguments, check=True)
+          PY
+
+      - name: Start frontend container
+        run: |
+          docker run --detach \
+            --name stagegate-web-ci \
+            --publish 127.0.0.1:8080:8080 \
+            stagegate-web:ci
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --retry 30 \
+            --retry-all-errors \
+            --retry-delay 1 \
+            --retry-max-time 60 \
+            --max-time 3 \
+            http://127.0.0.1:8080/healthz
+
+      - name: Install Chromium
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Run browser smoke tests
+        run: |
+          npx --no-install playwright test \
+            --config scripts/ci/playwright.config.ts
+
+      - name: Upload browser failure report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-test-report-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker logs stagegate-web-ci || true
+
+      - name: Remove test container
+        if: always()
+        run: docker rm --force stagegate-web-ci || true
+
+      - name: Save tested image
+        if: success() && inputs.upload_image
+        run: |
+          docker save stagegate-web:ci \
+            --output "$RUNNER_TEMP/stagegate-web.tar"
+
+      - name: Upload tested image
+        if: success() && inputs.upload_image
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-image-${{ github.sha }}
+          path: ${{ runner.temp }}/stagegate-web.tar
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error

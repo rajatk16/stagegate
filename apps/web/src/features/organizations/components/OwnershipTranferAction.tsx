@@ -9,6 +9,7 @@ import {
   getOwnershipTransferError,
   transferOrganizationOwnership,
 } from '../services';
+import { queryKeys, useApiMutation } from '@/app/query';
 
 type Props = {
   user: User;
@@ -24,6 +25,18 @@ export const OwnershipTranferAction = (props: Props) => {
   const passwordId = useId();
   const passwordRef = useRef<HTMLInputElement>(null);
   const requestRef = useRef<AbortController | null>(null);
+
+  const transferMutation = useApiMutation({
+    user: props.user,
+    request: transferOrganizationOwnership,
+    affected: [
+      queryKeys.organizations(props.user.uid),
+      queryKeys.organization(props.user.uid, props.organization.id),
+    ],
+    onSuccess: () => {
+      props.onSuccess();
+    },
+  });
 
   const [error, setError] = useState('');
   const [requiresRefresh, setRequiresRefresh] = useState(false);
@@ -73,8 +86,7 @@ export const OwnershipTranferAction = (props: Props) => {
 
       submitted = true;
 
-      await transferOrganizationOwnership(
-        props.user,
+      await transferMutation.execute(
         props.organization.id,
         props.member.uid,
         controller.signal,
@@ -100,8 +112,6 @@ export const OwnershipTranferAction = (props: Props) => {
         props.onPendingChange(false);
       }
     }
-
-    props.onSuccess();
   };
 
   if (!props.member.actions.transferOwnership) return null;

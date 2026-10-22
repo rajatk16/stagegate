@@ -1,33 +1,21 @@
 import { User } from 'firebase/auth';
+import { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { isRecord } from '@/app/utils';
 import { Badge, Button, InlineAlert } from '@/components';
 import { ApiError, getOrganizationSectionPath } from '@/lib';
+import {
+  queryKeys,
+  isAccessError,
+  useEventsQuery,
+  hasRepeatedCursor,
+} from '@/app/query';
 
+import { Organization } from '../types';
 import { useOrganizations } from '../hooks';
-import { listOrganizationEvents } from '../services';
-import { Organization, OrganizationEvent } from '../types';
 import { getEventsError, hasOrganizationCapability } from '../utils';
-
-type State = {
-  items: OrganizationEvent[];
-  nextCursor: string | null;
-  loading: boolean;
-  error: string | null;
-  accessChanged: boolean;
-  restartRequired: boolean;
-};
-
-const initialState: State = {
-  items: [],
-  nextCursor: null,
-  loading: true,
-  error: null,
-  accessChanged: false,
-  restartRequired: false,
-};
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
@@ -41,19 +29,69 @@ export const OrganizationEventsContent = ({
   user: User;
   organization: Organization;
 }) => {
+  const client = useQueryClient();
+  const query = useEventsQuery(user, organization.id);
+
+  const key = queryKeys.resources(user.uid, organization.id, 'events');
+  const accessChanged = isAccessError(query.error);
+  const repeatedCursor = hasRepeatedCursor(query.data);
   const { reload } = useOrganizations();
   const location = useLocation();
   const navigationState: unknown = location.state;
 
-  const [state, setState] = useState<State>(initialState);
-  const requestRef = useRef<AbortController | null>(null);
-  const seenCursors = useRef(new Set<string>());
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const items = accessChanged
+    ? []
+    : [
+        ...new Map(
+          (query.data?.pages.flatMap((page) => page.items) ?? []).map(
+            (event) => [event.id, event],
+          ),
+        ).values(),
+      ];
+
+  const state = {
+    items,
+    loading: query.isPending || query.isFetchingNextPage,
+    error: query.error
+      ? getEventsError(query.error)
+      : repeatedCursor
+        ? 'The server repeated a page cursor. Refresh events.'
+        : null,
+    accessChanged,
+    restartRequired:
+      repeatedCursor ||
+      (query.error instanceof ApiError &&
+        (query.error.status === 400 || query.error.kind === 'response')),
+  };
+
+  const refresh = () => {
+    void client.resetQueries({
+      queryKey: key,
+      exact: true,
+    });
+  };
+
+  const loadMore = () => {
+    if (
+      query.hasNextPage &&
+      !query.isFetching &&
+      !state.restartRequired &&
+      !state.accessChanged
+    ) {
+      void query.fetchNextPage({ cancelRefetch: false });
+    }
+  };
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
 
   const createdEventName =
     isRecord(navigationState) &&
     isRecord(navigationState.createdEvent) &&
-    navigationState.createdEvent.organizationid === organization.id &&
+    navigationState.createdEvent.organizationId === organization.id &&
     navigationState.createdEvent.uid === user.uid &&
     typeof navigationState.createdEvent.name === 'string'
       ? navigationState.createdEvent.name
@@ -68,112 +106,6 @@ export const OrganizationEventsContent = ({
     organization.slug,
     'events/new',
   );
-
-  const load = useCallback(
-    async (cursor: string | null) => {
-      const append = cursor !== null;
-
-      if (append && requestRef.current !== null) {
-        return;
-      }
-
-      requestRef.current?.abort();
-
-      const controller = new AbortController();
-      requestRef.current = controller;
-
-      if (!append) {
-        seenCursors.current.clear();
-      }
-
-      setState((current) =>
-        append
-          ? { ...current, loading: true, error: null }
-          : { ...initialState },
-      );
-
-      try {
-        const page = await listOrganizationEvents(
-          user,
-          organization.id,
-          controller.signal,
-          cursor,
-        );
-
-        if (controller.signal.aborted) return;
-
-        if (
-          page.nextCursor !== null &&
-          seenCursors.current.has(page.nextCursor)
-        ) {
-          throw new ApiError('The Api repeated an event cursor.', 'response');
-        }
-
-        if (page.nextCursor !== null) {
-          seenCursors.current.add(page.nextCursor);
-        }
-
-        setState((current) => {
-          const byId = new Map(
-            (append ? current.items : []).map((event) => [event.id, event]),
-          );
-
-          for (const event of page.items) {
-            byId.set(event.id, event);
-          }
-
-          return {
-            items: [...byId.values()],
-            nextCursor: page.nextCursor,
-            loading: false,
-            error: null,
-            accessChanged: false,
-            restartRequired: false,
-          };
-        });
-      } catch (error: unknown) {
-        if (controller.signal.aborted) return;
-
-        const accessChanged =
-          error instanceof ApiError &&
-          (error.status === 401 ||
-            error.status === 403 ||
-            error.status === 404);
-
-        const restartRequired =
-          error instanceof ApiError &&
-          (error.status === 400 || error.kind === 'response');
-
-        setState((current) => ({
-          ...current,
-          items: accessChanged ? [] : current.items,
-          nextCursor: accessChanged ? null : current.nextCursor,
-          loading: false,
-          error: getEventsError(error),
-          accessChanged,
-          restartRequired,
-        }));
-      } finally {
-        if (requestRef.current === controller) {
-          requestRef.current = null;
-        }
-      }
-    },
-    [user, organization.id],
-  );
-
-  useEffect(() => {
-    headingRef.current?.focus();
-
-    const timer = window.setTimeout(() => {
-      void load(null);
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timer);
-      requestRef.current?.abort();
-    };
-  }, [load]);
 
   return (
     <section
@@ -192,7 +124,7 @@ export const OrganizationEventsContent = ({
           </h2>
 
           <p className="text-sm text-muted-foreground">
-            Events belongs to {organization.name}, newest first.
+            Events belong to {organization.name}, newest first.
           </p>
         </div>
 
@@ -200,8 +132,8 @@ export const OrganizationEventsContent = ({
           <Button
             type="button"
             variant="outline"
-            disabled={state.loading}
-            onClick={() => void load(null)}
+            disabled={query.isFetching}
+            onClick={refresh}
           >
             Refresh events
           </Button>
@@ -289,12 +221,12 @@ export const OrganizationEventsContent = ({
             : `${state.items.length} events shown.`}
         </p>
 
-        {state.nextCursor !== null && !state.accessChanged && (
+        {query.hasNextPage && !state.accessChanged && (
           <Button
             type="button"
             variant="outline"
-            disabled={state.loading || state.restartRequired}
-            onClick={() => void load(state.nextCursor)}
+            disabled={query.isFetching || state.restartRequired}
+            onClick={loadMore}
           >
             {state.loading
               ? 'Loading…'

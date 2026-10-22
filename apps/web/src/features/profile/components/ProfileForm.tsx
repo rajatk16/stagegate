@@ -17,6 +17,8 @@ import {
 } from '@/components';
 
 import { getProfileErrorMessage, Profile, updateProfile } from '../services';
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys, useApiMutation } from '@/app/query';
 
 type ProfileFormValues = {
   displayName: string;
@@ -41,6 +43,16 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
   const requestRef = useRef<AbortController | null>(null);
+  const client = useQueryClient();
+
+  const saveMutation = useApiMutation({
+    user,
+    request: updateProfile,
+    affected: [queryKeys.account(user.uid)],
+    onSuccess: (updated) => {
+      client.setQueryData(queryKeys.profile(user.uid), updated);
+    },
+  });
 
   const deviceTimezone = useMemo(
     () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
@@ -91,8 +103,7 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
     clearErrors('root');
 
     try {
-      const updated = await updateProfile(
-        user,
+      const updated = await saveMutation.execute(
         {
           displayName: values.displayName.trim(),
           biography: values.biography.trim() || null,
@@ -127,7 +138,9 @@ export const ProfileForm = ({ user, profile }: ProfileFormProps) => {
   return (
     <Card className="max-w-3xl">
       <CardHeader>
-        <h1 className="text-2xl font-semibold tracking-tight">Your profile</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Update profile
+        </h1>
         <CardDescription>Update how you appear in StageGate.</CardDescription>
         <p className="break-all text-sm text-muted-foreground">
           Signed in as {user.email ?? 'your account'}

@@ -25,6 +25,7 @@ import {
 import { Organization } from '../types';
 import { hasOrganizationCapability } from '../utils';
 import { ORGANIZATION_COLOR_PATTERN } from '../constants';
+import { queryKeys, useApiMutation } from '@/app/query';
 
 type Props = {
   user: User;
@@ -87,6 +88,29 @@ const validateWebsite = (value: string): true | string => {
 
 export const OrganizationSettingsForm = (props: Props) => {
   const { replaceOrganization, reload } = useOrganizations();
+
+  const affected = [
+    queryKeys.organizations(props.user.uid),
+    queryKeys.organization(props.user.uid, props.organization.id),
+  ];
+
+  const settingsMutation = useApiMutation({
+    user: props.user,
+    request: updateOrganizationSettings,
+    affected,
+  });
+
+  const uploadMutation = useApiMutation({
+    user: props.user,
+    request: uploadOrganizationLogo,
+    affected,
+  });
+
+  const removeMutation = useApiMutation({
+    user: props.user,
+    request: removeOrganizationLogo,
+    affected,
+  });
 
   const baseLine = useRef<OrganizationSettingsValues>(
     toSettings(toFormValues(props.organization)),
@@ -231,12 +255,7 @@ export const OrganizationSettingsForm = (props: Props) => {
     await run(
       'settings',
       (signal) =>
-        updateOrganizationSettings(
-          props.user,
-          props.organization.id,
-          changes,
-          signal,
-        ),
+        settingsMutation.execute(props.organization.id, changes, signal),
       (updated) => {
         baseLine.current = toSettings(toFormValues(updated));
         reset(toFormValues(updated));
@@ -482,12 +501,7 @@ export const OrganizationSettingsForm = (props: Props) => {
                 void run(
                   'upload',
                   (signal) =>
-                    uploadOrganizationLogo(
-                      props.user,
-                      props.organization.id,
-                      file,
-                      signal,
-                    ),
+                    uploadMutation.execute(props.organization.id, file, signal),
                   () => {
                     clearFile();
                     setNotice('Organization logo uploaded.');
@@ -519,11 +533,7 @@ export const OrganizationSettingsForm = (props: Props) => {
                 run(
                   'remove',
                   (signal) =>
-                    removeOrganizationLogo(
-                      props.user,
-                      props.organization.id,
-                      signal,
-                    ),
+                    removeMutation.execute(props.organization.id, signal),
                   () => {
                     clearFile();
                     setNotice('Organization logo removed.');
