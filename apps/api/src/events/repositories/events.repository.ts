@@ -1,6 +1,7 @@
 import { FieldPath } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
+import { EVENT_STATUS } from '../enums';
 import { eventConverter } from '../converters';
 import { EVENTS_COLLECTION } from '../constants';
 import { AuditWriter } from '../../audit/services';
@@ -9,8 +10,11 @@ import { FirebaseService } from '../../firebase/services';
 import { OrganizationScope } from '../../organizations/types';
 import { EventSlugsRepository } from './eventSlugs.repository';
 import { DiagnosticError } from '../../observalibility/errors';
-import { assertOrganizationPermissions } from '../../organizations/utils';
 import { Event, eventSchema, eventSlugReservationSchema } from '../models';
+import {
+  assertEventStatusTransition,
+  assertOrganizationPermissions,
+} from '../../organizations/utils';
 import {
   OrganizationRepository,
   OrganizationMembershipRepository,
@@ -20,6 +24,16 @@ import {
   encodeEventCursor,
   invalidEventCursor,
 } from '../utils';
+
+type EventMutation =
+  | {
+      kind: 'name';
+      name: string;
+    }
+  | {
+      kind: 'status';
+      status: EVENT_STATUS;
+    };
 
 @Injectable()
 export class EventsRepository {
@@ -204,6 +218,150 @@ export class EventsRepository {
               ? encodeEventCursor(scope, last.id)
               : null,
         };
+      },
+    );
+  }
+
+  updateName(
+    scope: OrganizationScope,
+    eventId: string,
+    name: string,
+  ): Promise<Event> {
+    return this.mutate(scope, eventId, {
+      kind: 'name',
+      name,
+    });
+  }
+
+  updateStatus(
+    scope: OrganizationScope,
+    eventId: string,
+    status: EVENT_STATUS,
+  ): Promise<Event> {
+    return this.mutate(scope, eventId, {
+      kind: 'status',
+      status,
+    });
+  }
+
+  private async mutate(
+    scope: OrganizationScope,
+    eventId: string,
+    mutation: EventMutation,
+  ): Promise<Event> {
+    const organizationReference =
+      this.organizationRepository.getDocumentReference(scope.organizationId);
+
+    const eventReference = this.getDocumentReference(
+      scope.organizationId,
+      eventId,
+    );
+
+    return this.firebaseService.firestore.runTransaction(
+      async (transaction): Promise<Event> => {
+        const organizationSnapshot = await transaction.get(
+          organizationReference,
+        );
+
+        const organization = organizationSnapshot.data();
+
+        if (!organization) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'ORGANIZATION_NOT_FOUND',
+            'Organization not found.',
+          );
+        }
+
+        const membership =
+          await this.organizationMembershipRepository.requireActiveInTransaction(
+            transaction,
+            scope.organizationId,
+            scope.actorUid,
+          );
+
+        if (
+          organization.id !== scope.organizationId ||
+          membership.organizationId !== scope.organizationId ||
+          membership.uid !== scope.actorUid
+        ) {
+          throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
+        }
+
+        assertOrganizationPermissions(membership, [
+          mutation.kind === 'name'
+            ? 'organization:events:update'
+            : 'organization:events:manage-status',
+        ]);
+
+        const eventSnapshot = await transaction.get(eventReference);
+        const current = eventSnapshot.data();
+
+        if (!current) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'EVENT_NOT_FOUND',
+            'Event not found.',
+          );
+        }
+
+        if (
+          current.id !== eventId ||
+          current.organizationId !== scope.organizationId
+        ) {
+          throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
+        }
+
+        if (mutation.kind === 'name') {
+          if (current.status === 'ARCHIVED') {
+            throw new ApiException(
+              HttpStatus.CONFLICT,
+              'EVENT_ARCHIVED',
+              'Archived events cannot be edited.',
+            );
+          }
+
+          if (current.name === mutation.name) {
+            return current;
+          }
+        } else {
+          assertEventStatusTransition(current.status, mutation.status);
+
+          if (current.status === mutation.status) {
+            return current;
+          }
+        }
+
+        const now = new Date();
+
+        const next = eventSchema.parse({
+          ...current,
+          ...(mutation.kind === 'name'
+            ? { name: mutation.name }
+            : { status: mutation.status }),
+          updatedAt: now,
+        });
+
+        const auditInput = {
+          actorUid: scope.actorUid,
+          organizationId: scope.organizationId,
+          targetId: current.id,
+          occurredAt: now,
+        };
+
+        const auditEvent =
+          mutation.kind === 'name'
+            ? this.auditWriter.prepareEventUpdated(auditInput)
+            : this.auditWriter.prepareEventStatusChanged({
+                ...auditInput,
+                previousStatus: current.status,
+                nextStatus: mutation.status,
+              });
+
+        transaction.set(eventReference, next);
+        this.auditWriter.append(transaction, auditEvent);
+
+        return next;
       },
     );
   }

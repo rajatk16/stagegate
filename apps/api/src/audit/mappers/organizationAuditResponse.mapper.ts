@@ -52,6 +52,18 @@ const toDetails = (event: AuditEvent): Record<string, string | string[]> => {
       return {
         targetId: event.targetId,
       };
+    case 'event.updated':
+      return {
+        targetId: event.targetId,
+        fields: [...event.fields],
+      };
+
+    case 'event.status.changed':
+      return {
+        targetId: event.targetId,
+        previousStatus: event.previousStatus,
+        nextStatus: event.nextStatus,
+      };
   }
 };
 

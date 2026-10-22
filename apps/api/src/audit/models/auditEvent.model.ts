@@ -118,9 +118,32 @@ export const eventCreatedAuditEventSchema = auditBaseSchema
   })
   .strict();
 
+export const eventUpdatedAuditEventSchema = auditBaseSchema
+  .extend({
+    action: z.literal('event.updated'),
+    targetType: z.literal('event'),
+    organizationId: z.string().uuid(),
+    targetId: z.string().uuid(),
+    fields: z.array(z.literal('name')).length(1),
+  })
+  .strict();
+
+export const eventStatusChangedAuditEventSchema = auditBaseSchema
+  .extend({
+    action: z.literal('event.status.changed'),
+    targetType: z.literal('event'),
+    organizationId: z.string().uuid(),
+    targetId: z.string().uuid(),
+    previousStatus: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+    nextStatus: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
+  })
+  .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
   eventCreatedAuditEventSchema,
+  eventUpdatedAuditEventSchema,
   profileUpdatedAuditEventSchema,
+  eventStatusChangedAuditEventSchema,
   organizationCreatedAuditEventSchema,
   organizationSettingsUpdatedAuditEventSchema,
   organizationInvitationCreatedAuditEventSchema,

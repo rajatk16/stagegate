@@ -1,6 +1,7 @@
 import z from 'zod';
 import { length as hasValidLength } from 'class-validator';
 
+import { EVENT_STATUS } from '../enums';
 import { EVENT_SLUG_PATTERN } from '../constants';
 import { organizationSchema } from '../../organizations/models';
 
@@ -19,7 +20,7 @@ export const eventSchema = z
       .trim()
       .refine((value) => hasValidLength(value, 2, 120)),
     slug: eventSlugValueSchema,
-    status: z.literal('DRAFT'),
+    status: z.nativeEnum(EVENT_STATUS),
     createdByUid: organizationSchema.shape.createdByUid,
     createdAt: z.date(),
     updatedAt: z.date(),

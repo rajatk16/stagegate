@@ -1,5 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
+import { EVENT_STATUS } from '../../events/enums';
+import { EventMutationAuditInput } from '../types';
 import { ORGANIZATION_SETTINGS_FIELDS } from '../enums';
 import { AuditEvent, auditEventSchema } from '../models';
 import { ORGANIZATION_ROLES } from '../../organizations/enums';
@@ -192,4 +194,42 @@ export const toEventCreatedAuditEvent = (input: {
 
     requestId: input.requestId,
     occurredAt: input.occurredAt,
+  });
+
+export const toEventUpdatedAuditEvent = (
+  input: EventMutationAuditInput,
+): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: 'event.updated',
+    outcome: 'succeeded',
+    targetType: 'event',
+    actorUid: input.actorUid,
+    organizationId: input.organizationId,
+    targetId: input.targetId,
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
+    fields: ['name'],
+  });
+
+export const toEventStatusChangedAuditEvent = (
+  input: EventMutationAuditInput & {
+    previousStatus: EVENT_STATUS;
+    nextStatus: EVENT_STATUS;
+  },
+): AuditEvent =>
+  auditEventSchema.parse({
+    schemaVersion: 1,
+    eventId: randomUUID(),
+    action: 'event.status.changed',
+    outcome: 'succeeded',
+    targetType: 'event',
+    actorUid: input.actorUid,
+    organizationId: input.organizationId,
+    targetId: input.targetId,
+    requestId: input.requestId,
+    occurredAt: input.occurredAt,
+    previousStatus: input.previousStatus,
+    nextStatus: input.nextStatus,
   });

@@ -3,7 +3,7 @@ export type OrganizationEvent = {
   organizationId: string;
   name: string;
   slug: string;
-  status: 'DRAFT';
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   createdAt: string;
   updatedAt: string;
 };
