@@ -37,7 +37,9 @@ export const ORGANIZATION_ROLE_PERMISSIONS: Readonly<
     'organization:events:read',
     'organization:members:read',
     'organization:events:create',
+    'organization:events:update',
     'organization:members:manage',
+    'organization:events:manage-status',
   ],
   OWNER: [
     'organization:read',
@@ -46,8 +48,10 @@ export const ORGANIZATION_ROLE_PERMISSIONS: Readonly<
     'organization:events:read',
     'organization:members:read',
     'organization:events:create',
+    'organization:events:update',
     'organization:members:manage',
     'organization:ownership:transfer',
+    'organization:events:manage-status',
   ],
 };
 

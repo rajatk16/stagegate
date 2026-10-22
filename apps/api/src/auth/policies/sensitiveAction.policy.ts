@@ -61,6 +61,30 @@ export const sensitiveActionPolicies = {
       blockDuration: HOUR,
     },
   },
+  updateEvent: {
+    ip: {
+      limit: 30,
+      ttl: MINUTE,
+      blockDuration: MINUTE,
+    },
+    user: {
+      limit: 20,
+      ttl: MINUTE,
+      blockDuration: MINUTE,
+    },
+  },
+  updateEventStatus: {
+    ip: {
+      limit: 30,
+      ttl: MINUTE,
+      blockDuration: MINUTE,
+    },
+    user: {
+      limit: 10,
+      ttl: MINUTE,
+      blockDuration: MINUTE,
+    },
+  },
 };
 
 export type SensitiveActionName = keyof typeof sensitiveActionPolicies;

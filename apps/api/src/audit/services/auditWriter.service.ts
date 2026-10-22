@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Transaction } from 'firebase-admin/firestore';
 
 import { AuditEvent } from '../models';
+import { EVENT_STATUS } from '../../events/enums';
+import { EventMutationAuditInput } from '../types';
 import { auditEventConverter } from '../converters';
 import { FirebaseService } from '../../firebase/services';
 import { ORGANIZATION_ROLES } from '../../organizations/enums';
@@ -13,8 +15,10 @@ import {
   OrganizationInvitationAuditInput,
 } from '../types';
 import {
+  toEventUpdatedAuditEvent,
   toEventCreatedAuditEvent,
   toProfileUpdatedAuditEvent,
+  toEventStatusChangedAuditEvent,
   toOrganizationCreatedAuditEvent,
   OrganizationMemberStatusAuditInput,
   toOrganizationInvitationAuditEvent,
@@ -184,6 +188,39 @@ export class AuditWriter {
       targetId,
       actorUid,
       occurredAt,
+      requestId: context.requestId,
+    });
+  }
+
+  prepareEventUpdated(
+    input: Omit<EventMutationAuditInput, 'requestId'>,
+  ): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== input.actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return toEventUpdatedAuditEvent({
+      ...input,
+      requestId: context.requestId,
+    });
+  }
+
+  prepareEventStatusChanged(
+    input: Omit<EventMutationAuditInput, 'requestId'> & {
+      previousStatus: EVENT_STATUS;
+      nextStatus: EVENT_STATUS;
+    },
+  ): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== input.actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return toEventStatusChangedAuditEvent({
+      ...input,
       requestId: context.requestId,
     });
   }

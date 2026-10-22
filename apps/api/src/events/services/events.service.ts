@@ -3,8 +3,13 @@ import { Injectable } from '@nestjs/common';
 
 import { Event, eventSchema } from '../models';
 import { EventsRepository } from '../repositories';
-import { CreateEventDto, ListEventQueryDto } from '../dtos';
 import { OrganizationScope } from '../../organizations/types';
+import {
+  CreateEventDto,
+  UpdateEventDto,
+  ListEventQueryDto,
+  UpdateEventStatusDto,
+} from '../dtos';
 
 @Injectable()
 export class EventsService {
@@ -32,5 +37,21 @@ export class EventsService {
 
   list(scope: OrganizationScope, input: ListEventQueryDto) {
     return this.eventsRepository.list(scope, input.limit, input.cursor);
+  }
+
+  update(
+    scope: OrganizationScope,
+    eventId: string,
+    input: UpdateEventDto,
+  ): Promise<Event> {
+    return this.eventsRepository.updateName(scope, eventId, input.name);
+  }
+
+  updateStatus(
+    scope: OrganizationScope,
+    eventId: string,
+    input: UpdateEventStatusDto,
+  ): Promise<Event> {
+    return this.eventsRepository.updateStatus(scope, eventId, input.status);
   }
 }

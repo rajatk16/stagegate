@@ -1,9 +1,11 @@
+import { EVENT_STATUS } from '../enums';
+
 export class EventResponseDto {
   id!: string;
   organizationId!: string;
   name!: string;
   slug!: string;
-  status!: 'DRAFT';
+  status!: EVENT_STATUS;
   createdAt!: string;
   updatedAt!: string;
 }

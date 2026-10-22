@@ -6,4 +6,6 @@ export type OrganizationPermission =
   | 'organization:members:read'
   | 'organization:events:create'
   | 'organization:members:manage'
-  | 'organization:ownership:transfer';
+  | 'organization:ownership:transfer'
+  | 'organization:events:update'
+  | 'organization:events:manage-status';
