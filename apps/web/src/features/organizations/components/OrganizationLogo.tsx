@@ -27,11 +27,18 @@ const LoadedLogo = ({ user, organizationId, version, name }: Props) => {
   useEffect(() => {
     if (!blob) return;
 
-    const url = URL.createObjectURL(blob);
-    setImage({ blob, url });
+    let url: string | undefined;
+    const timeoutId = window.setTimeout(() => {
+      url = URL.createObjectURL(blob);
+      setImage({ blob, url });
+    }, 0);
 
     return () => {
-      URL.revokeObjectURL(url);
+      window.clearTimeout(timeoutId);
+
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
     };
   }, [blob]);
 

@@ -1,19 +1,14 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
+import type { User } from 'firebase/auth';
 
 import { Button, InlineAlert } from '@/components';
 import { isProfileComplete, useAuth } from '@/features';
 
 import { useProfileState } from '../query';
 
-export const RequireCompleteProfile = () => {
-  const session = useAuth();
+const CompleteProfileGate = ({ user }: { user: User }) => {
   const location = useLocation();
-
-  if (session.status !== 'authenticated') {
-    return null;
-  }
-
-  const { state, refresh, refreshing } = useProfileState(session.user);
+  const { state, refresh, refreshing } = useProfileState(user);
 
   if (state.status === 'loading') {
     return (
@@ -49,4 +44,14 @@ export const RequireCompleteProfile = () => {
   }
 
   return <Outlet />;
+};
+
+export const RequireCompleteProfile = () => {
+  const session = useAuth();
+
+  if (session.status !== 'authenticated') {
+    return null;
+  }
+
+  return <CompleteProfileGate user={session.user} />;
 };

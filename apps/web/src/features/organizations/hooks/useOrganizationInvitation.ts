@@ -90,8 +90,8 @@ export const useOrganizationInvitation = (
     },
 
     refresh: () => {
-      (setBlockedMessage(null),
-        void client.resetQueries({ queryKey: key, exact: true }));
+      setBlockedMessage(null);
+      void client.resetQueries({ queryKey: key, exact: true });
     },
 
     nextPage: () => {
