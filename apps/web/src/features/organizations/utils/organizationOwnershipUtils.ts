@@ -1,11 +1,13 @@
-import { ApiError, firebaseAuth } from '@/lib';
 import {
+  User,
   EmailAuthProvider,
   reauthenticateWithCredential,
-  User,
 } from 'firebase/auth';
-import { ORGANIZATION_MEMBERSHIP_STATUSES, ORGANIZATION_ROLES } from '../types';
+
+import { ApiError, firebaseAuth } from '@/lib';
 import { isDateString, isRecord } from '@/app/utils';
+
+import { ORGANIZATION_MEMBERSHIP_STATUSES, ORGANIZATION_ROLES } from '../types';
 
 const assertSession = (user: User, signal: AbortSignal) => {
   signal.throwIfAborted();

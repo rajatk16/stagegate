@@ -1,4 +1,13 @@
 import { ApiError } from '@/lib';
+
+import {
+  isRecord,
+  isDateString,
+  isNonEmptyString,
+  isNullableString,
+} from '@/app/utils';
+
+import { isOrganizationRole } from './organizationMembersUtils';
 import {
   ORGANIZATION_CAPABILITIES,
   ORGANIZATION_COLOR_PATTERN,
@@ -6,16 +15,9 @@ import {
 } from '../constants';
 import {
   Organization,
-  OrganizationCapability,
   OrganizationPage,
+  OrganizationCapability,
 } from '../types';
-import {
-  isDateString,
-  isNonEmptyString,
-  isNullableString,
-  isRecord,
-} from '@/app/utils';
-import { isOrganizationRole } from './organizationMembersUtils';
 
 export const normalizeOrganizationSlug = (value: string): string =>
   value.trim().toLowerCase();

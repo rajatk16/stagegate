@@ -1,9 +1,9 @@
 import { useAuth } from '@/features/auth';
+import { useActiveOrganization } from '@/features/organizations';
 
-import { useActiveOrganization } from '../hooks';
-import { OrganizationEventsContent } from '../components';
+import { EventsContent } from '../components';
 
-export const OrganizationEvents = () => {
+export const Events = () => {
   const session = useAuth();
   const organization = useActiveOrganization();
 
@@ -12,7 +12,7 @@ export const OrganizationEvents = () => {
   }
 
   return (
-    <OrganizationEventsContent
+    <EventsContent
       key={`${session.user.uid}:${organization.id}`}
       user={session.user}
       organization={organization}

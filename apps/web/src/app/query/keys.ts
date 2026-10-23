@@ -27,4 +27,12 @@ export const queryKeys = {
     'received-invitations',
     email,
   ],
+  event: (uid: string, organizationId: string, eventId: string) => [
+    'account',
+    uid,
+    'organization',
+    organizationId,
+    'event',
+    eventId,
+  ],
 };

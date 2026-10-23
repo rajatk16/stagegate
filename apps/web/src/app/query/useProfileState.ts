@@ -1,5 +1,6 @@
-import { getProfileErrorMessage, Profile } from '@/features/profile/services';
 import { User } from 'firebase/auth';
+import { ProfileDetails } from '@/features/profile/types';
+import { getProfileErrorMessage } from '@/features/profile/services';
 import { useProfileQuery } from './resources';
 import { isAccessError } from './client';
 
@@ -13,7 +14,7 @@ type ProfileState =
     }
   | {
       status: 'ready';
-      profile: Profile;
+      profile: ProfileDetails;
     };
 
 export const useProfileState = (user: User) => {

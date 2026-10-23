@@ -1,29 +1,11 @@
 import { User } from 'firebase/auth';
 
+import { isNullableString, isRecord } from '@/app/utils';
 import { ApiError, authenticatedApiRequest } from '@/lib';
 
-export type Profile = {
-  uid: string;
-  displayName: string | null;
-  biography: string | null;
-  affiliation: string | null;
-  timezone: string | null;
-};
+import { ProfileDetails, ProfileUpdate } from '../types';
 
-export type ProfileUpdate = {
-  displayName: string;
-  biography: string | null;
-  affiliation: string | null;
-  timezone: string;
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
-
-const isNullableString = (value: unknown): value is string | null =>
-  value === null || typeof value === 'string';
-
-const parseProfile = (value: unknown, expectedUid: string): Profile => {
+const parseProfile = (value: unknown, expectedUid: string): ProfileDetails => {
   if (
     !isRecord(value) ||
     value.uid !== expectedUid ||
@@ -47,10 +29,10 @@ const parseProfile = (value: unknown, expectedUid: string): Profile => {
   };
 };
 
-export const getProfile = async (
+export const getProfileDetails = async (
   user: User,
   signal: AbortSignal,
-): Promise<Profile> => {
+): Promise<ProfileDetails> => {
   const result = await authenticatedApiRequest(user, '/users/me', {
     signal,
   });
@@ -62,7 +44,7 @@ export const updateProfile = async (
   user: User,
   changes: ProfileUpdate,
   signal: AbortSignal,
-): Promise<Profile> => {
+): Promise<ProfileDetails> => {
   const result = await authenticatedApiRequest(user, '/users/me', {
     method: 'PATCH',
     json: changes,

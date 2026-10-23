@@ -3,11 +3,14 @@ import { Link, useNavigate } from 'react-router';
 import { Button } from '@/components';
 import { useAuth } from '@/features/auth';
 import { getOrganizationSectionPath } from '@/lib';
+import {
+  useOrganizations,
+  useActiveOrganization,
+} from '@/features/organizations';
 
 import { CreateEventForm } from '../components';
-import { useActiveOrganization, useOrganizations } from '../hooks';
 
-export const CreateOrganizationEvent = () => {
+export const CreateEvent = () => {
   const session = useAuth();
   const organization = useActiveOrganization();
   const { reload } = useOrganizations();
@@ -38,7 +41,7 @@ export const CreateOrganizationEvent = () => {
               replace: true,
               state: {
                 createdEvent: {
-                  organizationid: organization.id,
+                  organizationId: organization.id,
                   uid: session.user.uid,
                   id: event.id,
                   name: event.name,

@@ -1,10 +1,10 @@
 import { User } from 'firebase/auth';
+import { Navigate, useLocation, useSearchParams } from 'react-router';
 
+import { useProfileState } from '@/app/query';
 import { Button, InlineAlert } from '@/components';
 
 import { ProfileForm } from './ProfileForm';
-import { useProfileState } from '@/app/query';
-import { Navigate, useLocation, useSearchParams } from 'react-router';
 import { isProfileComplete } from '../utils';
 
 export const ProfileLoader = ({ user }: { user: User }) => {

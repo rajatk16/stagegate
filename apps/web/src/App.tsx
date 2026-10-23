@@ -1,14 +1,17 @@
 import { Route, Routes } from 'react-router';
 
-import { RequireAuth, RequireCompleteProfile } from '@/app/components';
 import { AppShell, PublicLayout } from '@/app/layouts';
 import { Dashboard, Landing, NotFound } from '@/app/pages';
+import { RequireAuth, RequireCompleteProfile } from '@/app/components';
 import { ORGANIZATION_ROUTE_PATTERN, ORGANIZATION_SECTIONS } from '@/lib';
 import {
+  Events,
   Profile,
   AuthForm,
   AuthLayout,
   EmailAction,
+  CreateEvent,
+  Invitations,
   VerifyEmail,
   Organizations,
   ForgotPassword,
@@ -16,15 +19,13 @@ import {
   AcceptInvitation,
   OrganizationShell,
   CreateOrganization,
-  OrganizationEvents,
   OrganizationMembers,
   RequireOrganization,
   OrganizationActivity,
   OrganizationSettings,
   OrganizationDashboard,
   OrganizationsProvider,
-  CreateOrganizationEvent,
-  Invitations,
+  EventSettingsPage,
 } from '@/features';
 
 export const App = () => (
@@ -113,7 +114,7 @@ export const App = () => (
               >
                 <Route
                   path={ORGANIZATION_SECTIONS.events.segment}
-                  element={<OrganizationEvents />}
+                  element={<Events />}
                 />
               </Route>
               <Route
@@ -121,10 +122,23 @@ export const App = () => (
                   <RequireOrganization capability="organization:events:create" />
                 }
               >
+                <Route path="events/new" element={<CreateEvent />} />
+              </Route>
+              <Route
+                element={
+                  <RequireOrganization capability="organization:events:read" />
+                }
+              >
                 <Route
-                  path="events/new"
-                  element={<CreateOrganizationEvent />}
-                />
+                  element={
+                    <RequireOrganization capability="organization:events:update" />
+                  }
+                >
+                  <Route
+                    path="events/:eventId/settings"
+                    element={<EventSettingsPage />}
+                  />
+                </Route>
               </Route>
             </Route>
           </Route>

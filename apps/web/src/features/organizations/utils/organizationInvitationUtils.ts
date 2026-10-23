@@ -1,7 +1,8 @@
 import { ApiError } from '@/lib';
+import { isRecord } from '@/app/utils';
+
 import { UUID_PATTERN } from '../constants';
 import { INVITATION_ROLES, OrganizationInvitation } from '../types';
-import { isRecord } from '@/app/utils';
 
 export const isInvitationRole = (value: unknown): value is INVITATION_ROLES =>
   typeof value === 'string' &&
