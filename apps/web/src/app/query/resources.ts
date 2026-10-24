@@ -9,16 +9,16 @@ import {
 
 import { queryKeys } from './keys';
 
-import { getProfile } from '@/features/profile/services';
-import { listReceivedInvitations } from '@/features/invitations/services';
+import { getProfileDetails } from '@/features/profile';
+import { getEvent, listEvents } from '@/features/events';
+import { listReceivedInvitations } from '@/features/invitations';
 import {
   getOrganizationLogo,
   listMyOrganizations,
-  listOrganizationEvents,
   listOrganizationMembers,
   listOrganizationActivity,
   listOrganizationInvitations,
-} from '@/features/organizations/services';
+} from '@/features/organizations';
 
 type CursorPage = {
   items: unknown[];
@@ -63,7 +63,7 @@ export const hasRepeatedCursor = (
 export const profileOptions = (user: User) =>
   queryOptions({
     queryKey: queryKeys.profile(user.uid),
-    queryFn: ({ signal }) => getProfile(user, signal),
+    queryFn: ({ signal }) => getProfileDetails(user, signal),
   });
 
 export const organizationsOptions = (user: User) =>
@@ -93,8 +93,7 @@ export const useEventsQuery = (user: User, organizationId: string) =>
   useInfiniteQuery(
     cursorOptions(
       queryKeys.resources(user.uid, organizationId, 'events'),
-      (signal, cursor) =>
-        listOrganizationEvents(user, organizationId, signal, cursor),
+      (signal, cursor) => listEvents(user, organizationId, signal, cursor),
     ),
   );
 
@@ -134,3 +133,19 @@ export const useOrganizationLogoQuery = (
     queryFn: ({ signal }) => getOrganizationLogo(user, organizationId, signal),
     enabled: version !== null,
   });
+
+export const eventOptions = (
+  user: User,
+  organizationId: string,
+  eventId: string,
+) =>
+  queryOptions({
+    queryKey: queryKeys.event(user.uid, organizationId, eventId),
+    queryFn: ({ signal }) => getEvent(user, organizationId, eventId, signal),
+  });
+
+export const useEventQuery = (
+  user: User,
+  organizationId: string,
+  eventId: string,
+) => useQuery(eventOptions(user, organizationId, eventId));

@@ -1,5 +1,5 @@
-import { Profile } from '../services';
+import { ProfileDetails } from '../types';
 
 export const isProfileComplete = (
-  profile: Profile | null | undefined,
+  profile: ProfileDetails | null | undefined,
 ): boolean => Boolean(profile?.displayName?.trim() && profile.timezone?.trim());

@@ -3,23 +3,24 @@ import { useForm } from 'react-hook-form';
 import { useEffect, useRef, useState } from 'react';
 
 import { ApiError } from '@/lib';
+import { queryKeys, useApiMutation } from '@/app/query';
 import { InlineAlert, InputField, SubmitButton } from '@/components';
 
-import { EVENT_SLUG_PATTERN } from '../constants';
-import { createOrganizationEvent } from '../services';
-import { CreateEventInput, OrganizationEvent } from '../types';
+import { Event } from '../types/event';
+import { createEvent } from '../services/events';
+import { CreateEventInput } from '../types/createEventInput';
 import {
   getEventsError,
-  suggestEventSlug,
-  normalizeEventSlug,
   isEventCreationUncertain,
-} from '../utils';
-import { queryKeys, useApiMutation } from '@/app/query';
+  normalizeEventSlug,
+  suggestEventSlug,
+} from '../utils/eventUtils';
+import { EVENT_SLUG_PATTERN } from '../constants';
 
 type Props = {
   user: User;
   organizationId: string;
-  onCreated: (event: OrganizationEvent) => void;
+  onCreated: (event: Event) => void;
 };
 
 export const CreateEventForm = ({ user, organizationId, onCreated }: Props) => {
@@ -32,7 +33,7 @@ export const CreateEventForm = ({ user, organizationId, onCreated }: Props) => {
 
   const createMutation = useApiMutation({
     user,
-    request: createOrganizationEvent,
+    request: createEvent,
     affected: [
       queryKeys.resources(user.uid, organizationId, 'events'),
       queryKeys.resources(user.uid, organizationId, 'activity'),
@@ -70,7 +71,7 @@ export const CreateEventForm = ({ user, organizationId, onCreated }: Props) => {
     setPending(true);
     clearErrors('root');
 
-    let created: OrganizationEvent | null = null;
+    let created: Event | null = null;
     try {
       created = await createMutation.execute(
         organizationId,

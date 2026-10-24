@@ -10,7 +10,6 @@ import { FirebaseService } from '../../firebase/services';
 import { OrganizationScope } from '../../organizations/types';
 import { EventSlugsRepository } from './eventSlugs.repository';
 import { DiagnosticError } from '../../observalibility/errors';
-import { Event, eventSchema, eventSlugReservationSchema } from '../models';
 import {
   assertEventStatusTransition,
   assertOrganizationPermissions,
@@ -20,6 +19,12 @@ import {
   OrganizationMembershipRepository,
 } from '../../organizations/repositories';
 import {
+  Event,
+  eventSchema,
+  EventSettingsUpdate,
+  eventSlugReservationSchema,
+} from '../models';
+import {
   decodeEventCursor,
   encodeEventCursor,
   invalidEventCursor,
@@ -27,8 +32,8 @@ import {
 
 type EventMutation =
   | {
-      kind: 'name';
-      name: string;
+      kind: 'settings';
+      changes: EventSettingsUpdate;
     }
   | {
       kind: 'status';
@@ -222,14 +227,76 @@ export class EventsRepository {
     );
   }
 
-  updateName(
+  async get(scope: OrganizationScope, eventId: string): Promise<Event> {
+    return this.firebaseService.firestore.runTransaction(
+      async (transaction): Promise<Event> => {
+        const organizationSnapshot = await transaction.get(
+          this.organizationRepository.getDocumentReference(
+            scope.organizationId,
+          ),
+        );
+
+        const organization = organizationSnapshot.data();
+
+        if (!organization) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'ORGANIZATION_NOT_FOUND',
+            'Organization not found.',
+          );
+        }
+
+        const membership =
+          await this.organizationMembershipRepository.requireActiveInTransaction(
+            transaction,
+            scope.organizationId,
+            scope.actorUid,
+          );
+
+        if (
+          organization.id !== scope.organizationId ||
+          membership.organizationId !== scope.organizationId ||
+          membership.uid !== scope.actorUid
+        ) {
+          throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
+        }
+
+        assertOrganizationPermissions(membership, ['organization:events:read']);
+
+        const snapshot = await transaction.get(
+          this.getDocumentReference(scope.organizationId, eventId),
+        );
+
+        const event = snapshot.data();
+
+        if (!event) {
+          throw new ApiException(
+            HttpStatus.NOT_FOUND,
+            'EVENT_NOT_FOUND',
+            'Event not found.',
+          );
+        }
+
+        if (
+          event.id !== eventId ||
+          event.organizationId !== scope.organizationId
+        ) {
+          throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
+        }
+
+        return event;
+      },
+    );
+  }
+
+  updateSettings(
     scope: OrganizationScope,
     eventId: string,
-    name: string,
+    changes: EventSettingsUpdate,
   ): Promise<Event> {
     return this.mutate(scope, eventId, {
-      kind: 'name',
-      name,
+      kind: 'settings',
+      changes,
     });
   }
 
@@ -289,7 +356,7 @@ export class EventsRepository {
         }
 
         assertOrganizationPermissions(membership, [
-          mutation.kind === 'name'
+          mutation.kind === 'settings'
             ? 'organization:events:update'
             : 'organization:events:manage-status',
         ]);
@@ -312,17 +379,13 @@ export class EventsRepository {
           throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
         }
 
-        if (mutation.kind === 'name') {
-          if (current.status === 'ARCHIVED') {
+        if (mutation.kind === 'settings') {
+          if (current.status === EVENT_STATUS.ARCHIVED) {
             throw new ApiException(
               HttpStatus.CONFLICT,
               'EVENT_ARCHIVED',
               'Archived events cannot be edited.',
             );
-          }
-
-          if (current.name === mutation.name) {
-            return current;
           }
         } else {
           assertEventStatusTransition(current.status, mutation.status);
@@ -332,13 +395,44 @@ export class EventsRepository {
           }
         }
 
+        const parsed = eventSchema.safeParse({
+          ...current,
+          ...(mutation.kind === 'settings'
+            ? mutation.changes
+            : { status: mutation.status }),
+        });
+
+        if (!parsed.success) {
+          if (mutation.kind === 'settings') {
+            throw new ApiException(
+              HttpStatus.BAD_REQUEST,
+              'EVENT_SETTINGS_INVALID',
+              'Check the event settings.Provide a valid timezone and either both dates or neighter, with the end after the start.',
+            );
+          }
+
+          throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
+        }
+
+        const candidate = parsed.data;
+
+        if (
+          mutation.kind === 'settings' &&
+          candidate.name === current.name &&
+          candidate.description === current.description &&
+          candidate.format === current.format &&
+          candidate.location === current.location &&
+          candidate.startsAt?.getTime() === current.startsAt?.getTime() &&
+          candidate.endsAt?.getTime() === current.endsAt?.getTime() &&
+          candidate.timezone === current.timezone
+        ) {
+          return current;
+        }
+
         const now = new Date();
 
         const next = eventSchema.parse({
-          ...current,
-          ...(mutation.kind === 'name'
-            ? { name: mutation.name }
-            : { status: mutation.status }),
+          ...candidate,
           updatedAt: now,
         });
 
@@ -350,7 +444,7 @@ export class EventsRepository {
         };
 
         const auditEvent =
-          mutation.kind === 'name'
+          mutation.kind === 'settings'
             ? this.auditWriter.prepareEventUpdated(auditInput)
             : this.auditWriter.prepareEventStatusChanged({
                 ...auditInput,

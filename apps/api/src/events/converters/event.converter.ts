@@ -5,19 +5,26 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { Event, eventSchema } from '../models';
 import { EVENTS_COLLECTION } from '../constants';
 import { DiagnosticError } from '../../observalibility/errors';
+import { Event, eventObjectSchema, eventSchema } from '../models';
 import { ORGANIZATIONS_COLLECTION } from '../../organizations/constants';
 
-export type EventDocument = Omit<Event, 'createdAt' | 'updatedAt'> & {
+export type EventDocument = Omit<
+  Event,
+  'createdAt' | 'updatedAt' | 'startsAt' | 'endsAt'
+> & {
   createdAt: Timestamp;
   updatedAt: Timestamp;
+  startsAt: Timestamp | null;
+  endsAt: Timestamp | null;
 };
 
-const eventDocumentSchema = eventSchema.extend({
+const eventDocumentSchema = eventObjectSchema.extend({
   createdAt: z.instanceof(Timestamp),
   updatedAt: z.instanceof(Timestamp),
+  endsAt: z.instanceof(Timestamp).nullable().default(null),
+  startsAt: z.instanceof(Timestamp).nullable().default(null),
 });
 
 const rejectPartialWrite = (options?: SetOptions): void => {
@@ -42,6 +49,9 @@ export const eventConverter: FirestoreDataConverter<Event, EventDocument> = {
       ...event,
       createdAt: Timestamp.fromDate(event.createdAt),
       updatedAt: Timestamp.fromDate(event.updatedAt),
+      startsAt:
+        event.startsAt === null ? null : Timestamp.fromDate(event.startsAt),
+      endsAt: event.endsAt === null ? null : Timestamp.fromDate(event.endsAt),
     };
   },
 
@@ -53,10 +63,12 @@ export const eventConverter: FirestoreDataConverter<Event, EventDocument> = {
         `${ORGANIZATIONS_COLLECTION}/${document.organizationId}/${EVENTS_COLLECTION}/${document.id}`,
     );
 
-    return {
+    return eventSchema.parse({
       ...document,
       createdAt: document.createdAt.toDate(),
       updatedAt: document.updatedAt.toDate(),
-    };
+      endsAt: document.endsAt?.toDate() ?? null,
+      startsAt: document.startsAt?.toDate() ?? null,
+    });
   },
 };

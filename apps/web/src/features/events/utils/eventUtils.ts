@@ -1,8 +1,9 @@
 import { ApiError } from '@/lib';
 import { isDateString, isRecord } from '@/app/utils';
 
-import { OrganizationEvent } from '../types';
-import { EVENT_SLUG_PATTERN, UUID_PATTERN } from '../constants';
+import { UUID_PATTERN } from '../../organizations/constants';
+import { Event } from '../types/event';
+import { EVENT_SLUG_PATTERN } from '../constants';
 
 export const normalizeEventSlug = (value: string): string =>
   value.trim().toLowerCase();
@@ -18,10 +19,7 @@ export const suggestEventSlug = (name: string): string =>
     .slice(0, 63)
     .replace(/-+$/g, '');
 
-export const parseOrganizationEvent = (
-  value: unknown,
-  organizationId: string,
-): OrganizationEvent => {
+export const parseEvent = (value: unknown, organizationId: string): Event => {
   if (
     !isRecord(value) ||
     typeof value.id !== 'string' ||
@@ -34,7 +32,9 @@ export const parseOrganizationEvent = (
     value.slug.length < 3 ||
     value.slug.length > 63 ||
     !EVENT_SLUG_PATTERN.test(value.slug) ||
-    value.status !== 'DRAFT' ||
+    (value.status !== 'DRAFT' &&
+      value.status !== 'PUBLISHED' &&
+      value.status !== 'ARCHIVED') ||
     !isDateString(value.createdAt) ||
     !isDateString(value.updatedAt)
   ) {

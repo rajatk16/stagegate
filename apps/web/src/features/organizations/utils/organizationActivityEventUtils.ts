@@ -6,7 +6,7 @@ import { OrganizationActivityEvent } from '../types';
 const invalidResponse = () =>
   new ApiError('The API returned an unexpected activity response.', 'response');
 
-export const parseEvent = (
+export const parseOrganizationActivityEvent = (
   value: unknown,
   organizationId: string,
 ): OrganizationActivityEvent => {

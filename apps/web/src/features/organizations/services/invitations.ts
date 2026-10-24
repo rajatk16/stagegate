@@ -1,16 +1,15 @@
 import { User } from 'firebase/auth';
+
+import { isRecord } from '@/app/utils';
+import { ApiError, authenticatedApiRequest } from '@/lib';
+
+import { UUID_PATTERN } from '../constants';
+import { isInvitationRole, parseInvitation } from '../utils';
 import {
-  CreateInvitationInput,
   InvitationPage,
   PendingInvitation,
+  CreateInvitationInput,
 } from '../types';
-import { ApiError, authenticatedApiRequest } from '@/lib';
-import { isRecord } from '@/app/utils';
-import { UUID_PATTERN } from '../constants';
-import {
-  isInvitationRole,
-  parseInvitation,
-} from '../utils/organizationInvitationUtils';
 
 const invitationPath = (organizationId: string) =>
   `/organizations/${encodeURIComponent(organizationId)}/invitations`;

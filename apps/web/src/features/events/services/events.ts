@@ -1,21 +1,23 @@
 import { User } from 'firebase/auth';
 
-import { normalizeEventSlug, parseOrganizationEvent } from '../utils';
-import {
-  CreateEventInput,
-  OrganizationEvent,
-  OrganizationEventsPage,
-} from '../types';
-
 import { isRecord } from '@/app/utils';
 import { ApiError, authenticatedApiRequest } from '@/lib';
 
-export const listOrganizationEvents = async (
+import { normalizeEventSlug, parseEvent, parseEventSettings } from '../utils';
+import {
+  Event,
+  EventsPage,
+  CreateEventInput,
+  EventSettings,
+  UpdateEventSettingsInput,
+} from '../types';
+
+export const listEvents = async (
   user: User,
   organizationId: string,
   signal: AbortSignal,
   cursor: string | null = null,
-): Promise<OrganizationEventsPage> => {
+): Promise<EventsPage> => {
   const query = new URLSearchParams({ limit: '20' });
 
   if (cursor !== null) {
@@ -24,7 +26,7 @@ export const listOrganizationEvents = async (
 
   const result = await authenticatedApiRequest(
     user,
-    `/organizations/${encodeURIComponent(organizationId)}/events${query}`,
+    `/organizations/${encodeURIComponent(organizationId)}/events?${query.toString()}`,
     { signal },
   );
 
@@ -57,19 +59,17 @@ export const listOrganizationEvents = async (
   }
 
   return {
-    items: result.items.map((item) =>
-      parseOrganizationEvent(item, organizationId),
-    ),
+    items: result.items.map((item) => parseEvent(item, organizationId)),
     nextCursor,
   };
 };
 
-export const createOrganizationEvent = async (
+export const createEvent = async (
   user: User,
   organizationId: string,
   input: CreateEventInput,
   signal: AbortSignal,
-): Promise<OrganizationEvent> => {
+): Promise<Event> => {
   const slug = normalizeEventSlug(input.slug);
 
   const result = await authenticatedApiRequest(
@@ -85,7 +85,7 @@ export const createOrganizationEvent = async (
     },
   );
 
-  const event = parseOrganizationEvent(result, organizationId);
+  const event = parseEvent(result, organizationId);
 
   if (event.slug !== slug) {
     throw new ApiError(
@@ -95,4 +95,39 @@ export const createOrganizationEvent = async (
   }
 
   return event;
+};
+
+export const getEvent = async (
+  user: User,
+  organizationId: string,
+  eventId: string,
+  signal: AbortSignal,
+): Promise<EventSettings> => {
+  const result = await authenticatedApiRequest(
+    user,
+    `/organizations/${encodeURIComponent(organizationId)}/events/${encodeURIComponent(eventId)}`,
+    { signal },
+  );
+
+  return parseEventSettings(result, organizationId, eventId);
+};
+
+export const updateEventSettings = async (
+  user: User,
+  organizationId: string,
+  eventId: string,
+  input: UpdateEventSettingsInput,
+  signal: AbortSignal,
+): Promise<EventSettings> => {
+  const result = await authenticatedApiRequest(
+    user,
+    `/organizations/${encodeURIComponent(organizationId)}/events/${encodeURIComponent(eventId)}`,
+    {
+      method: 'PATCH',
+      json: input,
+      signal,
+    },
+  );
+
+  return parseEventSettings(result, organizationId, eventId);
 };

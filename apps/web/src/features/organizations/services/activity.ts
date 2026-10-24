@@ -1,8 +1,10 @@
 import { User } from 'firebase/auth';
-import { OrganizationActivityPage } from '../types';
-import { ApiError, authenticatedApiRequest } from '@/lib';
+
 import { isRecord } from '@/app/utils';
-import { parseEvent } from '../utils';
+import { ApiError, authenticatedApiRequest } from '@/lib';
+
+import { OrganizationActivityPage } from '../types';
+import { parseOrganizationActivityEvent } from '../utils';
 
 export const listOrganizationActivity = async (
   user: User,
@@ -51,7 +53,9 @@ export const listOrganizationActivity = async (
   }
 
   return {
-    items: result.items.map((item) => parseEvent(item, organizationId)),
+    items: result.items.map((item) =>
+      parseOrganizationActivityEvent(item, organizationId),
+    ),
     nextCursor,
   };
 };

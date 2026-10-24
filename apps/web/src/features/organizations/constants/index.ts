@@ -9,10 +9,10 @@ export const ORGANIZATION_CAPABILITIES = [
   'organization:read',
   'organization:update',
   'organization:audit:read',
+  'organization:events:read',
   'organization:members:read',
   'organization:events:create',
+  'organization:events:update',
   'organization:members:manage',
   'organization:ownership:transfer',
 ];
-
-export const EVENT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

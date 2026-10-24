@@ -1,7 +1,9 @@
 import { User } from 'firebase/auth';
 import { useForm } from 'react-hook-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { queryKeys, useApiMutation } from '@/app/query';
 import {
   Card,
   Button,
@@ -16,9 +18,8 @@ import {
   CardDescription,
 } from '@/components';
 
-import { getProfileErrorMessage, Profile, updateProfile } from '../services';
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys, useApiMutation } from '@/app/query';
+import { getProfileErrorMessage, updateProfile } from '../services';
+import { ProfileDetails } from '../types';
 
 type ProfileFormValues = {
   displayName: string;
@@ -29,10 +30,10 @@ type ProfileFormValues = {
 
 type ProfileFormProps = {
   user: User;
-  profile: Profile;
+  profile: ProfileDetails;
 };
 
-const toFormValues = (profile: Profile): ProfileFormValues => ({
+const toFormValues = (profile: ProfileDetails): ProfileFormValues => ({
   displayName: profile.displayName ?? '',
   biography: profile.biography ?? '',
   affiliation: profile.affiliation ?? '',

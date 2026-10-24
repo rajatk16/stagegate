@@ -7,22 +7,25 @@ import { isRecord } from '@/app/utils';
 import { Badge, Button, InlineAlert } from '@/components';
 import { ApiError, getOrganizationSectionPath } from '@/lib';
 import {
+  Organization,
+  useOrganizations,
+  hasOrganizationCapability,
+} from '@/features/organizations';
+import {
   queryKeys,
   isAccessError,
   useEventsQuery,
   hasRepeatedCursor,
 } from '@/app/query';
 
-import { Organization } from '../types';
-import { useOrganizations } from '../hooks';
-import { getEventsError, hasOrganizationCapability } from '../utils';
+import { getEventsError } from '../utils/eventUtils';
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
   timeStyle: 'short',
 });
 
-export const OrganizationEventsContent = ({
+export const EventsContent = ({
   user,
   organization,
 }: {
@@ -99,8 +102,12 @@ export const OrganizationEventsContent = ({
 
   const canCreate = hasOrganizationCapability(
     organization,
-    'organization:events.create',
+    'organization:events:create',
   );
+
+  const canUpdate =
+    hasOrganizationCapability(organization, 'organization:events:read') &&
+    hasOrganizationCapability(organization, 'organization:events:update');
 
   const createPath = getOrganizationSectionPath(
     organization.slug,
@@ -179,7 +186,13 @@ export const OrganizationEventsContent = ({
                     {event.name}
                   </h3>
 
-                  <Badge variant="secondary">Draft</Badge>
+                  <Badge variant="secondary">
+                    {event.status === 'DRAFT'
+                      ? 'Draft'
+                      : event.status === 'PUBLISHED'
+                        ? 'Published'
+                        : 'Archived'}
+                  </Badge>
                 </div>
 
                 <p className="break-all text-sm text-muted-foreground">
@@ -191,6 +204,19 @@ export const OrganizationEventsContent = ({
                     {dateFormatter.format(new Date(event.createdAt))}
                   </time>
                 </p>
+
+                {canUpdate && (
+                  <Button asChild variant="outline">
+                    <Link
+                      to={getOrganizationSectionPath(
+                        organization.slug,
+                        `events/${encodeURIComponent(event.id)}/settings`,
+                      )}
+                    >
+                      Event settings
+                    </Link>
+                  </Button>
+                )}
               </article>
             </li>
           ))}
