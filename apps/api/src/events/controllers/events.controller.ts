@@ -64,6 +64,18 @@ export class EventsController {
     };
   }
 
+  @Get(':eventId')
+  @Header('Cache-Control', 'no-store')
+  @RequireOrganizationPermissions('organization:events:read')
+  async getEvent(
+    @CurrentOrganization() scope: OrganizationScope,
+    @Param('eventId', new ParseUUIDPipe({ version: '4' })) eventId: string,
+  ): Promise<EventResponseDto> {
+    const event = await this.eventsService.get(scope, eventId);
+
+    return toEventResponseDto(event);
+  }
+
   @Patch(':eventId')
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')

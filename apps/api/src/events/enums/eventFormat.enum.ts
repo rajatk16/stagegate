@@ -1,0 +1,5 @@
+export enum EVENT_FORMAT {
+  IN_PERSON = 'IN_PERSON',
+  ONLINE = 'ONLINE',
+  HYBRID = 'HYBRID',
+}
