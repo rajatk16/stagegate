@@ -8,33 +8,33 @@ import {
 import { assertInvitationState } from '../utils';
 import { DiagnosticError } from '../../observalibility/errors';
 import { ORGANIZATION_INVITATIONS_COLLECTION } from '../constants';
-import {
-  type OrganizationInvitation,
-  organizationInvitationSchema,
-} from '../models/organizationInvitation.model';
+import { eventInvitationSchema, Invitation, invitationSchema } from '../models';
+import { organizationInvitationSchema } from '../models/organizationInvitation.model';
 
-const invitationDocumentSchema = organizationInvitationSchema.extend({
+const timestampFields = {
   createdAt: z.instanceof(Timestamp),
   expiresAt: z.instanceof(Timestamp),
   acceptedAt: z.instanceof(Timestamp).nullable(),
   revokedAt: z.instanceof(Timestamp).nullable(),
-});
+};
 
-type OrganizationInvitationDocument = z.infer<typeof invitationDocumentSchema>;
+const invitationDocumentSchema = z.union([
+  organizationInvitationSchema.extend(timestampFields),
+  eventInvitationSchema.extend(timestampFields),
+]);
+
+type InvitationDocument = z.infer<typeof invitationDocumentSchema>;
 
 export const organizationInvitationConverter: FirestoreDataConverter<
-  OrganizationInvitation,
-  OrganizationInvitationDocument
+  Invitation,
+  InvitationDocument
 > = {
-  toFirestore(
-    value: unknown,
-    options?: SetOptions,
-  ): OrganizationInvitationDocument {
+  toFirestore(value: unknown, options?: SetOptions): InvitationDocument {
     if (options !== undefined) {
       throw new DiagnosticError('INVITATION_PARTIAL_WRITE_UNSUPPORTED');
     }
 
-    const invitation = organizationInvitationSchema.parse(value);
+    const invitation = invitationSchema.parse(value);
 
     assertInvitationState(invitation);
 
@@ -51,7 +51,7 @@ export const organizationInvitationConverter: FirestoreDataConverter<
     };
   },
 
-  fromFirestore(snapshot): OrganizationInvitation {
+  fromFirestore(snapshot): Invitation {
     const document = invitationDocumentSchema.parse(snapshot.data());
 
     if (
@@ -61,13 +61,13 @@ export const organizationInvitationConverter: FirestoreDataConverter<
       throw new DiagnosticError('INVITATION_STORAGE_INVARIANT_FAILED');
     }
 
-    const invitation: OrganizationInvitation = {
+    const invitation = invitationSchema.parse({
       ...document,
       createdAt: document.createdAt.toDate(),
       expiresAt: document.expiresAt.toDate(),
       acceptedAt: document.acceptedAt ? document.acceptedAt.toDate() : null,
       revokedAt: document.revokedAt ? document.revokedAt.toDate() : null,
-    };
+    });
 
     assertInvitationState(invitation);
 

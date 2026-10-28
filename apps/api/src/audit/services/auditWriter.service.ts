@@ -1,15 +1,16 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { Transaction } from 'firebase-admin/firestore';
 
-import { AuditEvent } from '../models';
 import { EVENT_STATUS } from '../../events/enums';
-import { EventMutationAuditInput } from '../types';
 import { auditEventConverter } from '../converters';
+import { AuditEvent, auditEventSchema } from '../models';
 import { FirebaseService } from '../../firebase/services';
 import { ORGANIZATION_ROLES } from '../../organizations/enums';
 import { DiagnosticError } from '../../observalibility/errors';
 import { RequestContextService } from '../../observalibility/services';
 import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
+import { EventMembershipAuditInput, EventMutationAuditInput } from '../types';
 import {
   OwnershipTransferredAuditInput,
   OrganizationInvitationAuditInput,
@@ -221,6 +222,22 @@ export class AuditWriter {
 
     return toEventStatusChangedAuditEvent({
       ...input,
+      requestId: context.requestId,
+    });
+  }
+
+  prepareEventMembership(input: EventMembershipAuditInput): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== input.actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return auditEventSchema.parse({
+      ...input,
+      schemaVersion: 1,
+      eventId: randomUUID(),
+      outcome: 'succeeded',
       requestId: context.requestId,
     });
   }

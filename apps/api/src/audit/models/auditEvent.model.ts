@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { EVENT_ROLES } from '../../events/enums';
 import { ORGANIZATION_ROLES } from '../../organizations/enums';
 import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
 
@@ -139,12 +140,75 @@ export const eventStatusChangedAuditEventSchema = auditBaseSchema
   })
   .strict();
 
+const eventInvitationAuditBaseSchema = auditBaseSchema.extend({
+  targetType: z.literal('eventInvitation'),
+  organizationId: z.string().uuid(),
+  targetEventId: z.string().uuid(),
+  invitationId: z.string().uuid(),
+  role: z.nativeEnum(EVENT_ROLES),
+});
+
+const eventMemberAuditBaseSchema = auditBaseSchema.extend({
+  targetType: z.literal('eventMembership'),
+  organizationId: z.string().uuid(),
+  targetEventId: z.string().uuid(),
+  targetUid: z.string().min(1).max(128),
+});
+
+export const eventInvitationCreatedAuditSchema = eventInvitationAuditBaseSchema
+  .extend({
+    action: z.literal('event.invitation.created'),
+  })
+  .strict();
+
+export const eventInvitationAcceptedAuditSchema = eventInvitationAuditBaseSchema
+  .extend({
+    action: z.literal('event.invitation.accepted'),
+  })
+  .strict();
+
+export const eventInvitationRevokedAuditSchema = eventInvitationAuditBaseSchema
+  .extend({
+    action: z.literal('event.invitation.revoked'),
+  })
+  .strict();
+
+export const eventMemberJoinedAuditSchema = eventMemberAuditBaseSchema
+  .extend({
+    action: z.literal('event.member.joined'),
+    role: z.nativeEnum(EVENT_ROLES),
+  })
+  .strict();
+
+export const eventMemberRoleChangedAuditSchema = eventMemberAuditBaseSchema
+  .extend({
+    action: z.literal('event.member.role.changed'),
+    previousRole: z.nativeEnum(EVENT_ROLES),
+    nextRole: z.nativeEnum(EVENT_ROLES),
+  })
+  .strict();
+
+export const eventMemberStatusChangedAuditSchema = eventMemberAuditBaseSchema
+  .extend({
+    action: z.literal('event.member.status.changed'),
+    role: z.nativeEnum(EVENT_ROLES),
+    previousStatus: z.enum(['ACTIVE', 'SUSPENDED']),
+    nextStatus: z.enum(['ACTIVE', 'SUSPENDED']),
+  })
+  .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
   eventCreatedAuditEventSchema,
+  eventMemberJoinedAuditSchema,
   eventUpdatedAuditEventSchema,
   profileUpdatedAuditEventSchema,
+  eventInvitationCreatedAuditSchema,
+  eventInvitationRevokedAuditSchema,
+  eventMemberRoleChangedAuditSchema,
+  eventInvitationAcceptedAuditSchema,
   eventStatusChangedAuditEventSchema,
   organizationCreatedAuditEventSchema,
+  eventMemberStatusChangedAuditSchema,
   organizationSettingsUpdatedAuditEventSchema,
   organizationInvitationCreatedAuditEventSchema,
   organizationMemberRoleChangedAuditEventSchema,

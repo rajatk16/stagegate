@@ -1,9 +1,5 @@
-import { OrganizationMembershipResponseDto } from '../../organizations/dtos';
+import { OrganizationInvitationResponseDto } from '../dtos';
 import { InvitationAcceptanceResult, InvitationIssueResult } from '../types';
-import {
-  OrganizationInvitationResponseDto,
-  AcceptOrganizationInvitationResponseDto,
-} from '../dtos';
 
 export const toOrganizationInvitationResponseDto = (
   result: InvitationIssueResult,
@@ -18,14 +14,34 @@ export const toOrganizationInvitationResponseDto = (
     emailStatus: result.emailStatus,
   });
 
-export const toAcceptOrganizationInvitationResponseDto = (
+export const toAcceptInvitationResponse = (
   result: InvitationAcceptanceResult,
-): AcceptOrganizationInvitationResponseDto =>
-  Object.assign(new AcceptOrganizationInvitationResponseDto(), {
+) => {
+  if (result.scopeType === 'EVENT') {
+    return {
+      scopeType: result.scopeType,
+      organizationId: result.organizationId,
+      eventId: result.eventId,
+      membership: {
+        organizationId: result.membership.organizationId,
+        eventId: result.membership.eventId,
+        uid: result.membership.uid,
+        role: result.membership.role,
+        status: result.membership.status,
+        createdAt: result.membership.createdAt.toISOString(),
+        updatedAt: result.membership.updatedAt.toISOString(),
+      },
+      alreadyAccepted: result.alreadyAccepted,
+    };
+  }
+
+  return {
+    scopeType: result.scopeType,
     organizationId: result.organizationId,
-    membership: Object.assign(new OrganizationMembershipResponseDto(), {
+    membership: {
       uid: result.membership.uid,
       role: result.membership.role,
-    }),
+    },
     alreadyAccepted: result.alreadyAccepted,
-  });
+  };
+};
