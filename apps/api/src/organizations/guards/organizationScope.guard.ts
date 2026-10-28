@@ -10,6 +10,7 @@ import { IS_PUBLIC_KEY } from '../../auth/constants';
 import { AuthException } from '../../common/exceptions';
 import { OrganizationAccessService } from '../services';
 import { OrganizationPermission, OrganizationRequest } from '../types';
+import { EVENT_PERMISSIONS_KEY, EVENT_SCOPE_KEY } from '../../events/constants';
 import {
   ORGANIZATION_SCOPE_KEY,
   ORGANIZATION_PERMISSIONS_KEY,
@@ -36,6 +37,32 @@ export class OrganizationScopeGuard implements CanActivate {
     const required = this.reflector.get<
       readonly OrganizationPermission[] | undefined
     >(ORGANIZATION_PERMISSIONS_KEY, context.getHandler());
+
+    const eventScoped =
+      this.reflector.getAllAndOverride<boolean>(EVENT_SCOPE_KEY, targets) ===
+      true;
+
+    const eventPermissions = this.reflector.get<readonly string[] | undefined>(
+      EVENT_PERMISSIONS_KEY,
+      context.getHandler(),
+    );
+
+    if (eventScoped) {
+      if (scoped || required !== undefined) {
+        throw new InternalServerErrorException(
+          'A route cannot declare both organization and event authorization.',
+        );
+      }
+
+      // EventScopeGuard performs event authorization.
+      return true;
+    }
+
+    if (eventPermissions !== undefined) {
+      throw new InternalServerErrorException(
+        'Event permissions require event scope.',
+      );
+    }
 
     const hasTenantParameter = [
       'organizationId',

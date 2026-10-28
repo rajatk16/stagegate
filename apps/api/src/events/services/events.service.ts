@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { EventsRepository } from '../repositories';
+import { EventScope } from '../types';
+import { EventsRepository } from '../repositories/events.repository';
 import { ApiException } from '../../common/exceptions';
 import { OrganizationScope } from '../../organizations/types';
 import { Event, eventSchema, EventSettingsUpdate } from '../models';
@@ -40,12 +41,12 @@ export class EventsService {
     return this.eventsRepository.list(scope, input.limit, input.cursor);
   }
 
-  get(scope: OrganizationScope, eventId: string): Promise<Event> {
+  get(scope: EventScope, eventId: string): Promise<Event> {
     return this.eventsRepository.get(scope, eventId);
   }
 
   update(
-    scope: OrganizationScope,
+    scope: EventScope,
     eventId: string,
     input: UpdateEventDto,
   ): Promise<Event> {
@@ -92,7 +93,7 @@ export class EventsService {
   }
 
   updateStatus(
-    scope: OrganizationScope,
+    scope: EventScope,
     eventId: string,
     input: UpdateEventStatusDto,
   ): Promise<Event> {

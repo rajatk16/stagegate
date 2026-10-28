@@ -6,7 +6,7 @@ import {
   OrganizationRepository,
   OrganizationSlugRepository,
   OrganizationMembershipRepository,
-} from '../../organizations/repositories';
+} from '../repositories';
 
 @Module({
   imports: [AuditModule, FirebaseModule],

@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 
-import { OrganizationModule } from '../../organizations/modules';
+import { EventScopedGuard } from '../../events/guards';
+import { EventAccessModule } from '../../events/modules/eventAccess.module';
+import { OrganizationModule } from '../../organizations/modules/organization.module';
 import { FirebaseModule } from '../../firebase/module/firebase.module';
 import {
   OrganizationScopeGuard,
@@ -19,6 +21,7 @@ import {
 @Module({
   imports: [
     FirebaseModule,
+    EventAccessModule,
     OrganizationModule,
     ThrottlerModule.forRoot({
       throttlers: [
@@ -65,6 +68,10 @@ import {
     {
       provide: APP_GUARD,
       useClass: OrganizationPermissionGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: EventScopedGuard,
     },
   ],
 })

@@ -1,6 +1,7 @@
 import { FieldPath } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
+import { EventScope } from '../types';
 import { EVENT_STATUS } from '../enums';
 import { eventConverter } from '../converters';
 import { EVENTS_COLLECTION } from '../constants';
@@ -8,6 +9,7 @@ import { AuditWriter } from '../../audit/services';
 import { ApiException } from '../../common/exceptions';
 import { FirebaseService } from '../../firebase/services';
 import { OrganizationScope } from '../../organizations/types';
+import { EventAccessService } from '../services/eventAccess.service';
 import { EventSlugsRepository } from './eventSlugs.repository';
 import { DiagnosticError } from '../../observalibility/errors';
 import {
@@ -19,16 +21,16 @@ import {
   OrganizationMembershipRepository,
 } from '../../organizations/repositories';
 import {
+  decodeEventCursor,
+  encodeEventCursor,
+  invalidEventCursor,
+} from '../utils';
+import {
   Event,
   eventSchema,
   EventSettingsUpdate,
   eventSlugReservationSchema,
 } from '../models';
-import {
-  decodeEventCursor,
-  encodeEventCursor,
-  invalidEventCursor,
-} from '../utils';
 
 type EventMutation =
   | {
@@ -45,6 +47,7 @@ export class EventsRepository {
   constructor(
     private readonly auditWriter: AuditWriter,
     private readonly firebaseService: FirebaseService,
+    private readonly eventAccessService: EventAccessService,
     private readonly eventSlugsRepository: EventSlugsRepository,
     private readonly organizationRepository: OrganizationRepository,
     private readonly organizationMembershipRepository: OrganizationMembershipRepository,
@@ -227,70 +230,26 @@ export class EventsRepository {
     );
   }
 
-  async get(scope: OrganizationScope, eventId: string): Promise<Event> {
+  async get(scope: EventScope, eventId: string): Promise<Event> {
+    if (scope.eventId !== eventId) {
+      throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
+    }
+
     return this.firebaseService.firestore.runTransaction(
       async (transaction): Promise<Event> => {
-        const organizationSnapshot = await transaction.get(
-          this.organizationRepository.getDocumentReference(
-            scope.organizationId,
-          ),
+        const current = await this.eventAccessService.requireInTransaction(
+          transaction,
+          scope,
+          ['event:read'],
         );
 
-        const organization = organizationSnapshot.data();
-
-        if (!organization) {
-          throw new ApiException(
-            HttpStatus.NOT_FOUND,
-            'ORGANIZATION_NOT_FOUND',
-            'Organization not found.',
-          );
-        }
-
-        const membership =
-          await this.organizationMembershipRepository.requireActiveInTransaction(
-            transaction,
-            scope.organizationId,
-            scope.actorUid,
-          );
-
-        if (
-          organization.id !== scope.organizationId ||
-          membership.organizationId !== scope.organizationId ||
-          membership.uid !== scope.actorUid
-        ) {
-          throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
-        }
-
-        assertOrganizationPermissions(membership, ['organization:events:read']);
-
-        const snapshot = await transaction.get(
-          this.getDocumentReference(scope.organizationId, eventId),
-        );
-
-        const event = snapshot.data();
-
-        if (!event) {
-          throw new ApiException(
-            HttpStatus.NOT_FOUND,
-            'EVENT_NOT_FOUND',
-            'Event not found.',
-          );
-        }
-
-        if (
-          event.id !== eventId ||
-          event.organizationId !== scope.organizationId
-        ) {
-          throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
-        }
-
-        return event;
+        return current.event;
       },
     );
   }
 
   updateSettings(
-    scope: OrganizationScope,
+    scope: EventScope,
     eventId: string,
     changes: EventSettingsUpdate,
   ): Promise<Event> {
@@ -301,7 +260,7 @@ export class EventsRepository {
   }
 
   updateStatus(
-    scope: OrganizationScope,
+    scope: EventScope,
     eventId: string,
     status: EVENT_STATUS,
   ): Promise<Event> {
@@ -312,13 +271,13 @@ export class EventsRepository {
   }
 
   private async mutate(
-    scope: OrganizationScope,
+    scope: EventScope,
     eventId: string,
     mutation: EventMutation,
   ): Promise<Event> {
-    const organizationReference =
-      this.organizationRepository.getDocumentReference(scope.organizationId);
-
+    if (scope.eventId !== eventId) {
+      throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
+    }
     const eventReference = this.getDocumentReference(
       scope.organizationId,
       eventId,
@@ -326,43 +285,17 @@ export class EventsRepository {
 
     return this.firebaseService.firestore.runTransaction(
       async (transaction): Promise<Event> => {
-        const organizationSnapshot = await transaction.get(
-          organizationReference,
+        const currentScope = await this.eventAccessService.requireInTransaction(
+          transaction,
+          scope,
+          [
+            mutation.kind === 'settings'
+              ? 'event:update'
+              : 'event:manage-status',
+          ],
         );
 
-        const organization = organizationSnapshot.data();
-
-        if (!organization) {
-          throw new ApiException(
-            HttpStatus.NOT_FOUND,
-            'ORGANIZATION_NOT_FOUND',
-            'Organization not found.',
-          );
-        }
-
-        const membership =
-          await this.organizationMembershipRepository.requireActiveInTransaction(
-            transaction,
-            scope.organizationId,
-            scope.actorUid,
-          );
-
-        if (
-          organization.id !== scope.organizationId ||
-          membership.organizationId !== scope.organizationId ||
-          membership.uid !== scope.actorUid
-        ) {
-          throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
-        }
-
-        assertOrganizationPermissions(membership, [
-          mutation.kind === 'settings'
-            ? 'organization:events:update'
-            : 'organization:events:manage-status',
-        ]);
-
-        const eventSnapshot = await transaction.get(eventReference);
-        const current = eventSnapshot.data();
+        const current = currentScope.event;
 
         if (!current) {
           throw new ApiException(

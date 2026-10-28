@@ -13,11 +13,10 @@ import {
 } from '@nestjs/common';
 
 import { InvitationsService } from '../services';
-import { toAcceptOrganizationInvitationResponseDto } from '../mappers';
+import { toAcceptInvitationResponse } from '../mappers';
 import {
   AcceptOrganizationInvitationDto,
   ListOrganizationInvitationsQueryDto,
-  AcceptOrganizationInvitationResponseDto,
 } from '../dtos';
 import {
   CurrentUser,
@@ -39,14 +38,14 @@ export class InvitationsController {
     @Param('invitationId', new ParseUUIDPipe({ version: '4' }))
     invitationId: string,
     @Body() dto: AcceptOrganizationInvitationDto,
-  ): Promise<AcceptOrganizationInvitationResponseDto> {
+  ) {
     const result = await this.invitationsService.accept(
       user,
       invitationId,
       dto.token,
     );
 
-    return toAcceptOrganizationInvitationResponseDto(result);
+    return toAcceptInvitationResponse(result);
   }
 
   @Get('received')
@@ -68,12 +67,12 @@ export class InvitationsController {
     @CurrentUser() user: DecodedIdToken,
     @Param('invitationId', new ParseUUIDPipe({ version: '4' }))
     invitationId: string,
-  ): Promise<AcceptOrganizationInvitationResponseDto> {
+  ) {
     const result = await this.invitationsService.acceptReceived(
       user,
       invitationId,
     );
 
-    return toAcceptOrganizationInvitationResponseDto(result);
+    return toAcceptInvitationResponse(result);
   }
 }

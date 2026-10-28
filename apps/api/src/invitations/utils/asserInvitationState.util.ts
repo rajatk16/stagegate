@@ -1,13 +1,11 @@
+import { Invitation } from '../models';
 import { DiagnosticError } from '../../observalibility/errors';
-import { OrganizationInvitation } from '../models';
 
 const invalidState = (): never => {
   throw new DiagnosticError('INVITATION_STORAGE_INVARIANT_FAILED');
 };
 
-export const assertInvitationState = (
-  invitation: OrganizationInvitation,
-): void => {
+export const assertInvitationState = (invitation: Invitation): void => {
   const createdAt = invitation.createdAt.getTime();
   const expiresAt = invitation.expiresAt.getTime();
 

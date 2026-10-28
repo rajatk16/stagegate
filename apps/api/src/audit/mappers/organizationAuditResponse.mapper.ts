@@ -64,6 +64,39 @@ const toDetails = (event: AuditEvent): Record<string, string | string[]> => {
         previousStatus: event.previousStatus,
         nextStatus: event.nextStatus,
       };
+
+    case 'event.invitation.created':
+    case 'event.invitation.accepted':
+    case 'event.invitation.revoked':
+      return {
+        targetEventId: event.targetEventId,
+        invitationId: event.invitationId,
+        role: event.role,
+      };
+
+    case 'event.member.joined':
+      return {
+        targetEventId: event.targetEventId,
+        targetUid: event.targetUid,
+        role: event.role,
+      };
+
+    case 'event.member.role.changed':
+      return {
+        targetEventId: event.targetEventId,
+        targetUid: event.targetUid,
+        previousRole: event.previousRole,
+        nextRole: event.nextRole,
+      };
+
+    case 'event.member.status.changed':
+      return {
+        targetEventId: event.targetEventId,
+        targetUid: event.targetUid,
+        role: event.role,
+        previousStatus: event.previousStatus,
+        nextStatus: event.nextStatus,
+      };
   }
 };
 

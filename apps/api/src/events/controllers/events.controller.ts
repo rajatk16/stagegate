@@ -12,13 +12,19 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 
+import { type EventScope } from '../types';
 import { EventsService } from '../services';
 import { toEventResponseDto } from '../mappers';
 import { SensitiveAction } from '../../auth/decorators';
 import type { OrganizationScope } from '../../organizations/types';
 import {
-  OrganizationScoped,
+  CurrentEvent,
+  EventScoped,
+  RequireEventPermissions,
+} from '../decorators';
+import {
   CurrentOrganization,
+  OrganizationScoped,
   RequireOrganizationPermissions,
 } from '../../organizations/decorators';
 import {
@@ -31,11 +37,11 @@ import {
 } from '../dtos';
 
 @Controller('organizations/:organizationId/events')
-@OrganizationScoped()
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
+  @OrganizationScoped()
   @HttpCode(HttpStatus.CREATED)
   @Header('Cache-Control', 'no-store')
   @RequireOrganizationPermissions('organization:events:create')
@@ -50,6 +56,7 @@ export class EventsController {
   }
 
   @Get()
+  @OrganizationScoped()
   @Header('Cache-Control', 'no-store')
   @RequireOrganizationPermissions('organization:events:read')
   async listEvents(
@@ -65,11 +72,13 @@ export class EventsController {
   }
 
   @Get(':eventId')
+  @EventScoped()
   @Header('Cache-Control', 'no-store')
-  @RequireOrganizationPermissions('organization:events:read')
+  @RequireEventPermissions('event:read')
   async getEvent(
-    @CurrentOrganization() scope: OrganizationScope,
-    @Param('eventId', new ParseUUIDPipe({ version: '4' })) eventId: string,
+    @CurrentEvent() scope: EventScope,
+    @Param('eventId', new ParseUUIDPipe({ version: '4' }))
+    eventId: string,
   ): Promise<EventResponseDto> {
     const event = await this.eventsService.get(scope, eventId);
 
@@ -77,13 +86,15 @@ export class EventsController {
   }
 
   @Patch(':eventId')
+  @EventScoped()
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
-  @RequireOrganizationPermissions('organization:events:update')
+  @RequireEventPermissions('event:update')
   @SensitiveAction('updateEvent')
   async updateEvent(
-    @CurrentOrganization() scope: OrganizationScope,
-    @Param('eventId', new ParseUUIDPipe({ version: '4' })) eventId: string,
+    @CurrentEvent() scope: EventScope,
+    @Param('eventId', new ParseUUIDPipe({ version: '4' }))
+    eventId: string,
     @Body() input: UpdateEventDto,
   ): Promise<EventResponseDto> {
     const event = await this.eventsService.update(scope, eventId, input);
@@ -92,13 +103,15 @@ export class EventsController {
   }
 
   @Patch(':eventId/status')
+  @EventScoped()
   @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
-  @RequireOrganizationPermissions('organization:events:manage-status')
+  @RequireEventPermissions('event:manage-status')
   @SensitiveAction('updateEventStatus')
   async updateEventStatus(
-    @CurrentOrganization() scope: OrganizationScope,
-    @Param('eventId', new ParseUUIDPipe({ version: '4' })) eventId: string,
+    @CurrentEvent() scope: EventScope,
+    @Param('eventId', new ParseUUIDPipe({ version: '4' }))
+    eventId: string,
     @Body() input: UpdateEventStatusDto,
   ): Promise<EventResponseDto> {
     const event = await this.eventsService.updateStatus(scope, eventId, input);

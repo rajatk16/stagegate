@@ -85,6 +85,30 @@ export const sensitiveActionPolicies = {
       blockDuration: MINUTE,
     },
   },
+  inviteEventMember: {
+    ip: {
+      limit: 30,
+      ttl: MINUTE,
+      blockDuration: MINUTE,
+    },
+    user: {
+      limit: 20,
+      ttl: HOUR,
+      blockDuration: HOUR,
+    },
+  },
+  manageEventMembers: {
+    ip: {
+      limit: 30,
+      ttl: MINUTE,
+      blockDuration: MINUTE,
+    },
+    user: {
+      limit: 20,
+      ttl: MINUTE,
+      blockDuration: MINUTE,
+    },
+  },
 };
 
 export type SensitiveActionName = keyof typeof sensitiveActionPolicies;
