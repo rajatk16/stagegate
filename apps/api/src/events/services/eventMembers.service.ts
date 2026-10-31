@@ -4,7 +4,6 @@ import { FieldPath } from 'firebase-admin/firestore';
 import { EVENT_STATUS, EVENT_ROLES } from '../enums';
 import type { EventScope } from '../types';
 import { eventMembershipSchema } from '../models';
-import { canGrantEventRole } from '../utils';
 import { AuditWriter } from '../../audit/services';
 import { toEventMembershipResponse } from '../mappers';
 import { FirebaseService } from '../../firebase/services';
@@ -16,6 +15,8 @@ import {
   ApiException,
   RequestValidationException,
 } from '../../common/exceptions';
+import { AddEventMemberDto } from '../dtos';
+import { getOrganizationMembershipKey } from '../../organizations/utils/organizationMembershipKey.util';
 
 type MemberMutation =
   | {
@@ -112,10 +113,41 @@ export class EventMembersService {
 
         const documents = snapshot.docs.slice(0, limit);
 
-        return {
-          items: documents.map((document) =>
-            toEventMembershipResponse(document.data()),
+        const parents = await Promise.all(
+          documents.map((document) =>
+            transaction.get(
+              this.organizationMemberships.getDocumentReference(
+                scope.organizationId,
+                document.id,
+              ),
+            ),
           ),
+        );
+
+        const items = documents.flatMap((document, index) => {
+          const assignment = document.data();
+          const parent = parents[index].data();
+
+          if (
+            !parent ||
+            assignment.organizationMembershipKey !==
+              getOrganizationMembershipKey(parent)
+          ) {
+            return [];
+          }
+
+          return [
+            {
+              ...toEventMembershipResponse(assignment),
+              organizationStatus: parent.status,
+              effectiveStatus:
+                parent.status === 'ACTIVE' ? assignment.status : 'SUSPENDED',
+            },
+          ];
+        });
+
+        return {
+          items,
           nextCursor:
             snapshot.docs.length > limit
               ? (documents.at(-1)?.id ?? null)
@@ -139,6 +171,8 @@ export class EventMembersService {
           scope,
           ['event:members:manage'],
         );
+
+        this.assertOrganizationAdmin(actor);
 
         if (scope.actorUid === targetUid) {
           throw new ApiException(
@@ -174,31 +208,38 @@ export class EventMembersService {
           );
         }
 
-        const targetIsOrganizationAdmin =
-          targetOrganization?.status === 'ACTIVE' &&
-          (targetOrganization.role === ORGANIZATION_ROLES.OWNER ||
-            targetOrganization.role === ORGANIZATION_ROLES.ADMIN);
-
         if (
-          actor.authority.kind !== 'ORGANIZATION_ADMIN' &&
-          targetIsOrganizationAdmin
+          !target ||
+          !targetOrganization ||
+          target.organizationMembershipKey !==
+            getOrganizationMembershipKey(targetOrganization)
         ) {
           throw new ApiException(
-            HttpStatus.FORBIDDEN,
-            'EVENT_MEMBER_CHANGE_FORBIDDEN',
-            'You cannot manage this member.',
+            HttpStatus.NOT_FOUND,
+            'EVENT_MEMBER_NOT_FOUND',
+            'Event member not found.',
           );
         }
 
         if (
-          !canGrantEventRole(actor.authority, target.role) ||
-          (mutation.kind === 'role' &&
-            !canGrantEventRole(actor.authority, mutation.role))
+          targetOrganization.role === ORGANIZATION_ROLES.OWNER ||
+          targetOrganization.role === ORGANIZATION_ROLES.ADMIN
         ) {
           throw new ApiException(
             HttpStatus.FORBIDDEN,
-            'EVENT_MEMBER_CHANGE_FORBIDDEN',
-            'You cannot perform this membership change.',
+            'EVENT_ORGANIZATION_ADMIN_CHANGE_FORBIDDEN',
+            'Change this person’s organization role or status instead.',
+          );
+        }
+
+        if (
+          targetOrganization.status !== 'ACTIVE' &&
+          (mutation.kind === 'role' || mutation.status === 'ACTIVE')
+        ) {
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            'EVENT_TARGET_ORGANIZATION_MEMBERSHIP_INACTIVE',
+            'Reactivate the organization membership first.',
           );
         }
 
@@ -273,5 +314,126 @@ export class EventMembersService {
         return toEventMembershipResponse(updated);
       },
     );
+  }
+
+  async add(scope: EventScope, input: AddEventMemberDto) {
+    const targetUid = this.validateUid(input.uid);
+
+    return this.firebaseService.firestore.runTransaction(
+      async (transaction) => {
+        const actor = await this.access.requireInTransaction(
+          transaction,
+          scope,
+          ['event:members:manage'],
+        );
+
+        this.assertOrganizationAdmin(actor);
+
+        if (actor.event.status === EVENT_STATUS.ARCHIVED) {
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            'EVENT_ARCHIVED',
+            'Archived events cannot receive new members.',
+          );
+        }
+
+        const parentSnapshot = await transaction.get(
+          this.organizationMemberships.getDocumentReference(
+            scope.organizationId,
+            targetUid,
+          ),
+        );
+
+        const parent = parentSnapshot.data();
+
+        if (!parent) {
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            'EVENT_TARGET_ORGANIZATION_MEMBERSHIP_REQUIRED',
+            'This person must join the organization first.',
+          );
+        }
+
+        if (parent.status !== 'ACTIVE') {
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            'EVENT_TARGET_ORGANIZATION_MEMBERSHIP_INACTIVE',
+            'Reactivate this person’s organization membership first.',
+          );
+        }
+
+        if (
+          parent.role === ORGANIZATION_ROLES.OWNER ||
+          parent.role === ORGANIZATION_ROLES.ADMIN
+        ) {
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            'EVENT_ORGANIZATION_ADMIN_ASSIGNMENT_UNNECESSARY',
+            'Organization owners and administrators already have event access.',
+          );
+        }
+
+        const reference = this.memberships.getDocumentReference(
+          scope.organizationId,
+          scope.eventId,
+          targetUid,
+        );
+
+        const existingSnapshot = await transaction.get(reference);
+
+        const existing = existingSnapshot.data();
+
+        const membershipKey = getOrganizationMembershipKey(parent);
+
+        if (existing?.organizationMembershipKey === membershipKey) {
+          throw new ApiException(
+            HttpStatus.CONFLICT,
+            'EVENT_ALREADY_MEMBER',
+            'This person already has an event assignment. Use the role or status controls.',
+          );
+        }
+
+        const now = new Date();
+
+        const membership = eventMembershipSchema.parse({
+          organizationId: scope.organizationId,
+          eventId: scope.eventId,
+          uid: targetUid,
+          organizationMembershipKey: membershipKey,
+          role: input.role,
+          status: 'ACTIVE',
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        const audit = this.audit.prepareEventMembership({
+          action: 'event.member.joined',
+          targetType: 'eventMembership',
+          actorUid: scope.actorUid,
+          organizationId: scope.organizationId,
+          targetEventId: scope.eventId,
+          targetUid,
+          role: membership.role,
+          occurredAt: now,
+        });
+
+        // Replaces only an unbound or earlier-membership assignment.
+        // A current assignment was rejected above.
+        transaction.set(reference, membership);
+        this.audit.append(transaction, audit);
+
+        return toEventMembershipResponse(membership);
+      },
+    );
+  }
+
+  private assertOrganizationAdmin(scope: EventScope): void {
+    if (scope.authority.kind !== 'ORGANIZATION_ADMIN') {
+      throw new ApiException(
+        HttpStatus.FORBIDDEN,
+        'EVENT_MEMBERSHIP_ADMIN_REQUIRED',
+        'Only organization owners and administrators can manage event memberships.',
+      );
+    }
   }
 }

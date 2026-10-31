@@ -8,8 +8,8 @@ export interface EventScope {
   readonly organizationId: string;
   readonly eventId: string;
   readonly event: Event;
-  readonly organizationMembership: OrganizationMembership | null;
   readonly eventMembership: EventMembership | null;
   readonly authority: EventAuthority;
+  readonly organizationMembership: OrganizationMembership;
   readonly permissions: readonly EventPermission[];
 }

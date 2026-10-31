@@ -1,21 +1,10 @@
-import type { EventRole } from '@/features/events';
 import type { ORGANIZATION_ROLES } from '@/features/organizations';
 
-type Base = {
+export type ReceivedInvitation = {
   id: string;
+  scopeType: 'ORGANIZATION';
   organizationId: string;
   organizationName: string;
+  role: Exclude<ORGANIZATION_ROLES, 'OWNER'>;
   expiresAt: string;
 };
-
-export type ReceivedInvitation =
-  | (Base & {
-      scopeType: 'ORGANIZATION';
-      role: Exclude<ORGANIZATION_ROLES, 'OWNER'>;
-    })
-  | (Base & {
-      scopeType: 'EVENT';
-      eventId: string;
-      eventName: string;
-      role: EventRole;
-    });

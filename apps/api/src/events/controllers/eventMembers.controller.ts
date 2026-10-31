@@ -1,32 +1,26 @@
 import {
   Get,
   Body,
-  Post,
   Param,
   Patch,
   Query,
   Header,
-  Delete,
-  HttpCode,
   Controller,
+  Post,
+  HttpCode,
   HttpStatus,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 
 import type { EventScope } from '../types';
 import { EventMembersService } from '../services';
 import { SensitiveAction } from '../../auth/decorators';
-import { InvitationsService } from '../../invitations/services';
-import {
-  CreateEventInvitationDto,
-  ListOrganizationInvitationsQueryDto,
-} from '../../invitations/dtos';
 import {
   EventScoped,
   CurrentEvent,
   RequireEventPermissions,
 } from '../decorators';
 import {
+  AddEventMemberDto,
   ListEventMembersQueryDto,
   UpdateEventMemberRoleDto,
   UpdateEventMemberStatusDto,
@@ -35,10 +29,7 @@ import {
 @Controller('organizations/:organizationId/events/:eventId')
 @EventScoped()
 export class EventMembersController {
-  constructor(
-    private readonly members: EventMembersService,
-    private readonly invitations: InvitationsService,
-  ) {}
+  constructor(private readonly members: EventMembersService) {}
 
   @Get('membership')
   @Header('Cache-Control', 'no-store')
@@ -87,38 +78,12 @@ export class EventMembersController {
     });
   }
 
-  @Post('invitations')
+  @Post('members')
   @HttpCode(HttpStatus.CREATED)
   @Header('Cache-Control', 'no-store')
   @RequireEventPermissions('event:members:manage')
-  @SensitiveAction('inviteEventMember')
-  invite(
-    @CurrentEvent() scope: EventScope,
-    @Body() input: CreateEventInvitationDto,
-  ) {
-    return this.invitations.createEvent(scope, input);
-  }
-
-  @Get('invitations')
-  @Header('Cache-Control', 'no-store')
-  @RequireEventPermissions('event:members:manage')
-  listInvitations(
-    @CurrentEvent() scope: EventScope,
-    @Query() query: ListOrganizationInvitationsQueryDto,
-  ) {
-    return this.invitations.listEventPending(scope, query.cursor);
-  }
-
-  @Delete('invitations/:invitationId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Header('Cache-Control', 'no-store')
-  @RequireEventPermissions('event:members:manage')
   @SensitiveAction('manageEventMembers')
-  async revokeInvitation(
-    @CurrentEvent() scope: EventScope,
-    @Param('invitationId', new ParseUUIDPipe({ version: '4' }))
-    invitationId: string,
-  ): Promise<void> {
-    await this.invitations.revokeEvent(scope, invitationId);
+  add(@CurrentEvent() scope: EventScope, @Body() input: AddEventMemberDto) {
+    return this.members.add(scope, input);
   }
 }

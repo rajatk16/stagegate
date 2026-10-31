@@ -19,6 +19,7 @@ import {
   OrganizationPrivateResponseDto,
   OrganizationMembershipResponseDto,
 } from '../dtos';
+import { randomUUID } from 'node:crypto';
 
 export const toNewOrganization = (
   dto: CreateOrganizationDto,
@@ -39,6 +40,7 @@ export const toNewOrganization = (
     uid: actorUid,
     role: ORGANIZATION_ROLES.OWNER,
     status: ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE,
+    membership: randomUUID(),
     createdAt: now,
     updatedAt: now,
   }),

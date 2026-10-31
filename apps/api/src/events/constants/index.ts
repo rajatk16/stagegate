@@ -12,15 +12,14 @@ export const EVENT_MEMBERSHIPS_COLLECTION = 'eventMemberships';
 export const EVENT_ROLE_PERMISSIONS: Readonly<
   Record<EVENT_ROLES, readonly EventPermission[]>
 > = {
+  REVIEWER: ['event:read'],
+  REVIEW_CHAIR: ['event:read', 'event:members:read'],
   MANAGER: [
     'event:read',
     'event:update',
-    'event:members:read',
     'event:manage-status',
-    'event:members:manage',
+    'event:members:read',
   ],
-  REVIEW_CHAIR: ['event:read', 'event:members:read', 'event:members:manage'],
-  REVIEWER: ['event:read'],
 };
 
 export const EVENT_ROLE_GRANT_TARGETS: Readonly<

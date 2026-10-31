@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 import { AuditModule } from '../../audit/modules';
 import { FirebaseModule } from '../../firebase/module';
 import { EventAccessModule } from './eventAccess.module';
-import { InvitationsModule } from '../../invitations/modules/invitations.module';
 import { EventsService } from '../services/events.service';
 import { EventsRepository } from '../repositories/events.repository';
 import { EventSlugsRepository } from '../repositories/eventSlugs.repository';
@@ -23,7 +22,6 @@ import { OrganizationPersistenceModule } from '../../organizations/modules/organ
     AuditModule,
     FirebaseModule,
     EventAccessModule,
-    InvitationsModule,
     OrganizationPersistenceModule,
   ],
 })

@@ -10,6 +10,12 @@ export const eventMembershipSchema = z
     uid: organizationMembershipSchema.shape.uid,
     role: z.nativeEnum(EVENT_ROLES),
     status: z.enum(['ACTIVE', 'SUSPENDED']),
+    organizationMembershipKey: z
+      .string()
+      .min(1)
+      .max(128)
+      .nullable()
+      .default(null),
     createdAt: z.date(),
     updatedAt: z.date(),
   })

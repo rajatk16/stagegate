@@ -74,6 +74,7 @@ export const organizationMembershipSchema = z
     status: z
       .nativeEnum(ORGANIZATION_MEMBERSHIP_STATUS)
       .default(ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE),
+    membershipId: z.string().uuid().nullable().default(null),
     createdAt: z.date(),
     updatedAt: z.date(),
   })

@@ -54,14 +54,4 @@ export const queryKeys = {
     eventId,
     'members',
   ],
-
-  eventInvitations: (uid: string, organizationId: string, eventId: string) => [
-    'account',
-    uid,
-    'organization',
-    organizationId,
-    'event',
-    eventId,
-    'invitations',
-  ],
 };

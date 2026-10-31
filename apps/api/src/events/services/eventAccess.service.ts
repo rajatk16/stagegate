@@ -21,6 +21,7 @@ import {
   OrganizationRepository,
   OrganizationMembershipRepository,
 } from '../../organizations/repositories';
+import { getOrganizationMembershipKey } from '../../organizations/utils/organizationMembershipKey.util';
 
 type EventIdentity = Pick<
   EventScope,
@@ -85,39 +86,43 @@ export class EventAccessService {
   ): Promise<EventScope> {
     const loaded = await this.loadInTransaction(transaction, identity);
 
-    const { organizationMembership, eventMembership } = loaded;
+    const organizationMembership = loaded.organizationMembership;
 
-    if (organizationMembership) {
-      assertActiveOrganizationMembership(organizationMembership);
+    if (!organizationMembership) {
+      throw eventNotFound();
     }
+
+    assertActiveOrganizationMembership(organizationMembership);
+
+    const membershipKey = getOrganizationMembershipKey(organizationMembership);
+
+    const eventMembership =
+      loaded.eventMembership?.organizationMembershipKey === membershipKey
+        ? loaded.eventMembership
+        : null;
+
+    const organizationAdmin =
+      organizationMembership.role === ORGANIZATION_ROLES.OWNER ||
+      organizationMembership.role === ORGANIZATION_ROLES.ADMIN;
 
     let authority: EventAuthority;
     let permissions: readonly EventPermission[];
 
-    if (
-      organizationMembership?.role === ORGANIZATION_ROLES.OWNER ||
-      organizationMembership?.role === ORGANIZATION_ROLES.ADMIN
-    ) {
+    if (organizationAdmin) {
       authority = {
         kind: 'ORGANIZATION_ADMIN',
       };
 
-      permissions = EVENT_ROLE_PERMISSIONS[EVENT_ROLES.MANAGER];
-    } else if (eventMembership?.status === 'ACTIVE') {
-      authority = {
-        kind: 'EVENT_MEMBER',
-        role: eventMembership.role,
-      };
-
-      permissions = EVENT_ROLE_PERMISSIONS[eventMembership.role];
-    } else if (organizationMembership) {
-      authority = {
-        kind: 'ORGANIZATION_READER',
-      };
-
-      permissions = ['event:read'];
+      permissions = [
+        ...EVENT_ROLE_PERMISSIONS[EVENT_ROLES.MANAGER],
+        'event:members:manage',
+      ];
     } else {
-      if (eventMembership?.status === 'SUSPENDED') {
+      if (!eventMembership) {
+        throw eventNotFound();
+      }
+
+      if (eventMembership.status !== 'ACTIVE') {
         throw new ApiException(
           HttpStatus.FORBIDDEN,
           'EVENT_MEMBERSHIP_INACTIVE',
@@ -125,7 +130,12 @@ export class EventAccessService {
         );
       }
 
-      throw eventNotFound();
+      authority = {
+        kind: 'EVENT_MEMBER',
+        role: eventMembership.role,
+      };
+
+      permissions = EVENT_ROLE_PERMISSIONS[eventMembership.role];
     }
 
     const scope: EventScope = {

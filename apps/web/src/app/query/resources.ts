@@ -15,7 +15,6 @@ import {
   listEvents,
   getEventAccess,
   listEventMembers,
-  listEventInvitations,
 } from '@/features/events';
 import { listReceivedInvitations } from '@/features/invitations';
 import {
@@ -179,21 +178,6 @@ export const useEventMembersQuery = (
       queryKeys.eventMembers(user.uid, organizationId, eventId),
       (signal, cursor) =>
         listEventMembers(user, organizationId, eventId, signal, cursor),
-    ),
-    enabled,
-  });
-
-export const useEventInvitationsQuery = (
-  user: User,
-  organizationId: string,
-  eventId: string,
-  enabled: boolean,
-) =>
-  useInfiniteQuery({
-    ...cursorOptions(
-      queryKeys.eventInvitations(user.uid, organizationId, eventId),
-      (signal, cursor) =>
-        listEventInvitations(user, organizationId, eventId, signal, cursor),
     ),
     enabled,
   });

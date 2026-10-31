@@ -7,7 +7,6 @@ import { EmailModule } from '../../email/modules';
 import { InvitationsController } from '../controllers';
 import { FirebaseModule } from '../../firebase/module';
 import { InvitationsRepository } from '../repositories';
-import { EventAccessModule } from '../../events/modules/eventAccess.module';
 import { OrganizationPersistenceModule } from '../../organizations/modules/organizationPersistence.module';
 
 @Module({
@@ -19,7 +18,6 @@ import { OrganizationPersistenceModule } from '../../organizations/modules/organ
     EmailModule,
     ConfigModule,
     FirebaseModule,
-    EventAccessModule,
     OrganizationPersistenceModule,
   ],
 })
