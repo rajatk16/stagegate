@@ -9,7 +9,7 @@ import { useActiveOrganization } from '@/features/organizations';
 import { isAccessError, useEventAccessQuery, useEventQuery } from '@/app/query';
 
 import { findEventBySlug } from '../services';
-import { hasEventPermission } from '../utils';
+import { hasActiveEventAccess, hasEventPermission } from '../utils';
 import { EVENT_SLUG_PATTERN } from '../constants';
 import { EventWorkspaceContext } from '../context';
 
@@ -34,13 +34,12 @@ const EventWorkspaceLoader = ({
   const refreshAccess = async () => {
     const result = await accessQuery.refetch();
 
-    if (result.error) throw result.error;
-    if (
-      !result.data ||
-      result.data.membership?.uid !== user.uid ||
-      result.data.membership.status !== 'ACTIVE'
-    ) {
-      throw new Error('An active event membership is required.');
+    if (result.error) {
+      throw result.error;
+    }
+
+    if (!result.data || !hasActiveEventAccess(result.data, user.uid)) {
+      throw new Error('Active event access is required.');
     }
   };
 
@@ -87,15 +86,12 @@ const EventWorkspaceLoader = ({
     return <p role="status">Loading event workspace…</p>;
   }
 
-  if (
-    access.membership?.uid !== user.uid ||
-    access.membership.status !== 'ACTIVE'
-  ) {
+  if (!hasActiveEventAccess(access, user.uid)) {
     return (
       <div className="space-y-4">
         <InlineAlert tone="warning" title="Event membership required">
-          You belong to this organization, but an active membership in this
-          event is also required.
+          You need an active event assignment or organization administrator
+          access to open this event.
         </InlineAlert>
 
         <Button
@@ -169,8 +165,8 @@ const EventWorkspaceLoader = ({
                 key={section.segment}
                 end
                 to={getEventWorkspacePath(
-                  organizationId,
-                  eventId,
+                  organizationSlug,
+                  eventSlug,
                   section.segment,
                 )}
                 className={({ isActive }) =>

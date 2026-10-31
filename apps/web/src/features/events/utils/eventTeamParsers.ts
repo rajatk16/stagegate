@@ -1,16 +1,14 @@
+import { ApiError } from '@/lib';
 import { isRecord } from '@/app/utils';
-import { ApiError, INVITATION_ID_PATTERN } from '@/lib';
 
 import { isEventRole } from './eventTeamUtils';
 import {
   EventAccess,
   EventMember,
   EventAuthority,
-  EventInvitation,
   EventPermission,
   EventMembersPage,
-  EventInvitationsPage,
-  CreatedEventInvitation,
+  EventMemberStatus,
 } from '../types';
 
 const invalidResponse = () =>
@@ -25,11 +23,11 @@ const isUid = (value: unknown): value is string =>
 const isDate = (value: unknown): value is string =>
   typeof value === 'string' && Number.isFinite(Date.parse(value));
 
-const isUuid = (value: unknown): value is string =>
-  typeof value === 'string' && INVITATION_ID_PATTERN.test(value);
-
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === 'string');
+
+const isMemberStatus = (value: unknown): value is EventMemberStatus =>
+  value === 'ACTIVE' || value === 'SUSPENDED';
 
 const knownPermissions: readonly EventPermission[] = [
   'event:read',
@@ -40,14 +38,22 @@ const knownPermissions: readonly EventPermission[] = [
 ];
 
 const parseAuthority = (value: unknown): EventAuthority => {
-  if (!isRecord(value)) throw invalidResponse();
+  if (!isRecord(value)) {
+    throw invalidResponse();
+  }
 
-  if (value.kind === 'ORGANIZATION_ADMIN') return { kind: value.kind };
+  if (value.kind === 'ORGANIZATION_ADMIN') {
+    return {
+      kind: 'ORGANIZATION_ADMIN',
+    };
+  }
 
-  if (value.kind === 'ORGANIZATION_READER') return { kind: value.kind };
-
-  if (value.kind === 'EVENT_MEMBER' && isEventRole(value.role))
-    return { kind: value.kind, role: value.role };
+  if (value.kind === 'EVENT_MEMBER' && isEventRole(value.role)) {
+    return {
+      kind: 'EVENT_MEMBER',
+      role: value.role,
+    };
+  }
 
   throw invalidResponse();
 };
@@ -63,9 +69,13 @@ export const parseEventMember = (
     value.eventId !== eventId ||
     !isUid(value.uid) ||
     !isEventRole(value.role) ||
-    (value.status !== 'ACTIVE' && value.status !== 'SUSPENDED') ||
+    !isMemberStatus(value.status) ||
     !isDate(value.createdAt) ||
-    !isDate(value.updatedAt)
+    !isDate(value.updatedAt) ||
+    (value.organizationStatus !== undefined &&
+      !isMemberStatus(value.organizationStatus)) ||
+    (value.effectiveStatus !== undefined &&
+      !isMemberStatus(value.effectiveStatus))
   ) {
     throw invalidResponse();
   }
@@ -78,6 +88,16 @@ export const parseEventMember = (
     status: value.status,
     createdAt: value.createdAt,
     updatedAt: value.updatedAt,
+    ...(value.organizationStatus !== undefined
+      ? {
+          organizationStatus: value.organizationStatus,
+        }
+      : {}),
+    ...(value.effectiveStatus !== undefined
+      ? {
+          effectiveStatus: value.effectiveStatus,
+        }
+      : {}),
   };
 };
 
@@ -129,6 +149,13 @@ export const parseEventAccess = (
     throw invalidResponse();
   }
 
+  if (
+    authority.kind === 'EVENT_MEMBER' &&
+    permissions.includes('event:members:manage')
+  ) {
+    throw invalidResponse();
+  }
+
   return {
     organizationId,
     eventId,
@@ -160,95 +187,4 @@ export const parseEventMembersPage = (
   }
 
   return { items, nextCursor: value.nextCursor };
-};
-
-const parseInvitationFields = (
-  value: unknown,
-  organizationId: string,
-  eventId: string,
-): Omit<EventInvitation, 'canRevoke'> => {
-  if (
-    !isRecord(value) ||
-    !isUuid(value.id) ||
-    value.organizationId !== organizationId ||
-    value.eventId !== eventId ||
-    typeof value.recipientEmail !== 'string' ||
-    value.recipientEmail.length > 254 ||
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.recipientEmail) ||
-    !isEventRole(value.role) ||
-    value.status !== 'PENDING' ||
-    !isDate(value.expiresAt)
-  ) {
-    throw invalidResponse();
-  }
-
-  return {
-    id: value.id,
-    organizationId,
-    eventId,
-    recipientEmail: value.recipientEmail,
-    role: value.role,
-    status: value.status,
-    expiresAt: value.expiresAt,
-  };
-};
-
-export const parseEventInvitation = (
-  value: unknown,
-  organizationId: string,
-  eventId: string,
-): EventInvitation => {
-  const invitation = parseInvitationFields(value, organizationId, eventId);
-
-  if (!isRecord(value) || typeof value.canRevoke !== 'boolean') {
-    throw invalidResponse();
-  }
-
-  return { ...invitation, canRevoke: value.canRevoke };
-};
-
-export const parseEventInvitationsPage = (
-  value: unknown,
-  organizationId: string,
-  eventId: string,
-): EventInvitationsPage => {
-  if (
-    !isRecord(value) ||
-    !Array.isArray(value.items) ||
-    (value.nextCursor !== null && !isUuid(value.nextCursor))
-  ) {
-    throw invalidResponse();
-  }
-
-  const items = value.items.map((item) =>
-    parseEventInvitation(item, organizationId, eventId),
-  );
-
-  if (new Set(items.map((item) => item.id)).size !== items.length) {
-    throw invalidResponse();
-  }
-
-  return { items, nextCursor: value.nextCursor };
-};
-
-export const parseCreatedEventInvitation = (
-  value: unknown,
-  organizationId: string,
-  eventId: string,
-): CreatedEventInvitation => {
-  const invitation = parseInvitationFields(value, organizationId, eventId);
-
-  if (
-    !isRecord(value) ||
-    value.scopeType !== 'EVENT' ||
-    (value.emailStatus !== 'ACCEPTED' && value.emailStatus !== 'CAPTURED')
-  ) {
-    throw invalidResponse();
-  }
-
-  return {
-    ...invitation,
-    scopeType: value.scopeType,
-    emailStatus: value.emailStatus,
-  };
 };

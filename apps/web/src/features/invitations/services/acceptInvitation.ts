@@ -1,7 +1,6 @@
 import { User } from 'firebase/auth';
 
 import { isRecord } from '@/app/utils';
-import { parseEventMember } from '@/features/events';
 import { isOrganizationRole } from '@/features/organizations';
 import {
   ApiError,
@@ -36,14 +35,9 @@ export const parseAcceptedInvitation = (
   result: unknown,
   expectedUid: string,
 ): AcceptedInvitation => {
-  const invalid = () =>
-    new ApiError(
-      'The API returned an unexpected acceptance response.',
-      'response',
-    );
-
   if (
     !isRecord(result) ||
+    result.scopeType !== 'ORGANIZATION' ||
     typeof result.organizationId !== 'string' ||
     !INVITATION_ID_PATTERN.test(result.organizationId) ||
     !isRecord(result.membership) ||
@@ -51,35 +45,10 @@ export const parseAcceptedInvitation = (
     !isOrganizationRole(result.membership.role) ||
     typeof result.alreadyAccepted !== 'boolean'
   ) {
-    throw invalid();
-  }
-
-  if (result.scopeType === 'EVENT') {
-    if (
-      typeof result.eventId !== 'string' ||
-      !INVITATION_ID_PATTERN.test(result.eventId)
-    ) {
-      throw invalid();
-    }
-
-    return {
-      scopeType: 'EVENT',
-      organizationId: result.organizationId,
-      eventId: result.eventId,
-      membership: parseEventMember(
-        result.membership,
-        result.organizationId,
-        result.eventId,
-      ),
-      alreadyAccepted: result.alreadyAccepted,
-    };
-  }
-
-  if (
-    result.scopeType !== 'ORGANIZATION' ||
-    !isOrganizationRole(result.membership.role)
-  ) {
-    throw invalid();
+    throw new ApiError(
+      'The API returned an unexpected acceptance response.',
+      'response',
+    );
   }
 
   return {
@@ -141,23 +110,6 @@ export const getAcceptanceProblem = (error: unknown): AcceptanceProblem => {
           message:
             'The sender can no longer grant this membership. ' +
             'Ask an organization administrator for a new invitation.',
-        };
-      case 'EVENT_ALREADY_MEMBER':
-        return {
-          kind: 'already-member',
-          message:
-            'You already belong to this event. Your existing membership has not been changed.',
-        };
-
-      case 'EVENT_INVITATION_ALREADY_USED':
-      case 'EVENT_ARCHIVED':
-      case 'EVENT_MEMBERSHIP_INACTIVE':
-      case 'EVENT_INVITATION_GRANT_UNAVAILABLE':
-      case 'EVENT_INVITATION_ROLE_FORBIDDEN':
-        return {
-          kind: 'unavailable',
-          message:
-            'This event invitation cannot currently be accepted. Ask an authorized event manager for help.',
         };
     }
 

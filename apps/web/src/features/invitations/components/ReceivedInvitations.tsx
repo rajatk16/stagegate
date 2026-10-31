@@ -2,7 +2,6 @@ import { Link } from 'react-router';
 import type { User } from 'firebase/auth';
 import { useEffect, useRef, useState } from 'react';
 
-import { EVENT_ROLE_LABELS } from '@/features/events';
 import { Badge, Button, InlineAlert } from '@/components';
 import { useOrganizations } from '@/features/organizations';
 import { ApiError, getOrganizationPath, clearInvitationToken } from '@/lib';
@@ -21,7 +20,6 @@ import {
   useApiMutation,
   useReceivedInvitationsQuery,
 } from '@/app/query';
-import { EventInvitationDestination } from './EventInvitationDestination';
 
 type State =
   | { status: 'loading' }
@@ -57,10 +55,6 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
   const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [joinedId, setJoinedId] = useState<string | null>(null);
-  const [joinedEvent, setJoinedEvent] = useState<{
-    organizationId: string;
-    eventId: string;
-  } | null>(null);
   const [feedback, setFeedback] = useState<{
     tone: 'success' | 'info' | 'error';
     message: string;
@@ -152,7 +146,6 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
     setAcceptingId(invitation.id);
     setFeedback(null);
     setJoinedId(null);
-    setJoinedEvent(null);
 
     try {
       const result = await acceptMutation.execute(
@@ -162,19 +155,9 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
 
       if (controller.signal.aborted) return;
 
-      if (result.scopeType === 'EVENT') {
-        setJoinedEvent({
-          organizationId: result.organizationId,
-          eventId: result.eventId,
-        });
-      } else {
-        setJoinedId(result.organizationId);
-      }
+      setJoinedId(result.organizationId);
 
-      const targetName =
-        invitation.scopeType === 'EVENT'
-          ? invitation.eventName
-          : invitation.organizationName;
+      const targetName = invitation.organizationName;
 
       setFeedback({
         tone: 'success',
@@ -196,14 +179,7 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
 
       if (problem.kind === 'already-member') {
         clearInvitationToken(invitation.id);
-        if (invitation.scopeType === 'EVENT') {
-          setJoinedEvent({
-            organizationId: invitation.organizationId,
-            eventId: invitation.eventId,
-          });
-        } else {
-          setJoinedId(invitation.organizationId);
-        }
+        setJoinedId(invitation.organizationId);
       } else if (
         error instanceof ApiError &&
         (error.status === 401 || error.status === 403)
@@ -247,8 +223,8 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
           </h2>
 
           <p className="text-sm text-muted-foreground">
-            Pending organization and event invitations sent to your verified
-            email address.
+            Pending organization invitations sent to your verified email
+            address.
           </p>
         </div>
 
@@ -257,7 +233,7 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
           type="button"
           variant="outline"
           disabled={busy}
-          onClick={() => reloadOrganizations()}
+          onClick={() => load()}
         >
           Refresh invitations
         </Button>
@@ -265,14 +241,6 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
 
       {feedback && (
         <InlineAlert tone={feedback.tone}>{feedback.message}</InlineAlert>
-      )}
-
-      {joinedEvent && (
-        <EventInvitationDestination
-          user={user}
-          organizationId={joinedEvent.organizationId}
-          eventId={joinedEvent.eventId}
-        />
       )}
 
       {state.status === 'ready' && pageError && (
@@ -307,7 +275,7 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
                 type="button"
                 variant="outline"
                 disabled={busy}
-                onClick={() => load()}
+                onClick={() => reloadOrganizations()}
               >
                 Refresh organizations
               </Button>
@@ -341,21 +309,15 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
                 >
                   <div className="min-w-0 space-y-2">
                     <h3 className="wrap-break-word font-semibold">
-                      {invitation.scopeType === 'EVENT'
-                        ? invitation.eventName
-                        : invitation.organizationName}
+                      {invitation.organizationName}
                     </h3>
 
                     <p className="text-sm text-muted-foreground">
-                      {invitation.scopeType === 'EVENT'
-                        ? `Event · ${invitation.organizationName}`
-                        : 'Organization'}
+                      Organization
                     </p>
 
                     <Badge variant="outline">
-                      {invitation.scopeType === 'EVENT'
-                        ? EVENT_ROLE_LABELS[invitation.role]
-                        : roleLabels[invitation.role]}
+                      {roleLabels[invitation.role]}
                     </Badge>
 
                     <p className="text-sm text-muted-foreground">
@@ -369,11 +331,7 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
                   <Button
                     type="button"
                     disabled={busy}
-                    aria-label={`Accept invitation to ${
-                      invitation.scopeType === 'EVENT'
-                        ? invitation.eventName
-                        : invitation.organizationName
-                    }`}
+                    aria-label={`Accept invitation to ${invitation.organizationName}`}
                     onClick={() => void accept(invitation)}
                   >
                     {acceptingId === invitation.id

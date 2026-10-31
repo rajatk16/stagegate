@@ -1,4 +1,4 @@
-import {
+import type {
   EventRole,
   EventAccess,
   EventAuthority,
@@ -21,20 +21,29 @@ export const hasEventPermission = (
 
 export const getGrantableEventRoles = (
   authority: EventAuthority,
-): EventRole[] => {
-  switch (authority.kind) {
-    case 'ORGANIZATION_ADMIN':
-      return ['MANAGER', 'REVIEW_CHAIR', 'REVIEWER'];
-    case 'EVENT_MEMBER':
-      switch (authority.role) {
-        case 'MANAGER':
-          return ['REVIEW_CHAIR', 'REVIEWER'];
-        case 'REVIEW_CHAIR':
-          return ['REVIEWER'];
-        case 'REVIEWER':
-          return [];
-      }
-    case 'ORGANIZATION_READER':
-      return [];
+): EventRole[] =>
+  authority.kind === 'ORGANIZATION_ADMIN'
+    ? ['MANAGER', 'REVIEW_CHAIR', 'REVIEWER']
+    : [];
+
+export const hasActiveEventAccess = (
+  access: EventAccess,
+  expectedUid: string,
+): boolean => {
+  if (!hasEventPermission(access, 'event:read')) {
+    return false;
   }
+
+  if (access.authority.kind === 'ORGANIZATION_ADMIN') {
+    return true;
+  }
+
+  const membership = access.membership;
+
+  return (
+    membership !== null &&
+    membership.uid === expectedUid &&
+    membership.status === 'ACTIVE' &&
+    membership.role === access.authority.role
+  );
 };

@@ -3,8 +3,8 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 
 import { EventScope } from '../types';
 import { EVENT_STATUS } from '../enums';
-import { eventConverter } from '../converters';
-import { EVENTS_COLLECTION } from '../constants';
+import { eventConverter, eventMembershipConverter } from '../converters';
+import { EVENT_MEMBERSHIPS_COLLECTION, EVENTS_COLLECTION } from '../constants';
 import { AuditWriter } from '../../audit/services';
 import { ApiException } from '../../common/exceptions';
 import { FirebaseService } from '../../firebase/services';
@@ -31,6 +31,8 @@ import {
   EventSettingsUpdate,
   eventSlugReservationSchema,
 } from '../models';
+import { ORGANIZATION_ROLES } from '../../organizations/enums';
+import { getOrganizationMembershipKey } from '../../organizations/utils/organizationMembershipKey.util';
 
 type EventMutation =
   | {
@@ -196,6 +198,79 @@ export class EventsRepository {
         }
 
         assertOrganizationPermissions(membership, ['organization:events:read']);
+
+        const organizationAdmin =
+          membership.role === ORGANIZATION_ROLES.OWNER ||
+          membership.role === ORGANIZATION_ROLES.ADMIN;
+
+        if (!organizationAdmin) {
+          const membershipKey = getOrganizationMembershipKey(membership);
+
+          let assignments = this.firebaseService.firestore
+            .collectionGroup(EVENT_MEMBERSHIPS_COLLECTION)
+            .withConverter(eventMembershipConverter)
+            .where('organizationId', '==', scope.organizationId)
+            .where('uid', '==', scope.actorUid)
+            .where('organizationMembershipKey', '==', membershipKey)
+            .where('status', '==', 'ACTIVE')
+            .orderBy('eventId', 'asc');
+
+          if (afterEventId !== undefined) {
+            const anchorReference = this.getDocumentReference(
+              scope.organizationId,
+              afterEventId,
+            )
+              .collection(EVENT_MEMBERSHIPS_COLLECTION)
+              .withConverter(eventMembershipConverter)
+              .doc(scope.actorUid);
+
+            const anchorSnapshot = await transaction.get(anchorReference);
+
+            const anchor = anchorSnapshot.data();
+
+            if (
+              !anchor ||
+              anchor.status !== 'ACTIVE' ||
+              anchor.organizationMembershipKey !== membershipKey
+            ) {
+              throw invalidEventCursor();
+            }
+
+            assignments = assignments.startAfter(afterEventId);
+          }
+
+          const assignmentSnapshot = await transaction.get(
+            assignments.limit(limit + 1),
+          );
+
+          const documents = assignmentSnapshot.docs.slice(0, limit);
+
+          const eventSnapshots = await Promise.all(
+            documents.map((document) =>
+              transaction.get(
+                this.getDocumentReference(
+                  scope.organizationId,
+                  document.data().eventId,
+                ),
+              ),
+            ),
+          );
+
+          const items = eventSnapshots.flatMap((snapshot) => {
+            const event = snapshot.data();
+            return event ? [event] : [];
+          });
+
+          const last = documents.at(-1);
+
+          return {
+            items,
+            nextCursor:
+              assignmentSnapshot.docs.length > limit && last
+                ? encodeEventCursor(scope, last.data().eventId)
+                : null,
+          };
+        }
 
         let query = this.collection(scope.organizationId)
           .orderBy('createdAt', 'desc')

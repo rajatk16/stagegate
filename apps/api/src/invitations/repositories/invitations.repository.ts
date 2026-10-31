@@ -1,18 +1,12 @@
-import { FieldPath, Transaction } from 'firebase-admin/firestore';
+import { FieldPath } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { EventScope } from '../../events/types';
-import { EVENT_STATUS } from '../../events/enums';
 import { AuditWriter } from '../../audit/services';
-import { canGrantEventRole } from '../../events/utils';
 import { FirebaseService } from '../../firebase/services';
-import { eventMembershipSchema } from '../../events/models';
 import { OrganizationScope } from '../../organizations/types';
-import { EventAccessService } from '../../events/services/eventAccess.service';
 import { DiagnosticError } from '../../observalibility/errors';
 import { organizationInvitationConverter } from '../converters';
 import { ORGANIZATION_INVITATIONS_COLLECTION } from '../constants';
-import { EventMembershipRepository } from '../../events/repositories/eventMembership.repository';
 import { organizationMembershipSchema } from '../../organizations/models';
 import { ORGANIZATION_MEMBERSHIP_STATUS } from '../../organizations/enums';
 import { assertActiveOrganizationMembership } from '../../organizations/utils';
@@ -35,15 +29,11 @@ import {
   normalizeInvitationEmail,
 } from '../utils';
 import {
-  Invitation,
-  EventInvitation,
-  invitationSchema,
-  isEventInvitation,
-  eventInvitationSchema,
   OrganizationInvitation,
   isOrganizationInvitation,
   organizationInvitationSchema,
 } from '../models';
+import { randomUUID } from 'node:crypto';
 
 const invalidInvitation = (): ApiException =>
   new ApiException(
@@ -57,9 +47,7 @@ export class InvitationsRepository {
   constructor(
     private readonly auditWriter: AuditWriter,
     private readonly firebaseService: FirebaseService,
-    private readonly eventAccessService: EventAccessService,
     private readonly organizationsRepository: OrganizationRepository,
-    private readonly eventMembershipRepository: EventMembershipRepository,
     private readonly organizationMembershipRepository: OrganizationMembershipRepository,
   ) {}
 
@@ -167,25 +155,28 @@ export class InvitationsRepository {
           !invitation ||
           invitation.status !== 'PENDING' ||
           invitation.tokenHash !== input.expectedTokenHash ||
-          invitation?.createdByUid !== input.actorUid
+          invitation?.createdByUid !== input.actorUid ||
+          !isOrganizationInvitation(invitation)
         ) {
           return;
         }
 
         const now = new Date();
 
-        const revoked = invitationSchema.parse({
+        const revoked = organizationInvitationSchema.parse({
           ...invitation,
           status: 'REVOKED',
           revokedAt: now,
         });
 
-        const event = this.prepareInvitationAudit(
-          invitation,
-          'revoked',
-          input.actorUid,
-          now,
-        );
+        const event = this.auditWriter.prepareOrganizationInvitation({
+          action: 'organization.invitation.revoked',
+          actorUid: input.actorUid,
+          organizationId: invitation.scope.organizationId,
+          invitationId: invitation.id,
+          role: invitation.role,
+          occurredAt: now,
+        });
 
         transaction.set(reference, revoked);
         this.auditWriter.append(transaction, event);
@@ -203,7 +194,7 @@ export class InvitationsRepository {
         const snapshot = await transaction.get(reference);
         const invitation = snapshot.data();
 
-        if (!invitation) {
+        if (!invitation || !isOrganizationInvitation(invitation)) {
           throw invalidInvitation();
         }
 
@@ -231,10 +222,6 @@ export class InvitationsRepository {
             'ORGANIZATION_INVITATION_RECIPIENT_MISMATCH',
             'Sign in with the email address this invitation was sent to.',
           );
-        }
-
-        if (isEventInvitation(invitation)) {
-          return this.acceptEventInTransaction(transaction, input, invitation);
         }
 
         const organizationId = invitation.scope.organizationId;
@@ -325,6 +312,7 @@ export class InvitationsRepository {
           uid: input.recipientUid,
           role: invitation.role,
           status: ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE,
+          membershipId: randomUUID(),
           createdAt: now,
           updatedAt: now,
         });
@@ -538,6 +526,7 @@ export class InvitationsRepository {
       .where('recipientEmail', '==', verifiedEmail)
       .where('status', '==', 'PENDING')
       .where('expiresAt', '>', new Date())
+      .where('scope.type', '==', 'ORGANIZATION')
       .orderBy('expiresAt', 'asc')
       .orderBy(FieldPath.documentId(), 'asc');
 
@@ -545,7 +534,11 @@ export class InvitationsRepository {
       const snapshot = await this.invitationReference(cursor).get();
       const invitation = snapshot.data();
 
-      if (!invitation || invitation.recipientEmail !== verifiedEmail) {
+      if (
+        !invitation ||
+        !isOrganizationInvitation(invitation) ||
+        invitation.recipientEmail !== verifiedEmail
+      ) {
         throw new RequestValidationException([
           { field: 'cursor', code: 'INVALID_VALUE' },
         ]);
@@ -558,7 +551,8 @@ export class InvitationsRepository {
 
     const invitations = snapshot.docs
       .slice(0, pageSize)
-      .map((document) => document.data());
+      .map((document) => document.data())
+      .filter(isOrganizationInvitation);
 
     const lastInvitation = invitations.at(-1);
 
@@ -581,58 +575,13 @@ export class InvitationsRepository {
 
         const organization = organizationSnapshot.data();
 
-        if (!organization) {
-          return null;
-        }
-
-        const organizationMembership =
+        const membership =
           await this.organizationMembershipRepository.findByOrganizationAndUser(
             organizationId,
             recipientUid,
           );
 
-        if (isEventInvitation(invitation)) {
-          if (
-            organizationMembership &&
-            organizationMembership.status !== 'ACTIVE'
-          ) {
-            return null;
-          }
-
-          const eventSnapshot = await this.eventAccessService
-            .getEventReference(organizationId, invitation.scope.eventId)
-            .get();
-
-          const event = eventSnapshot.data();
-
-          const eventMembership =
-            await this.eventMembershipRepository.findByEventAndUser(
-              organizationId,
-              invitation.scope.eventId,
-              recipientUid,
-            );
-
-          if (
-            !event ||
-            event.status === EVENT_STATUS.ARCHIVED ||
-            eventMembership
-          ) {
-            return null;
-          }
-
-          return {
-            id: invitation.id,
-            scopeType: 'EVENT' as const,
-            organizationId,
-            organizationName: organization.name,
-            eventId: invitation.scope.eventId,
-            eventName: event.name,
-            role: invitation.role,
-            expiresAt: invitation.expiresAt.toISOString(),
-          };
-        }
-
-        if (organizationMembership) {
+        if (!organization || membership) {
           return null;
         }
 
@@ -646,404 +595,10 @@ export class InvitationsRepository {
         };
       }),
     );
+
     return {
       items: enriched.filter((item) => item !== null),
       nextCursor,
     };
-  }
-
-  private prepareInvitationAudit(
-    invitation: Invitation,
-    action: 'created' | 'accepted' | 'revoked',
-    actorUid: string,
-    occurredAt: Date,
-  ) {
-    if (isEventInvitation(invitation)) {
-      return this.auditWriter.prepareEventMembership({
-        action: `event.invitation.${action}`,
-        targetType: 'eventInvitation',
-        actorUid,
-        organizationId: invitation.scope.organizationId,
-        targetEventId: invitation.scope.eventId,
-        invitationId: invitation.id,
-        role: invitation.role,
-        occurredAt,
-      });
-    }
-
-    return this.auditWriter.prepareOrganizationInvitation({
-      action: `organization.invitation.${action}`,
-      actorUid,
-      organizationId: invitation.scope.organizationId,
-      invitationId: invitation.id,
-      role: invitation.role,
-      occurredAt,
-    });
-  }
-
-  async createEvent(scope: EventScope, candidate: EventInvitation) {
-    const invitation = eventInvitationSchema.parse(candidate);
-
-    if (
-      invitation.createdByUid !== scope.actorUid ||
-      invitation.scope.organizationId !== scope.organizationId ||
-      invitation.scope.eventId !== scope.eventId ||
-      invitation.status !== 'PENDING' ||
-      invitation.acceptedByUid !== null ||
-      invitation.acceptedAt !== null ||
-      invitation.revokedAt !== null
-    ) {
-      throw new DiagnosticError('INVITATION_STORAGE_INVARIANT_FAILED');
-    }
-
-    return this.firebaseService.firestore.runTransaction(
-      async (transaction) => {
-        const current = await this.eventAccessService.requireInTransaction(
-          transaction,
-          scope,
-          ['event:members:manage'],
-        );
-
-        if (current.event.status === EVENT_STATUS.ARCHIVED) {
-          throw new ApiException(
-            HttpStatus.CONFLICT,
-            'EVENT_ARCHIVED',
-            'Archived events cannot receive new invitations.',
-          );
-        }
-
-        if (!canGrantEventRole(current.authority, invitation.role)) {
-          throw new ApiException(
-            HttpStatus.FORBIDDEN,
-            'EVENT_INVITATION_ROLE_FORBIDDEN',
-            'You cannot invite someone with this event role.',
-          );
-        }
-
-        const organizationSnapshot = await transaction.get(
-          this.organizationsRepository.getDocumentReference(
-            scope.organizationId,
-          ),
-        );
-
-        const organization = organizationSnapshot.data();
-
-        if (!organization) {
-          throw invalidInvitation();
-        }
-
-        const now = new Date();
-
-        if (invitation.expiresAt.getTime() <= now.getTime()) {
-          throw invalidInvitation();
-        }
-
-        const audit = this.prepareInvitationAudit(
-          invitation,
-          'created',
-          scope.actorUid,
-          now,
-        );
-
-        transaction.create(this.invitationReference(invitation.id), invitation);
-
-        this.auditWriter.append(transaction, audit);
-
-        return {
-          invitation,
-          organizationName: organization.name,
-          eventName: current.event.name,
-        };
-      },
-    );
-  }
-
-  private async acceptEventInTransaction(
-    transaction: Transaction,
-    input: InvitationAcceptanceInput,
-    invitation: EventInvitation,
-  ): Promise<InvitationAcceptanceResult> {
-    const identity = {
-      actorUid: input.recipientUid,
-      organizationId: invitation.scope.organizationId,
-      eventId: invitation.scope.eventId,
-    };
-
-    const recipient = await this.eventAccessService.loadInTransaction(
-      transaction,
-      identity,
-    );
-
-    if (recipient.organizationMembership) {
-      assertActiveOrganizationMembership(recipient.organizationMembership);
-    }
-
-    const existing = recipient.eventMembership;
-
-    if (invitation.status === 'ACCEPTED') {
-      if (invitation.acceptedByUid !== input.recipientUid || !existing) {
-        throw new ApiException(
-          HttpStatus.CONFLICT,
-          'EVENT_INVITATION_ALREADY_USED',
-          'This invitation has already been used.',
-        );
-      }
-
-      if (existing.status !== 'ACTIVE') {
-        throw new ApiException(
-          HttpStatus.FORBIDDEN,
-          'EVENT_MEMBERSHIP_INACTIVE',
-          'An active event membership is required.',
-        );
-      }
-
-      return {
-        scopeType: 'EVENT',
-        organizationId: identity.organizationId,
-        eventId: identity.eventId,
-        membership: existing,
-        alreadyAccepted: true,
-      };
-    }
-
-    if (
-      invitation.status !== 'PENDING' ||
-      invitation.expiresAt.getTime() <= Date.now()
-    ) {
-      throw invalidInvitation();
-    }
-
-    if (recipient.event.status === EVENT_STATUS.ARCHIVED) {
-      throw new ApiException(
-        HttpStatus.CONFLICT,
-        'EVENT_ARCHIVED',
-        'Archived events cannot accept new memberships.',
-      );
-    }
-
-    const inviter = await this.eventAccessService.requireInTransaction(
-      transaction,
-      {
-        ...identity,
-        actorUid: invitation.createdByUid,
-      },
-      ['event:members:manage'],
-    );
-
-    if (!canGrantEventRole(inviter.authority, invitation.role)) {
-      throw new ApiException(
-        HttpStatus.FORBIDDEN,
-        'EVENT_INVITATION_GRANT_UNAVAILABLE',
-        'The invitation can no longer grant this membership.',
-      );
-    }
-
-    if (existing) {
-      throw new ApiException(
-        HttpStatus.CONFLICT,
-        'EVENT_ALREADY_MEMBER',
-        'You already have membership in this event.',
-      );
-    }
-
-    const now = new Date();
-
-    if (invitation.expiresAt.getTime() <= now.getTime()) {
-      throw invalidInvitation();
-    }
-
-    const membership = eventMembershipSchema.parse({
-      organizationId: identity.organizationId,
-      eventId: identity.eventId,
-      uid: input.recipientUid,
-      role: invitation.role,
-      status: 'ACTIVE',
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    const accepted = eventInvitationSchema.parse({
-      ...invitation,
-      status: 'ACCEPTED',
-      acceptedByUid: input.recipientUid,
-      acceptedAt: now,
-    });
-
-    const acceptedAudit = this.prepareInvitationAudit(
-      invitation,
-      'accepted',
-      input.recipientUid,
-      now,
-    );
-
-    const joinedAudit = this.auditWriter.prepareEventMembership({
-      action: 'event.member.joined',
-      targetType: 'eventMembership',
-      actorUid: input.recipientUid,
-      organizationId: identity.organizationId,
-      targetEventId: identity.eventId,
-      targetUid: input.recipientUid,
-      role: membership.role,
-      occurredAt: now,
-    });
-
-    transaction.create(
-      this.eventMembershipRepository.getDocumentReference(
-        identity.organizationId,
-        identity.eventId,
-        input.recipientUid,
-      ),
-      membership,
-    );
-
-    transaction.set(this.invitationReference(invitation.id), accepted);
-
-    this.auditWriter.append(transaction, acceptedAudit);
-    this.auditWriter.append(transaction, joinedAudit);
-
-    return {
-      scopeType: 'EVENT',
-      organizationId: identity.organizationId,
-      eventId: identity.eventId,
-      membership,
-      alreadyAccepted: false,
-    };
-  }
-
-  async listEventPending(scope: EventScope, cursor?: string) {
-    const pageSize = 20;
-
-    return this.firebaseService.firestore.runTransaction(
-      async (transaction) => {
-        const current = await this.eventAccessService.requireInTransaction(
-          transaction,
-          scope,
-          ['event:members:manage'],
-        );
-
-        let query = this.collection()
-          .where('scope.type', '==', 'EVENT')
-          .where('scope.organizationId', '==', scope.organizationId)
-          .where('scope.eventId', '==', scope.eventId)
-          .where('status', '==', 'PENDING')
-          .where('expiresAt', '>', new Date())
-          .orderBy('expiresAt', 'asc')
-          .orderBy(FieldPath.documentId(), 'asc');
-
-        if (cursor !== undefined) {
-          const anchor = await transaction.get(
-            this.invitationReference(cursor),
-          );
-
-          const invitation = anchor.data();
-
-          if (
-            !invitation ||
-            !isEventInvitation(invitation) ||
-            invitation.scope.organizationId !== scope.organizationId ||
-            invitation.scope.eventId !== scope.eventId
-          ) {
-            throw new RequestValidationException([
-              {
-                field: 'cursor',
-                code: 'INVALID_VALUE',
-              },
-            ]);
-          }
-
-          query = query.startAfter(anchor);
-        }
-
-        const snapshot = await transaction.get(query.limit(pageSize + 1));
-
-        const invitations = snapshot.docs
-          .slice(0, pageSize)
-          .map((document) => document.data())
-          .filter(isEventInvitation);
-
-        return {
-          items: invitations.map((invitation) => ({
-            id: invitation.id,
-            organizationId: invitation.scope.organizationId,
-            eventId: invitation.scope.eventId,
-            recipientEmail: invitation.recipientEmail,
-            role: invitation.role,
-            status: invitation.status,
-            expiresAt: invitation.expiresAt.toISOString(),
-            canRevoke: canGrantEventRole(current.authority, invitation.role),
-          })),
-          nextCursor:
-            snapshot.docs.length > pageSize
-              ? (invitations.at(-1)?.id ?? null)
-              : null,
-        };
-      },
-    );
-  }
-
-  async revokeEvent(scope: EventScope, invitationId: string): Promise<void> {
-    await this.firebaseService.firestore.runTransaction(async (transaction) => {
-      const current = await this.eventAccessService.requireInTransaction(
-        transaction,
-        scope,
-        ['event:members:manage'],
-      );
-
-      const reference = this.invitationReference(invitationId);
-
-      const snapshot = await transaction.get(reference);
-      const invitation = snapshot.data();
-
-      if (
-        !invitation ||
-        !isEventInvitation(invitation) ||
-        invitation.scope.organizationId !== scope.organizationId ||
-        invitation.scope.eventId !== scope.eventId
-      ) {
-        throw new ApiException(
-          HttpStatus.NOT_FOUND,
-          'EVENT_INVITATION_NOT_FOUND',
-          'Invitation not found.',
-        );
-      }
-
-      if (!canGrantEventRole(current.authority, invitation.role)) {
-        throw new ApiException(
-          HttpStatus.FORBIDDEN,
-          'EVENT_INVITATION_ROLE_FORBIDDEN',
-          'You cannot revoke invitations for this role.',
-        );
-      }
-
-      if (invitation.status === 'REVOKED') {
-        return;
-      }
-
-      if (invitation.status === 'ACCEPTED') {
-        throw new ApiException(
-          HttpStatus.CONFLICT,
-          'EVENT_INVITATION_ALREADY_ACCEPTED',
-          'This invitation has already been accepted.',
-        );
-      }
-
-      const now = new Date();
-
-      const revoked = eventInvitationSchema.parse({
-        ...invitation,
-        status: 'REVOKED',
-        revokedAt: now,
-      });
-
-      const audit = this.prepareInvitationAudit(
-        invitation,
-        'revoked',
-        scope.actorUid,
-        now,
-      );
-
-      transaction.set(reference, revoked);
-      this.auditWriter.append(transaction, audit);
-    });
   }
 }

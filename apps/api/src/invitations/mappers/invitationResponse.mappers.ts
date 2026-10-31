@@ -16,32 +16,12 @@ export const toOrganizationInvitationResponseDto = (
 
 export const toAcceptInvitationResponse = (
   result: InvitationAcceptanceResult,
-) => {
-  if (result.scopeType === 'EVENT') {
-    return {
-      scopeType: result.scopeType,
-      organizationId: result.organizationId,
-      eventId: result.eventId,
-      membership: {
-        organizationId: result.membership.organizationId,
-        eventId: result.membership.eventId,
-        uid: result.membership.uid,
-        role: result.membership.role,
-        status: result.membership.status,
-        createdAt: result.membership.createdAt.toISOString(),
-        updatedAt: result.membership.updatedAt.toISOString(),
-      },
-      alreadyAccepted: result.alreadyAccepted,
-    };
-  }
-
-  return {
-    scopeType: result.scopeType,
-    organizationId: result.organizationId,
-    membership: {
-      uid: result.membership.uid,
-      role: result.membership.role,
-    },
-    alreadyAccepted: result.alreadyAccepted,
-  };
-};
+) => ({
+  scopeType: result.scopeType,
+  organizationId: result.organizationId,
+  membership: {
+    uid: result.membership.uid,
+    role: result.membership.role,
+  },
+  alreadyAccepted: result.alreadyAccepted,
+});

@@ -9,27 +9,53 @@ import { useEventWorkspace } from './useEventWorkspace';
 const getWriteError = (error: unknown): string => {
   if (error instanceof ApiError) {
     switch (error.code) {
+      case 'EVENT_MEMBERSHIP_ADMIN_REQUIRED':
+      case 'EVENT_MEMBER_CHANGE_FORBIDDEN':
+        return 'Only organization owners and administrators can manage event assignments.';
+
       case 'EVENT_SELF_MEMBERSHIP_CHANGE_FORBIDDEN':
         return 'You cannot change your own event membership.';
-      case 'EVENT_MEMBER_CHANGE_FORBIDDEN':
-      case 'EVENT_INVITATION_ROLE_FORBIDDEN':
-        return 'Your event authority does not permit this change.';
+
+      case 'EVENT_TARGET_ORGANIZATION_MEMBERSHIP_REQUIRED':
+        return 'This person must join the organization before they can be added to the event.';
+
+      case 'EVENT_TARGET_ORGANIZATION_MEMBERSHIP_INACTIVE':
+        return 'Reactivate this person’s organization membership first.';
+
+      case 'EVENT_ALREADY_MEMBER':
+        return 'This person already has an event assignment. Refresh the team and use the role or status controls.';
+
+      case 'EVENT_MEMBER_NOT_FOUND':
+        return 'This assignment is no longer current. Refresh the team.';
+
       case 'EVENT_MEMBER_INACTIVE':
-        return 'Reactivate this membership before changing its role.';
+        return 'Reactivate this event assignment before changing its role.';
+
+      case 'EVENT_ORGANIZATION_ADMIN_ASSIGNMENT_UNNECESSARY':
+        return 'Organization owners and administrators already have access to this event.';
+
+      case 'EVENT_ORGANIZATION_ADMIN_CHANGE_FORBIDDEN':
+        return 'Manage this person’s access from the organization members page.';
+
       case 'EVENT_ARCHIVED':
-        return 'Archived events only allow membership suspension and permitted invitation revocation.';
-      case 'EVENT_INVITATION_ALREADY_ACCEPTED':
-        return 'This invitation has already been accepted. Refresh the team.';
-      case 'EVENT_INVITATION_EMAIL_UNCONFIRMED':
-        return 'Email delivery could not be confirmed. Refresh pending invitations before trying again.';
+        return 'Archived events only allow assignment suspension.';
     }
 
-    if (error.status === 401) return 'Sign in again to continue.';
+    if (error.status === 401) {
+      return 'Sign in again to continue.';
+    }
+
     if (error.status === 403 || error.status === 404) {
       return 'This operation is unavailable or your access has changed.';
     }
-    if (error.status === 400) return 'Check the submitted values.';
-    if (error.status === 429) return 'Too many requests. Wait and try again.';
+
+    if (error.status === 400) {
+      return 'Check the submitted values.';
+    }
+
+    if (error.status === 429) {
+      return 'Too many requests. Wait and try again.';
+    }
   }
 
   return 'The result could not be confirmed. Refresh the team before trying again.';
@@ -56,7 +82,7 @@ export const useEventTeamWrite = () => {
     affected: [
       queryKeys.eventAccess(user.uid, organizationId, event.id),
       queryKeys.eventMembers(user.uid, organizationId, event.id),
-      queryKeys.eventInvitations(user.uid, organizationId, event.id),
+      queryKeys.resources(user.uid, organizationId, 'events'),
       queryKeys.resources(user.uid, organizationId, 'activity'),
     ],
   });

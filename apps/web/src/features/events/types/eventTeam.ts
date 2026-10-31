@@ -17,6 +17,11 @@ export type EventMember = {
   status: EventMemberStatus;
   createdAt: string;
   updatedAt: string;
+
+  // Included by the roster endpoint.
+  // Add/update responses may omit them.
+  organizationStatus?: EventMemberStatus;
+  effectiveStatus?: EventMemberStatus;
 };
 
 export type EventAuthority =
@@ -26,9 +31,6 @@ export type EventAuthority =
   | {
       kind: 'EVENT_MEMBER';
       role: EventRole;
-    }
-  | {
-      kind: 'ORGANIZATION_READER';
     };
 
 export type EventAccess = {
@@ -44,28 +46,7 @@ export type EventMembersPage = {
   nextCursor: string | null;
 };
 
-export type EventInvitation = {
-  id: string;
-  organizationId: string;
-  eventId: string;
-  recipientEmail: string;
-  role: EventRole;
-  status: 'PENDING';
-  expiresAt: string;
-  canRevoke: boolean;
-};
-
-export type EventInvitationsPage = {
-  items: EventInvitation[];
-  nextCursor: string | null;
-};
-
-export type CreatedEventInvitation = Omit<EventInvitation, 'canRevoke'> & {
-  scopeType: 'EVENT';
-  emailStatus: 'ACCEPTED' | 'CAPTURED';
-};
-
-export type CreateEventInvitationInput = {
-  email: string;
+export type AddEventMemberInput = {
+  uid: string;
   role: EventRole;
 };

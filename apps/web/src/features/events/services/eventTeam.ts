@@ -6,8 +6,6 @@ import {
   parseEventAccess,
   parseEventMember,
   parseEventMembersPage,
-  parseEventInvitationsPage,
-  parseCreatedEventInvitation,
 } from '../utils';
 import {
   EventRole,
@@ -15,9 +13,7 @@ import {
   EventMember,
   EventMembersPage,
   EventMemberStatus,
-  EventInvitationsPage,
-  CreatedEventInvitation,
-  CreateEventInvitationInput,
+  AddEventMemberInput,
 } from '../types';
 
 const eventPath = (organizationId: string, eventId: string): string =>
@@ -117,80 +113,35 @@ export const updateEventMemberStatus = async (
   return member;
 };
 
-export const listEventInvitations = async (
+export const addEventMember = async (
   user: User,
   organizationId: string,
   eventId: string,
+  input: AddEventMemberInput,
   signal: AbortSignal,
-  cursor: string | null = null,
-): Promise<EventInvitationsPage> => {
-  const query = new URLSearchParams();
-
-  if (cursor !== null) query.set('cursor', cursor);
-
-  const suffix = query.size > 0 ? `?${query}` : '';
-
-  const result = await authenticatedApiRequest(
+): Promise<EventMember> => {
+  const response = await authenticatedApiRequest(
     user,
-    `${eventPath(organizationId, eventId)}/invitations${suffix}`,
-    { signal },
-  );
-
-  return parseEventInvitationsPage(result, organizationId, eventId);
-};
-
-export const createEventInvitation = async (
-  user: User,
-  organizationId: string,
-  eventId: string,
-  input: CreateEventInvitationInput,
-  signal: AbortSignal,
-): Promise<CreatedEventInvitation> => {
-  const result = await authenticatedApiRequest(
-    user,
-    `${eventPath(organizationId, eventId)}/invitations`,
+    `${eventPath(organizationId, eventId)}/members`,
     {
       method: 'POST',
-      json: {
-        email: input.email.trim().toLowerCase(),
-        role: input.role,
-      },
+      json: input,
       signal,
     },
   );
 
-  const invitation = parseCreatedEventInvitation(
-    result,
-    organizationId,
-    eventId,
-  );
+  const member = parseEventMember(response, organizationId, eventId);
 
   if (
-    invitation.recipientEmail !== input.email.trim().toLowerCase() ||
-    invitation.role !== input.role
+    member.uid !== input.uid ||
+    member.role !== input.role ||
+    member.status !== 'ACTIVE'
   ) {
     throw new ApiError(
-      'The API returned an unexpected invitation.',
+      'The API returned an unexpected event assignment.',
       'response',
     );
   }
 
-  return invitation;
-};
-
-export const revokeEventInvitation = async (
-  user: User,
-  organizationId: string,
-  eventId: string,
-  invitationId: string,
-  signal: AbortSignal,
-): Promise<void> => {
-  await authenticatedApiRequest(
-    user,
-    `${eventPath(organizationId, eventId)}/invitations/${encodeURIComponent(invitationId)}`,
-    {
-      method: 'DELETE',
-      signal,
-    },
-  );
+  return member;
 };

@@ -7,7 +7,4 @@ export type EventAuthority =
   | {
       kind: 'EVENT_MEMBER';
       role: EVENT_ROLES;
-    }
-  | {
-      kind: 'ORGANIZATION_READER';
     };

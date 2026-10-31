@@ -11,7 +11,5 @@ export const canGrantEventRole = (
       return true;
     case 'EVENT_MEMBER':
       return EVENT_ROLE_GRANT_TARGETS[authority.role].includes(role);
-    case 'ORGANIZATION_READER':
-      return false;
   }
 };
