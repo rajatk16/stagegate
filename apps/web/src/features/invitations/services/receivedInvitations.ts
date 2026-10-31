@@ -1,5 +1,8 @@
 import type { User } from 'firebase/auth';
 
+import { isRecord } from '@/app/utils';
+import { isEventRole } from '@/features/events';
+import { isOrganizationRole } from '@/features/organizations';
 import {
   ApiError,
   INVITATION_ID_PATTERN,
@@ -8,8 +11,6 @@ import {
 
 import { parseAcceptedInvitation } from './acceptInvitation';
 import { ReceivedInvitation, ReceivedInvitationsPage } from '../types';
-import { isRecord } from '@/app/utils';
-import { isOrganizationRole } from '@/features/organizations/utils';
 
 const invalidResponse = () =>
   new ApiError(
@@ -53,21 +54,52 @@ export const listReceivedInvitations = async (
       typeof item.organizationId !== 'string' ||
       !INVITATION_ID_PATTERN.test(item.organizationId) ||
       typeof item.organizationName !== 'string' ||
-      item.organizationName.trim().length === 0 ||
-      !isOrganizationRole(item.role) ||
-      item.role === 'OWNER' ||
+      !item.organizationName.trim() ||
       typeof item.expiresAt !== 'string' ||
       !Number.isFinite(Date.parse(item.expiresAt))
     ) {
       throw invalidResponse();
     }
 
-    return {
+    const common = {
       id: item.id,
       organizationId: item.organizationId,
       organizationName: item.organizationName,
-      role: item.role,
       expiresAt: item.expiresAt,
+    };
+
+    if (item.scopeType === 'EVENT') {
+      if (
+        typeof item.eventId !== 'string' ||
+        !INVITATION_ID_PATTERN.test(item.eventId) ||
+        typeof item.eventName !== 'string' ||
+        !item.eventName.trim() ||
+        !isEventRole(item.role)
+      ) {
+        throw invalidResponse();
+      }
+
+      return {
+        ...common,
+        scopeType: 'EVENT',
+        eventId: item.eventId,
+        eventName: item.eventName,
+        role: item.role,
+      };
+    }
+
+    if (
+      item.scopeType !== 'ORGANIZATION' ||
+      !isOrganizationRole(item.role) ||
+      item.role === 'OWNER'
+    ) {
+      throw invalidResponse();
+    }
+
+    return {
+      ...common,
+      scopeType: 'ORGANIZATION',
+      role: item.role,
     };
   });
 
@@ -94,7 +126,17 @@ export const acceptReceivedInvitation = async (
 
   const result = parseAcceptedInvitation(response, user.uid);
 
-  if (result.organizationId !== invitation.organizationId) {
+  if (
+    result.scopeType !== invitation.scopeType ||
+    result.organizationId !== invitation.organizationId
+  ) {
+    throw invalidResponse();
+  }
+
+  if (
+    invitation.scopeType === 'EVENT' &&
+    (result.scopeType !== 'EVENT' || result.eventId !== invitation.eventId)
+  ) {
     throw invalidResponse();
   }
 

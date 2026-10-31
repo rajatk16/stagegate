@@ -7,8 +7,8 @@ import { normalizeEventSlug, parseEvent, parseEventSettings } from '../utils';
 import {
   Event,
   EventsPage,
-  CreateEventInput,
   EventSettings,
+  CreateEventInput,
   UpdateEventSettingsInput,
 } from '../types';
 
@@ -130,4 +130,35 @@ export const updateEventSettings = async (
   );
 
   return parseEventSettings(result, organizationId, eventId);
+};
+
+export const findEventBySlug = async (
+  user: User,
+  organizationId: string,
+  eventSlug: string,
+  signal: AbortSignal,
+): Promise<Event> => {
+  let cursor: string | null = null;
+  const seenCursors = new Set<string>();
+
+  while (true) {
+    signal.throwIfAborted();
+
+    const page = await listEvents(user, organizationId, signal, cursor);
+
+    const event = page.items.find((item) => item.slug === eventSlug);
+
+    if (event) return event;
+
+    if (page.nextCursor === null) {
+      throw new ApiError('Event not found.', 'http', 404, 'EVENT_NOT_FOUND');
+    }
+
+    if (seenCursors.has(page.nextCursor)) {
+      throw new ApiError('The API repeated an event page cursor', 'response');
+    }
+
+    seenCursors.add(page.nextCursor);
+    cursor = page.nextCursor;
+  }
 };

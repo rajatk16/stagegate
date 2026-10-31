@@ -25,12 +25,6 @@ export const ORGANIZATION_SECTIONS = {
     capability: 'organization:audit:read',
     actionLabel: 'View activity',
   },
-  events: {
-    segment: 'events',
-    label: 'Events',
-    capability: 'organization:events:read',
-    actionLabel: 'View events',
-  },
 };
 
 export const getOrganizationPath = (slug: string): string =>

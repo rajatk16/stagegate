@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router';
 
 import { Button } from '@/components';
 import { useAuth } from '@/features/auth';
-import { getOrganizationSectionPath } from '@/lib';
+import { getOrganizationPath } from '@/lib';
 import {
   useOrganizations,
   useActiveOrganization,
@@ -20,7 +20,7 @@ export const CreateEvent = () => {
     return null;
   }
 
-  const eventsPath = getOrganizationSectionPath(organization.slug, 'events');
+  const dashboardPath = getOrganizationPath(organization.slug);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -37,7 +37,7 @@ export const CreateEvent = () => {
           user={session.user}
           organizationId={organization.id}
           onCreated={(event) => {
-            void navigate(eventsPath, {
+            void navigate(dashboardPath, {
               replace: true,
               state: {
                 createdEvent: {
@@ -54,7 +54,7 @@ export const CreateEvent = () => {
 
       <div className="flex flex-wrap gap-3">
         <Button asChild variant="outline">
-          <Link to={eventsPath}>Back to Events</Link>
+          <Link to={dashboardPath}>Back to Events</Link>
         </Button>
 
         <Button type="button" variant="outline" onClick={reload}>

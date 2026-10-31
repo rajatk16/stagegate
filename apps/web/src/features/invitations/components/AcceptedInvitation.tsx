@@ -1,18 +1,19 @@
-import type { User } from 'firebase/auth';
 import { Link } from 'react-router';
+import type { User } from 'firebase/auth';
 
-import { isAccessError, useMyOrganizationsQuery } from '@/app/query';
-import { Button, InlineAlert } from '@/components';
 import { getOrganizationPath } from '@/lib';
+import { Button, InlineAlert } from '@/components';
+import { isAccessError, useMyOrganizationsQuery } from '@/app/query';
 
 import type { AcceptedInvitation as AcceptanceResult } from '../types';
+import { EventInvitationDestination } from './EventInvitationDestination';
 
 type Props = {
   user: User;
   result: AcceptanceResult;
 };
 
-export const AcceptedInvitation = ({ user, result }: Props) => {
+const AcceptedOrganizationInvitation = ({ user, result }: Props) => {
   const query = useMyOrganizationsQuery(user);
 
   const organization = isAccessError(query.error)
@@ -57,4 +58,26 @@ export const AcceptedInvitation = ({ user, result }: Props) => {
       </div>
     </div>
   );
+};
+
+export const AcceptedInvitation = ({ user, result }: Props) => {
+  if (result.scopeType === 'EVENT') {
+    return (
+      <div className="space-y-4">
+        <InlineAlert tone="success" title="Event membership confirmed">
+          {result.alreadyAccepted
+            ? 'You have already accepted this event invitation.'
+            : 'You have joined the event.'}
+        </InlineAlert>
+
+        <EventInvitationDestination
+          user={user}
+          organizationId={result.organizationId}
+          eventId={result.eventId}
+        />
+      </div>
+    );
+  }
+
+  return <AcceptedOrganizationInvitation user={user} result={result} />;
 };

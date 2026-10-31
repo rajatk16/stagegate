@@ -1,3 +1,4 @@
-export * from './Events';
+export * from './EventTeam';
 export * from './CreateEvent';
-export { EventSettingsPage } from './EventSettings';
+export * from './EventOverview';
+export * from './EventWorkspaceSettings';

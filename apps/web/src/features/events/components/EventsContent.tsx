@@ -5,7 +5,11 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { isRecord } from '@/app/utils';
 import { Badge, Button, InlineAlert } from '@/components';
-import { ApiError, getOrganizationSectionPath } from '@/lib';
+import {
+  ApiError,
+  getEventWorkspacePath,
+  getOrganizationSectionPath,
+} from '@/lib';
 import {
   Organization,
   useOrganizations,
@@ -18,7 +22,7 @@ import {
   hasRepeatedCursor,
 } from '@/app/query';
 
-import { getEventsError } from '../utils/eventUtils';
+import { getEventsError } from '../utils';
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
@@ -104,10 +108,6 @@ export const EventsContent = ({
     organization,
     'organization:events:create',
   );
-
-  const canUpdate =
-    hasOrganizationCapability(organization, 'organization:events:read') &&
-    hasOrganizationCapability(organization, 'organization:events:update');
 
   const createPath = getOrganizationSectionPath(
     organization.slug,
@@ -205,18 +205,13 @@ export const EventsContent = ({
                   </time>
                 </p>
 
-                {canUpdate && (
-                  <Button asChild variant="outline">
-                    <Link
-                      to={getOrganizationSectionPath(
-                        organization.slug,
-                        `events/${encodeURIComponent(event.id)}/settings`,
-                      )}
-                    >
-                      Event settings
-                    </Link>
-                  </Button>
-                )}
+                <Button asChild variant="outline">
+                  <Link
+                    to={getEventWorkspacePath(organization.slug, event.slug)}
+                  >
+                    Open Event
+                  </Link>
+                </Button>
               </article>
             </li>
           ))}
