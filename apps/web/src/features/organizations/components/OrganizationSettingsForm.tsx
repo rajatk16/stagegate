@@ -3,9 +3,8 @@ import { useForm, useWatch } from 'react-hook-form';
 import { useEffect, useRef, useState } from 'react';
 
 import { ApiError } from '@/lib';
-
-import { useOrganizations } from '../hooks';
-import { OrganizationLogo } from './OrganizationLogo';
+import { useAuth } from '@/features/auth';
+import { queryKeys, useApiMutation } from '@/app/query';
 import {
   Button,
   InputField,
@@ -14,6 +13,13 @@ import {
   TextareaField,
   ConfirmDialog,
 } from '@/components';
+
+import { Organization } from '../types';
+import { hasOrganizationCapability } from '../utils';
+import { OrganizationLogo } from './OrganizationLogo';
+import { ORGANIZATION_COLOR_PATTERN } from '../constants';
+import { LeaveOrganizationPanel } from './LeaveOrganizationPanel';
+import { useActiveOrganization, useOrganizations } from '../hooks';
 import {
   removeOrganizationLogo,
   uploadOrganizationLogo,
@@ -22,10 +28,6 @@ import {
   updateOrganizationSettings,
   getOrganizationSettingsErrorMessage,
 } from '../services';
-import { Organization } from '../types';
-import { hasOrganizationCapability } from '../utils';
-import { ORGANIZATION_COLOR_PATTERN } from '../constants';
-import { queryKeys, useApiMutation } from '@/app/query';
 
 type Props = {
   user: User;
@@ -87,6 +89,8 @@ const validateWebsite = (value: string): true | string => {
 };
 
 export const OrganizationSettingsForm = (props: Props) => {
+  const session = useAuth();
+  const organization = useActiveOrganization();
   const { replaceOrganization, reload } = useOrganizations();
 
   const affected = [
@@ -263,6 +267,10 @@ export const OrganizationSettingsForm = (props: Props) => {
       },
     );
   };
+
+  if (session.status !== 'authenticated') {
+    return null;
+  }
 
   return (
     <form
@@ -543,6 +551,12 @@ export const OrganizationSettingsForm = (props: Props) => {
             />
           </div>
         </section>
+
+        <LeaveOrganizationPanel
+          key={`${session.user.uid}:${organization.id}`}
+          user={session.user}
+          organization={organization}
+        />
       </fieldset>
 
       {errors.root?.server?.message && (

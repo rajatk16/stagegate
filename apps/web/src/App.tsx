@@ -5,14 +5,16 @@ import { Dashboard, Landing, NotFound } from '@/app/pages';
 import { RequireAuth, RequireCompleteProfile } from '@/app/components';
 import { ORGANIZATION_ROUTE_PATTERN, ORGANIZATION_SECTIONS } from '@/lib';
 import {
-  Events,
   Profile,
   AuthForm,
+  EventTeam,
   AuthLayout,
+  EventShell,
   EmailAction,
   CreateEvent,
   Invitations,
   VerifyEmail,
+  EventOverview,
   Organizations,
   ForgotPassword,
   SessionBoundary,
@@ -25,7 +27,8 @@ import {
   OrganizationSettings,
   OrganizationDashboard,
   OrganizationsProvider,
-  EventSettingsPage,
+  RequireEventPermission,
+  EventWorkspaceSettings,
 } from '@/features';
 
 export const App = () => (
@@ -109,35 +112,27 @@ export const App = () => (
               </Route>
               <Route
                 element={
-                  <RequireOrganization capability="organization:events:read" />
-                }
-              >
-                <Route
-                  path={ORGANIZATION_SECTIONS.events.segment}
-                  element={<Events />}
-                />
-              </Route>
-              <Route
-                element={
                   <RequireOrganization capability="organization:events:create" />
                 }
               >
                 <Route path="events/new" element={<CreateEvent />} />
               </Route>
-              <Route
-                element={
-                  <RequireOrganization capability="organization:events:read" />
-                }
-              >
+
+              <Route path="events/:eventSlug" element={<EventShell />}>
+                <Route index element={<EventOverview />} />
+
                 <Route
                   element={
-                    <RequireOrganization capability="organization:events:update" />
+                    <RequireEventPermission permission="event:members:read" />
                   }
                 >
-                  <Route
-                    path="events/:eventId/settings"
-                    element={<EventSettingsPage />}
-                  />
+                  <Route path="team" element={<EventTeam />} />
+                </Route>
+
+                <Route
+                  element={<RequireEventPermission permission="event:update" />}
+                >
+                  <Route path="settings" element={<EventWorkspaceSettings />} />
                 </Route>
               </Route>
             </Route>

@@ -3,6 +3,7 @@ export * from './firebase';
 export * from './apiClient';
 export * from './authErrors';
 export * from './authNavigation';
+export * from './eventNavigation';
 export * from './invitationLinks';
 export * from './authenticatedApiClient';
 export * from './organizationNavigation';

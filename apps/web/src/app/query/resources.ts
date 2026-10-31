@@ -10,7 +10,13 @@ import {
 import { queryKeys } from './keys';
 
 import { getProfileDetails } from '@/features/profile';
-import { getEvent, listEvents } from '@/features/events';
+import {
+  getEvent,
+  listEvents,
+  getEventAccess,
+  listEventMembers,
+  listEventInvitations,
+} from '@/features/events';
 import { listReceivedInvitations } from '@/features/invitations';
 import {
   getOrganizationLogo,
@@ -149,3 +155,45 @@ export const useEventQuery = (
   organizationId: string,
   eventId: string,
 ) => useQuery(eventOptions(user, organizationId, eventId));
+
+export const useEventAccessQuery = (
+  user: User,
+  organizationId: string,
+  eventId: string,
+) =>
+  useQuery({
+    queryKey: queryKeys.eventAccess(user.uid, organizationId, eventId),
+    queryFn: ({ signal }) =>
+      getEventAccess(user, organizationId, eventId, signal),
+    staleTime: 0,
+  });
+
+export const useEventMembersQuery = (
+  user: User,
+  organizationId: string,
+  eventId: string,
+  enabled: boolean,
+) =>
+  useInfiniteQuery({
+    ...cursorOptions(
+      queryKeys.eventMembers(user.uid, organizationId, eventId),
+      (signal, cursor) =>
+        listEventMembers(user, organizationId, eventId, signal, cursor),
+    ),
+    enabled,
+  });
+
+export const useEventInvitationsQuery = (
+  user: User,
+  organizationId: string,
+  eventId: string,
+  enabled: boolean,
+) =>
+  useInfiniteQuery({
+    ...cursorOptions(
+      queryKeys.eventInvitations(user.uid, organizationId, eventId),
+      (signal, cursor) =>
+        listEventInvitations(user, organizationId, eventId, signal, cursor),
+    ),
+    enabled,
+  });

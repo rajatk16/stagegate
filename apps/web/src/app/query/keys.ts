@@ -35,4 +35,33 @@ export const queryKeys = {
     'event',
     eventId,
   ],
+  eventAccess: (uid: string, organizationId: string, eventId: string) => [
+    'account',
+    uid,
+    'organization',
+    organizationId,
+    'event',
+    eventId,
+    'access',
+  ],
+
+  eventMembers: (uid: string, organizationId: string, eventId: string) => [
+    'account',
+    uid,
+    'organization',
+    organizationId,
+    'event',
+    eventId,
+    'members',
+  ],
+
+  eventInvitations: (uid: string, organizationId: string, eventId: string) => [
+    'account',
+    uid,
+    'organization',
+    organizationId,
+    'event',
+    eventId,
+    'invitations',
+  ],
 };

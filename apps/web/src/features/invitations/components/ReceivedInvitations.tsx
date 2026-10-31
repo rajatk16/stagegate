@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import type { User } from 'firebase/auth';
 import { useEffect, useRef, useState } from 'react';
 
+import { EVENT_ROLE_LABELS } from '@/features/events';
 import { Badge, Button, InlineAlert } from '@/components';
 import { useOrganizations } from '@/features/organizations';
 import { ApiError, getOrganizationPath, clearInvitationToken } from '@/lib';
@@ -20,6 +21,7 @@ import {
   useApiMutation,
   useReceivedInvitationsQuery,
 } from '@/app/query';
+import { EventInvitationDestination } from './EventInvitationDestination';
 
 type State =
   | { status: 'loading' }
@@ -55,6 +57,10 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
   const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [joinedId, setJoinedId] = useState<string | null>(null);
+  const [joinedEvent, setJoinedEvent] = useState<{
+    organizationId: string;
+    eventId: string;
+  } | null>(null);
   const [feedback, setFeedback] = useState<{
     tone: 'success' | 'info' | 'error';
     message: string;
@@ -146,6 +152,7 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
     setAcceptingId(invitation.id);
     setFeedback(null);
     setJoinedId(null);
+    setJoinedEvent(null);
 
     try {
       const result = await acceptMutation.execute(
@@ -155,13 +162,25 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
 
       if (controller.signal.aborted) return;
 
-      clearInvitationToken(invitation.id);
-      setJoinedId(result.organizationId);
+      if (result.scopeType === 'EVENT') {
+        setJoinedEvent({
+          organizationId: result.organizationId,
+          eventId: result.eventId,
+        });
+      } else {
+        setJoinedId(result.organizationId);
+      }
+
+      const targetName =
+        invitation.scopeType === 'EVENT'
+          ? invitation.eventName
+          : invitation.organizationName;
+
       setFeedback({
         tone: 'success',
         message: result.alreadyAccepted
-          ? `You have already accepted the invitation to ${invitation.organizationName}.`
-          : `You have joined ${invitation.organizationName}.`,
+          ? `You have already accepted the invitation to ${targetName}.`
+          : `You have joined ${targetName}.`,
       });
 
       refreshButton.current?.focus();
@@ -177,7 +196,14 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
 
       if (problem.kind === 'already-member') {
         clearInvitationToken(invitation.id);
-        setJoinedId(invitation.organizationId);
+        if (invitation.scopeType === 'EVENT') {
+          setJoinedEvent({
+            organizationId: invitation.organizationId,
+            eventId: invitation.eventId,
+          });
+        } else {
+          setJoinedId(invitation.organizationId);
+        }
       } else if (
         error instanceof ApiError &&
         (error.status === 401 || error.status === 403)
@@ -221,8 +247,8 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
           </h2>
 
           <p className="text-sm text-muted-foreground">
-            Pending organization invitations sent to your verified email
-            address.
+            Pending organization and event invitations sent to your verified
+            email address.
           </p>
         </div>
 
@@ -239,6 +265,14 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
 
       {feedback && (
         <InlineAlert tone={feedback.tone}>{feedback.message}</InlineAlert>
+      )}
+
+      {joinedEvent && (
+        <EventInvitationDestination
+          user={user}
+          organizationId={joinedEvent.organizationId}
+          eventId={joinedEvent.eventId}
+        />
       )}
 
       {state.status === 'ready' && pageError && (
@@ -307,11 +341,21 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
                 >
                   <div className="min-w-0 space-y-2">
                     <h3 className="wrap-break-word font-semibold">
-                      {invitation.organizationName}
+                      {invitation.scopeType === 'EVENT'
+                        ? invitation.eventName
+                        : invitation.organizationName}
                     </h3>
 
+                    <p className="text-sm text-muted-foreground">
+                      {invitation.scopeType === 'EVENT'
+                        ? `Event · ${invitation.organizationName}`
+                        : 'Organization'}
+                    </p>
+
                     <Badge variant="outline">
-                      {roleLabels[invitation.role as keyof typeof roleLabels]}
+                      {invitation.scopeType === 'EVENT'
+                        ? EVENT_ROLE_LABELS[invitation.role]
+                        : roleLabels[invitation.role]}
                     </Badge>
 
                     <p className="text-sm text-muted-foreground">
@@ -325,7 +369,11 @@ export const ReceivedInvitations = ({ user }: { user: User }) => {
                   <Button
                     type="button"
                     disabled={busy}
-                    aria-label={`Accept invitation to ${invitation.organizationName}`}
+                    aria-label={`Accept invitation to ${
+                      invitation.scopeType === 'EVENT'
+                        ? invitation.eventName
+                        : invitation.organizationName
+                    }`}
                     onClick={() => void accept(invitation)}
                   >
                     {acceptingId === invitation.id

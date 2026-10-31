@@ -6,11 +6,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/lib';
 import { queryKeys, useApiMutation } from '@/app/query';
 import {
-  Organization,
-  useOrganizations,
-  hasOrganizationCapability,
-} from '@/features/organizations';
-import {
   InputField,
   InlineAlert,
   SelectField,
@@ -32,9 +27,11 @@ import {
 
 type Props = {
   user: User;
-  organization: Organization;
+  organizationId: string;
   event: EventSettings;
+  canEdit: boolean;
   onReload: () => Promise<EventSettings>;
+  onRefreshAccess: () => Promise<void>;
 };
 
 type FormValues = {
@@ -59,7 +56,6 @@ const toFormValues = (event: EventSettings): FormValues => ({
 
 export const EventSettingsForm = (props: Props) => {
   const client = useQueryClient();
-  const { reload: reloadAccess } = useOrganizations();
 
   const baselineRef = useRef(props.event);
   const requestRef = useRef<AbortController | null>(null);
@@ -84,9 +80,7 @@ export const EventSettingsForm = (props: Props) => {
   });
 
   const canEdit =
-    !accessLost &&
-    hasOrganizationCapability(props.organization, 'organization:events:read') &&
-    hasOrganizationCapability(props.organization, 'organization:events:update');
+    props.canEdit && !accessLost && props.event.status !== 'ARCHIVED';
 
   const busy = saving || reloading;
 
@@ -94,13 +88,13 @@ export const EventSettingsForm = (props: Props) => {
     user: props.user,
     request: updateEventSettings,
     affected: [
-      queryKeys.event(props.user.uid, props.organization.id, props.event.id),
-      queryKeys.resources(props.user.uid, props.organization.id, 'events'),
-      queryKeys.resources(props.user.uid, props.organization.id, 'activity'),
+      queryKeys.event(props.user.uid, props.organizationId, props.event.id),
+      queryKeys.resources(props.user.uid, props.organizationId, 'events'),
+      queryKeys.resources(props.user.uid, props.organizationId, 'activity'),
     ],
     onSuccess: (updated) => {
       client.setQueryData(
-        queryKeys.event(props.user.uid, props.organization.id, props.event.id),
+        queryKeys.event(props.user.uid, props.organizationId, props.event.id),
         updated,
       );
     },
@@ -225,7 +219,7 @@ export const EventSettingsForm = (props: Props) => {
 
     try {
       const updated = await mutation.execute(
-        props.organization.id,
+        props.organizationId,
         props.event.id,
         input,
         controller.signal,
@@ -474,10 +468,10 @@ export const EventSettingsForm = (props: Props) => {
         {accessLost && (
           <ConfirmDialog
             triggerLabel="Refresh access"
-            title="Refresh organization access?"
+            title="Refresh event access?"
             description="This reloads your access and may discard your current unsaved draft."
             confirmLabel="Refresh access"
-            onConfirm={reloadAccess}
+            onConfirm={props.onRefreshAccess}
           />
         )}
       </div>
