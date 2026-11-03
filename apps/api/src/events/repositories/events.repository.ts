@@ -30,6 +30,7 @@ import { OrganizationMembershipRepository } from '../../organizations/repositori
 import { assertOrganizationPermissions } from '../../organizations/utils/organization.util';
 import { eventMembershipConverter } from '../converters/eventMembership.converter';
 import { assertEventStatusTransition } from '../../organizations/utils/eventLifecycle.util';
+import { ServerClock } from '../../common/services/serverClock.service';
 
 type EventMutation =
   | {
@@ -45,6 +46,7 @@ type EventMutation =
 export class EventsRepository {
   constructor(
     private readonly auditWriter: AuditWriter,
+    private readonly serverClock: ServerClock,
     private readonly firebaseService: FirebaseService,
     private readonly eventAccessService: EventAccessService,
     private readonly eventSlugsRepository: EventSlugsRepository,
@@ -84,20 +86,6 @@ export class EventsRepository {
     const slugReference = this.eventSlugsRepository.getDocumentReference(
       scope.organizationId,
       event.slug,
-    );
-
-    const reservation = eventSlugReservationSchema.parse({
-      organizationId: event.organizationId,
-      eventId: event.id,
-      slug: event.slug,
-      createdAt: event.createdAt,
-    });
-
-    const auditEvent = this.auditWriter.prepareEventCreated(
-      event.organizationId,
-      event.id,
-      scope.actorUid,
-      event.createdAt,
     );
 
     return this.firebaseService.firestore.runTransaction(
@@ -145,11 +133,33 @@ export class EventsRepository {
           );
         }
 
-        transaction.create(eventReference, event);
+        const now = this.serverClock.now();
+
+        const created = eventSchema.parse({
+          ...event,
+          createdAt: now,
+          updatedAt: now,
+        });
+
+        const reservation = eventSlugReservationSchema.parse({
+          organizationId: created.organizationId,
+          eventId: created.id,
+          slug: created.slug,
+          createdAt: now,
+        });
+
+        const auditEvent = this.auditWriter.prepareEventCreated(
+          created.organizationId,
+          created.id,
+          scope.actorUid,
+          now,
+        );
+
+        transaction.create(eventReference, created);
         transaction.create(slugReference, reservation);
         this.auditWriter.append(transaction, auditEvent);
 
-        return event;
+        return created;
       },
     );
   }
@@ -410,7 +420,7 @@ export class EventsRepository {
             throw new ApiException(
               HttpStatus.BAD_REQUEST,
               'EVENT_SETTINGS_INVALID',
-              'Check the event settings.Provide a valid timezone and either both dates or neighter, with the end after the start.',
+              'Check the timezone, event schedule, and submission window. Each date pair must be complete, with its end after its start.',
             );
           }
 
@@ -427,12 +437,16 @@ export class EventsRepository {
           candidate.location === current.location &&
           candidate.startsAt?.getTime() === current.startsAt?.getTime() &&
           candidate.endsAt?.getTime() === current.endsAt?.getTime() &&
-          candidate.timezone === current.timezone
+          candidate.timezone === current.timezone &&
+          candidate.submissionOpensAt?.getTime() ===
+            current.submissionOpensAt?.getTime() &&
+          candidate.submissionClosesAt?.getTime() ===
+            current.submissionClosesAt?.getTime()
         ) {
           return current;
         }
 
-        const now = new Date();
+        const now = this.serverClock.now();
 
         const next = eventSchema.parse({
           ...candidate,

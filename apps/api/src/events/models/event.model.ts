@@ -1,10 +1,11 @@
 import z from 'zod';
 import { length } from 'class-validator';
 
-import { EVENT_FORMAT } from '../enums/eventFormat.enum';
 import { SLUG_PATTERN } from '../../common/constants';
-import { organizationSchema } from '../../organizations/models/organization.model';
+import { EVENT_FORMAT } from '../enums/eventFormat.enum';
 import { EVENT_STATUS } from '../enums/eventStatus.enum';
+import { organizationSchema } from '../../organizations/models/organization.model';
+import { instantSchema } from '../../common/models/instant.model';
 
 export const eventSlugValueSchema = z
   .string()
@@ -21,14 +22,7 @@ const nullableText = (maximumLength: number) =>
     .nullable()
     .default(null);
 
-const scheduleDateSchema = z
-  .date()
-  .refine(
-    (value) => value.getUTCFullYear() >= 1 && value.getUTCFullYear() <= 9_999,
-    'Date is outside the supported storage range.',
-  )
-  .nullable()
-  .default(null);
+const scheduleDateSchema = instantSchema.nullable().default(null);
 
 export const eventObjectSchema = z
   .object({
@@ -45,6 +39,8 @@ export const eventObjectSchema = z
     location: nullableText(500),
     startsAt: scheduleDateSchema,
     endsAt: scheduleDateSchema,
+    submissionOpensAt: scheduleDateSchema,
+    submissionClosesAt: scheduleDateSchema,
     timezone: z
       .string()
       .trim()
@@ -66,29 +62,32 @@ export const eventObjectSchema = z
   .strict();
 
 export const eventSchema = eventObjectSchema.superRefine((event, context) => {
-  const hasStart = event.startsAt !== null;
-  const hasEnd = event.endsAt !== null;
+  const pairs = [
+    ['startsAt', 'endsAt'],
+    ['submissionOpensAt', 'submissionClosesAt'],
+  ] as const;
 
-  if (hasStart !== hasEnd) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: [hasStart ? 'endsAt' : 'startsAt'],
-      message: 'Provide both dates or leave both empty.',
-    });
-    return;
-  }
+  for (const [startField, endField] of pairs) {
+    const start = event[startField];
+    const end = event[endField];
 
-  if (
-    event.startsAt !== null &&
-    event.endsAt !== null &&
-    event.endsAt
-    // event.endsAt.getTime() <= event.startsAt.getTime()
-  ) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ['endsAt'],
-      message: 'The end must be after the start.',
-    });
+    if ((start === null) !== (end === null)) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [start === null ? startField : endField],
+        message: 'Provide both dates or leave both empty.',
+      });
+
+      continue;
+    }
+
+    if (start !== null && end !== null && end?.getTime() <= start.getTime()) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: [endField],
+        message: 'The closing date must be after the opening date.',
+      });
+    }
   }
 });
 
@@ -113,6 +112,8 @@ export type EventSettingsUpdate = Partial<
     | 'startsAt'
     | 'endsAt'
     | 'timezone'
+    | 'submissionOpensAt'
+    | 'submissionClosesAt'
   >
 >;
 

@@ -10,6 +10,7 @@ import { EventMembersService } from '../services/eventMembers.service';
 import { EventMembersController } from '../controllers/eventMembers.controller';
 import { OrganizationPersistenceModule } from '../../organizations/modules/organizationPersistence.module';
 import { EventsController } from '../controllers/events.controller';
+import { CommonModule } from '../../common/modules/common.module';
 
 @Module({
   controllers: [EventsController, EventMembersController],
@@ -21,6 +22,7 @@ import { EventsController } from '../controllers/events.controller';
   ],
   imports: [
     AuditModule,
+    CommonModule,
     FirebaseModule,
     EventAccessModule,
     OrganizationPersistenceModule,

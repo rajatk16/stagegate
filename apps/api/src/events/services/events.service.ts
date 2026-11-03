@@ -10,16 +10,21 @@ import { CreateEventDto } from '../dtos/createEvent.dto';
 import { ListEventQueryDto } from '../dtos/listEventsQuery.dto';
 import { UpdateEventDto } from '../dtos/updateEvent.dto';
 import { UpdateEventStatusDto } from '../dtos/updateEventStatus.dto';
+import { ServerClock } from '../../common/services/serverClock.service';
+import { apiInstantSchema } from '../../common/models/instant.model';
 
 @Injectable()
 export class EventsService {
-  constructor(private readonly eventsRepository: EventsRepository) {}
+  constructor(
+    private readonly eventsRepository: EventsRepository,
+    private readonly serverClock: ServerClock,
+  ) {}
 
   async create(
     scope: OrganizationScope,
     input: CreateEventDto,
   ): Promise<Event> {
-    const now = new Date();
+    const now = this.serverClock.now();
 
     const event = eventSchema.parse({
       id: randomUUID(),
@@ -66,13 +71,19 @@ export class EventsService {
       changes.location = input.location;
     }
 
-    if (input.startsAt !== undefined) {
-      changes.startsAt =
-        input.startsAt === null ? null : new Date(input.startsAt);
-    }
+    const dateFields = [
+      'startsAt',
+      'endsAt',
+      'submissionOpensAt',
+      'submissionClosesAt',
+    ] as const;
 
-    if (input.endsAt !== undefined) {
-      changes.endsAt = input.endsAt === null ? null : new Date(input.endsAt);
+    for (const field of dateFields) {
+      const value = input[field];
+
+      if (value !== undefined) {
+        changes[field] = value === null ? null : apiInstantSchema.parse(value);
+      }
     }
 
     if (input.timezone !== undefined) {
