@@ -7,9 +7,10 @@ import {
 } from '@nestjs/common';
 
 import { IS_PUBLIC_KEY } from '../../auth/constants';
-import { AuthException } from '../../common/exceptions';
-import { OrganizationAccessService } from '../services';
-import { OrganizationPermission, OrganizationRequest } from '../types';
+import { AuthException } from '../../common/exceptions/auth.exception';
+import { OrganizationAccessService } from '../services/organizationAccess.service';
+import { OrganizationPermission } from '../types/organizationPermission.type';
+import { OrganizationRequest } from '../types/organizationRequest.type';
 import { EVENT_PERMISSIONS_KEY, EVENT_SCOPE_KEY } from '../../events/constants';
 import {
   ORGANIZATION_SCOPE_KEY,
@@ -61,6 +62,12 @@ export class OrganizationScopeGuard implements CanActivate {
     if (eventPermissions !== undefined) {
       throw new InternalServerErrorException(
         'Event permissions require event scope.',
+      );
+    }
+
+    if (Object.hasOwn(request.params, 'eventId')) {
+      throw new InternalServerErrorException(
+        'Routes with eventId must declare event scope.',
       );
     }
 

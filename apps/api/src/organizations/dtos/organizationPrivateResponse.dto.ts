@@ -1,4 +1,4 @@
-import { OrganizationPermission } from '../types';
+import { OrganizationPermission } from '../types/organizationPermission.type';
 import { OrganizationPublicResponseDto } from './organizationPublicResponse.dto';
 import { OrganizationMembershipResponseDto } from './organizationMembershipResponse.dto';
 

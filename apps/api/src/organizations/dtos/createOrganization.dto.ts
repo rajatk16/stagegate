@@ -1,8 +1,8 @@
 import { IsString, Length, Matches } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
 
-import { normalizeOrganizationSlug } from '../utils';
-import { ORGANIZATION_SLUG_PATTERN } from '../constants';
+import { normalizeOrganizationSlug } from '../utils/organization.util';
+import { SLUG_PATTERN } from '../../common/constants';
 
 export class CreateOrganizationDto {
   @Transform(({ value }: TransformFnParams): unknown =>
@@ -17,6 +17,6 @@ export class CreateOrganizationDto {
   )
   @IsString()
   @Length(3, 63)
-  @Matches(ORGANIZATION_SLUG_PATTERN)
+  @Matches(SLUG_PATTERN)
   slug!: string;
 }

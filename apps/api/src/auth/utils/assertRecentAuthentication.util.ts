@@ -1,4 +1,4 @@
-import { AuthException } from '../../common/exceptions';
+import { AuthException } from '../../common/exceptions/auth.exception';
 import { RECENT_AUTHENTICATION_SECONDS } from '../constants';
 
 export const assertRecentAuthentication = (authTime: unknown): void => {

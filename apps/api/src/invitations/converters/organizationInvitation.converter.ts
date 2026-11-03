@@ -5,10 +5,14 @@ import {
   type FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { assertInvitationState } from '../utils';
-import { DiagnosticError } from '../../observalibility/errors';
+import { assertInvitationState } from '../utils/asserInvitationState.util';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 import { ORGANIZATION_INVITATIONS_COLLECTION } from '../constants';
-import { eventInvitationSchema, Invitation, invitationSchema } from '../models';
+import {
+  eventInvitationSchema,
+  Invitation,
+  invitationSchema,
+} from '../models/invitation.model';
 import { organizationInvitationSchema } from '../models/organizationInvitation.model';
 
 const timestampFields = {

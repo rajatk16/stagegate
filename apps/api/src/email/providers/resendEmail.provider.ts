@@ -1,12 +1,9 @@
 import z from 'zod';
 import { Resend } from 'resend';
-
-import {
-  EmailReceipt,
-  EmailDeliveryError,
-  TransactionalEmail,
-  TransactionalEmailProvider,
-} from '../types';
+import { TransactionalEmailProvider } from '../types/transactionalEmailProvider.type';
+import { EmailReceipt } from '../types/emailReceipt.type';
+import { TransactionalEmail } from '../types/transactionalEmail.type';
+import { EmailDeliveryError } from '../types/emailDeliveryError.type';
 
 const receiptSchema = z.object({
   id: z.string().min(1),

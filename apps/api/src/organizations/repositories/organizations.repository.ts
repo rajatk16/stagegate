@@ -1,33 +1,30 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { AuditWriter } from '../../audit/services';
-import { organizationConverter } from '../converters';
-import { ApiException } from '../../common/exceptions';
 import { ORGANIZATIONS_COLLECTION } from '../constants';
-import { FirebaseService } from '../../firebase/services';
-import { DiagnosticError } from '../../observalibility/errors';
-import { ORGANIZATION_SETTINGS_FIELDS } from '../../audit/enums';
 import { OrganizationSlugRepository } from './organizationSlugs.repository';
 import { OrganizationMembershipRepository } from './organizationMembership.repository';
+import { Organization, organizationSchema } from '../models/organization.model';
 import {
-  getOrganizationLogoPath,
-  assertOrganizationPermissions,
-} from '../utils';
-import {
-  Organization,
-  organizationSchema,
   OrganizationSettingsChanges,
   organizationSettingsChangesSchema,
-} from '../models';
+} from '../models/organizationSettingsChanges.model';
+import { AuditWriter } from '../../audit/services/auditWriter.service';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { organizationConverter } from '../converters/organization.converter';
+import { OrganizationCreation } from '../types/organizationCreation.type';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { OrganizationScope } from '../types/organizationScope.type';
+import { OrganizationWithMembership } from '../types/organizationPage.type';
+import { OrganizationWriteResult } from '../types/organizationWriteResult.type';
 import {
-  OrganizationScope,
-  OrganizationCreation,
-  OrganizationWriteResult,
-  OrganizationWriteChanges,
-  OrganizationWithMembership,
-  OrganizationSettingsUpdateDocument,
-} from '../types';
+  assertOrganizationPermissions,
+  getOrganizationLogoPath,
+} from '../utils/organization.util';
+import { OrganizationWriteChanges } from '../types/organizationWriteChanges.type';
+import { OrganizationSettingsUpdateDocument } from '../types/organizationSettingsUpdateDocument.type';
+import { ORGANIZATION_SETTINGS_FIELDS } from '../../audit/enums/organizationSettingsFields.enum';
 
 @Injectable()
 export class OrganizationRepository {

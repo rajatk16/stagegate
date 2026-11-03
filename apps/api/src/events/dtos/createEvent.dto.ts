@@ -1,6 +1,6 @@
-import { EVENT_SLUG_PATTERN } from '../constants';
 import { IsString, Length, Matches } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
+import { SLUG_PATTERN } from '../../common/constants';
 
 export class CreateEventDto {
   @Transform(({ value }: TransformFnParams): unknown =>
@@ -15,6 +15,6 @@ export class CreateEventDto {
   )
   @IsString()
   @Length(3, 63)
-  @Matches(EVENT_SLUG_PATTERN)
+  @Matches(SLUG_PATTERN)
   slug!: string;
 }

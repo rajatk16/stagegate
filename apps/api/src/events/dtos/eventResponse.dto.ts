@@ -1,4 +1,5 @@
-import { EVENT_FORMAT, EVENT_STATUS } from '../enums';
+import { EVENT_FORMAT } from '../enums/eventFormat.enum';
+import { EVENT_STATUS } from '../enums/eventStatus.enum';
 
 export class EventResponseDto {
   id!: string;

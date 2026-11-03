@@ -1,11 +1,9 @@
-import { EVENT_ROLES } from '../enums';
-import { EventPermission } from '../types';
+import { EVENT_ROLES } from '../enums/eventRoles.enum';
+import { EventPermission } from '../types/eventPermission.type';
 
 export const EVENTS_COLLECTION = 'events';
 
-export const EVENT_SLUGS_COLLECTION = 'eventSlugs';
-
-export const EVENT_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const EVENTS_SLUG_COLLECTION = 'eventSlugs';
 
 export const EVENT_MEMBERSHIPS_COLLECTION = 'eventMemberships';
 
@@ -17,18 +15,19 @@ export const EVENT_ROLE_PERMISSIONS: Readonly<
   MANAGER: [
     'event:read',
     'event:update',
-    'event:manage-status',
     'event:members:read',
+    'event:manage-status',
   ],
 };
 
-export const EVENT_ROLE_GRANT_TARGETS: Readonly<
-  Record<EVENT_ROLES, readonly EVENT_ROLES[]>
-> = {
-  MANAGER: [EVENT_ROLES.REVIEW_CHAIR, EVENT_ROLES.REVIEWER],
-  REVIEW_CHAIR: [EVENT_ROLES.REVIEWER],
-  REVIEWER: [],
-};
+export const ORGANIZATION_ADMIN_EVENT_PERMISSIONS: readonly EventPermission[] =
+  [
+    'event:read',
+    'event:update',
+    'event:members:read',
+    'event:manage-status',
+    'event:members:manage',
+  ];
 
 export const EVENT_SCOPE_KEY = 'event:scope';
 

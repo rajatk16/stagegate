@@ -5,12 +5,12 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { OrganizationMembershipDocument } from '../types';
-import { DiagnosticError } from '../../observalibility/errors';
+import { OrganizationMembershipDocument } from '../types/organizationMembershipDocument.type';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 import {
   OrganizationMembership,
   organizationMembershipSchema,
-} from '../models';
+} from '../models/organizationMembership.model';
 import {
   ORGANIZATIONS_COLLECTION,
   ORGANIZATION_MEMBERSHIPS_COLLECTION,

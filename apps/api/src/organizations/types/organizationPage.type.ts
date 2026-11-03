@@ -1,4 +1,5 @@
-import { Organization, OrganizationMembership } from '../models';
+import { Organization } from '../models/organization.model';
+import { OrganizationMembership } from '../models/organizationMembership.model';
 
 export interface OrganizationMembershipPage {
   items: OrganizationMembership[];

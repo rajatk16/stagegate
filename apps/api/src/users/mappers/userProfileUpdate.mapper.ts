@@ -1,7 +1,8 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { UpdateProfileDto } from '../dtos';
-import { UserProfileChanges, UserProfileUpdateDocument } from '../types';
+import { UpdateProfileDto } from '../dtos/updateProfile.dto';
+import { UserProfileChanges } from '../types/userProfileChanges.type';
+import { UserProfileUpdateDocument } from '../types/userProfileUpdateDocument.type';
 
 export const toUserProfileChanges = (
   dto: UpdateProfileDto,

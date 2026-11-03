@@ -1,8 +1,6 @@
-import { ORGANIZATION_ROLES } from '../enums';
-import type { OrganizationPermission } from '../types';
-import type { OrganizationMembership } from '../models';
-
-export const ORGANIZATION_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+import { ORGANIZATION_ROLES } from '../enums/organizationRoles.enum';
+import type { OrganizationPermission } from '../types/organizationPermission.type';
+import type { OrganizationMembership } from '../models/organizationMembership.model';
 
 export const RESERVED_ORGANIZATION_SLUGS = new Set([
   'admin',

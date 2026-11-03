@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
-import { Environment } from '../../config';
-import { TransactionalEmailProvider } from '../types';
-import { MemoryEmailProvider, ResendEmailProvider } from '../providers';
+import { Environment } from '../../config/environment';
+import { TransactionalEmailProvider } from '../types/transactionalEmailProvider.type';
+import { MemoryEmailProvider } from '../providers/memoryEmail.provider';
+import { ResendEmailProvider } from '../providers/resendEmail.provider';
 
 @Module({
   imports: [ConfigModule],

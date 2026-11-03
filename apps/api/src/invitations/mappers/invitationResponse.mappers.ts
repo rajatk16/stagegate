@@ -1,5 +1,6 @@
-import { OrganizationInvitationResponseDto } from '../dtos';
-import { InvitationAcceptanceResult, InvitationIssueResult } from '../types';
+import { OrganizationInvitationResponseDto } from '../dtos/organizationInvitationResponse.dto';
+import { InvitationAcceptanceResult } from '../types/invitationAcceptanceResult.type';
+import { InvitationIssueResult } from '../types/invitationIssueResult.type';
 
 export const toOrganizationInvitationResponseDto = (
   result: InvitationIssueResult,

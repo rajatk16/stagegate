@@ -1,7 +1,7 @@
-import type { AuditEvent } from '../models';
-import { getAuditOrganizationId } from '../utils';
-import { OrganizationAuditEventResponseDto } from '../dtos';
-import { DiagnosticError } from '../../observalibility/errors';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { OrganizationAuditEventResponseDto } from '../dtos/organizationAuditResponse.dto';
+import { AuditEvent } from '../models/auditEvent.model';
+import { getAuditOrganizationId } from '../utils/organizationAuditScope.util';
 
 const toDetails = (event: AuditEvent): Record<string, string | string[]> => {
   switch (event.action) {

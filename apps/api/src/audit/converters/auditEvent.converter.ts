@@ -5,8 +5,8 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { AuditEventDocument } from '../types';
-import { AuditEvent, auditEventSchema } from '../models';
+import { AuditEventDocument } from '../types/auditEventDocument.type';
+import { AuditEvent, auditEventSchema } from '../models/auditEvent.model';
 
 export const auditEventConverter: FirestoreDataConverter<
   AuditEvent,

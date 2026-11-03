@@ -1,8 +1,8 @@
 import z from 'zod';
 
-import type { OrganizationScope } from '../../organizations/types';
-import { RequestValidationException } from '../../common/exceptions';
-import { organizationMembershipSchema } from '../../organizations/models';
+import { organizationMembershipSchema } from '../../organizations/models/organizationMembership.model';
+import { OrganizationScope } from '../../organizations/types/organizationScope.type';
+import { RequestValidationException } from '../../common/exceptions/requestValidation.exception';
 
 type CursorScope = Pick<OrganizationScope, 'actorUid' | 'organizationId'>;
 

@@ -1,4 +1,4 @@
-import type { EventMembership } from '../models';
+import type { EventMembership } from '../models/eventMembership.model';
 
 export const toEventMembershipResponse = (membership: EventMembership) => ({
   organizationId: membership.organizationId,

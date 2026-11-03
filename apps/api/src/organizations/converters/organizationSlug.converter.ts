@@ -5,9 +5,12 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { OrganizationSlugDocument } from '../types';
-import { DiagnosticError } from '../../observalibility/errors';
-import { OrganizationSlug, organizationSlugSchema } from '../models';
+import { OrganizationSlugDocument } from '../types/organizationSlugDocument.type';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import {
+  OrganizationSlug,
+  organizationSlugSchema,
+} from '../models/organizationSlug.model';
 
 const slugDocumentSchema = organizationSlugSchema.extend({
   createdAt: z.instanceof(Timestamp),

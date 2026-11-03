@@ -1,5 +1,5 @@
-import { Invitation } from '../models';
-import { DiagnosticError } from '../../observalibility/errors';
+import { Invitation } from '../models/invitation.model';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 
 const invalidState = (): never => {
   throw new DiagnosticError('INVITATION_STORAGE_INVARIANT_FAILED');

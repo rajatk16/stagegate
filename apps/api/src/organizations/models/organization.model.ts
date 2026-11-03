@@ -1,22 +1,8 @@
 import z from 'zod';
 import { length as hasValidLength, isURL } from 'class-validator';
 
-import { ORGANIZATION_SLUG_PATTERN } from '../constants';
-import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
-
-const uidSchema = z
-  .string()
-  .min(1)
-  .max(128)
-  .refine(
-    (value) =>
-      !value.includes('/') &&
-      value !== '.' &&
-      value !== '..' &&
-      !/^__.*__$/.test(value),
-  );
-
-const slugSchema = z.string().min(3).max(63).regex(ORGANIZATION_SLUG_PATTERN);
+import { uidSchema } from '../../common/models/uid.model';
+import { slugSchema } from '../../common/models/slug.model';
 
 const nullableColorSchema = z
   .string()
@@ -66,47 +52,4 @@ export const organizationSchema = z
   })
   .strict();
 
-export const organizationMembershipSchema = z
-  .object({
-    organizationId: z.string().uuid(),
-    uid: uidSchema,
-    role: z.nativeEnum(ORGANIZATION_ROLES),
-    status: z
-      .nativeEnum(ORGANIZATION_MEMBERSHIP_STATUS)
-      .default(ORGANIZATION_MEMBERSHIP_STATUS.ACTIVE),
-    membershipId: z.string().uuid().nullable().default(null),
-    createdAt: z.date(),
-    updatedAt: z.date(),
-  })
-  .strict();
-
-export const organizationSlugSchema = z
-  .object({
-    slug: slugSchema,
-    organizationId: z.string().uuid(),
-    createdAt: z.date(),
-  })
-  .strict();
-
 export type Organization = z.infer<typeof organizationSchema>;
-
-export type OrganizationMembership = z.infer<
-  typeof organizationMembershipSchema
->;
-
-export type OrganizationSlug = z.infer<typeof organizationSlugSchema>;
-
-export const organizationSettingsChangesSchema = organizationSchema
-  .pick({
-    name: true,
-    description: true,
-    websiteURL: true,
-    primaryColor: true,
-    secondaryColor: true,
-  })
-  .partial()
-  .strict();
-
-export type OrganizationSettingsChanges = z.infer<
-  typeof organizationSettingsChangesSchema
->;

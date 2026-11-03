@@ -1,4 +1,4 @@
-import { ORGANIZATION_ROLES } from '../../organizations/enums';
+import { ORGANIZATION_ROLES } from '../../organizations/enums/organizationRoles.enum';
 
 export interface OrganizationInvitationAuditInput {
   action:

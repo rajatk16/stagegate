@@ -1,12 +1,13 @@
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { UserProfile } from '../models';
-import { UpdateProfileDto } from '../dtos';
-import { UsersRepository } from '../repositories';
-import { ApiException } from '../../common/exceptions';
-import { FirebaseService } from '../../firebase/services';
-import { toNewUserProfile, toUserProfileChanges } from '../mappers';
+import { UserProfile } from '../models/userProfile.model';
+import { UpdateProfileDto } from '../dtos/updateProfile.dto';
+import { UsersRepository } from '../repositories/users.repository';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { toNewUserProfile } from '../mappers/userProfile.mapper';
+import { toUserProfileChanges } from '../mappers/userProfileUpdate.mapper';
 
 type UserIdentitySummary = {
   displayName: string | null;

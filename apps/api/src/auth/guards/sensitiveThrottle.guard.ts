@@ -12,10 +12,13 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import { AuthenticatedRequest } from '../types';
-import { ApiException } from '../../common/exceptions';
-import { AuthException } from '../../common/exceptions';
-import { SensitiveActionName, sensitiveActionPolicies } from '../policies';
+import { AuthenticatedRequest } from '../types/authenticatedRequest.type';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { AuthException } from '../../common/exceptions/auth.exception';
+import {
+  SensitiveActionName,
+  sensitiveActionPolicies,
+} from '../policies/sensitiveAction.policy';
 import {
   IS_PUBLIC_KEY,
   SENSITIVE_ACTION_KEY,

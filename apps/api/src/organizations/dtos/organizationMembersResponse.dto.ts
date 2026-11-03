@@ -1,4 +1,4 @@
-import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums/organizationMembershipStatus.enum';
 import { OrganizationMembershipResponseDto } from './organizationMembershipResponse.dto';
 
 export class OrganizationMemberResponseDto extends OrganizationMembershipResponseDto {

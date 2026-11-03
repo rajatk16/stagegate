@@ -1,6 +1,6 @@
 import { IsEnum } from 'class-validator';
 
-import { EVENT_STATUS } from '../enums';
+import { EVENT_STATUS } from '../enums/eventStatus.enum';
 
 export class UpdateEventStatusDto {
   @IsEnum(EVENT_STATUS)

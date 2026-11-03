@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { EVENT_ROLES } from '../../events/enums';
+import { EVENT_ROLES } from '../../events/enums/eventRoles.enum';
 import {
   type OrganizationInvitation,
   organizationInvitationSchema,

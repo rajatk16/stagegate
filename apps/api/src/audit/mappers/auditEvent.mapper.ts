@@ -1,16 +1,13 @@
 import { randomUUID } from 'node:crypto';
-
-import { EVENT_STATUS } from '../../events/enums';
-import { EventMutationAuditInput } from '../types';
-import { ORGANIZATION_SETTINGS_FIELDS } from '../enums';
-import { AuditEvent, auditEventSchema } from '../models';
-import { ORGANIZATION_ROLES } from '../../organizations/enums';
-import {
-  ProfileUpdatedEventInput,
-  OrganizationCreatedEventInput,
-  OwnershipTransferredAuditInput,
-  OrganizationInvitationAuditInput,
-} from '../types';
+import { ProfileUpdatedEventInput } from '../types/profileUpdatedEventInput.type';
+import { AuditEvent, auditEventSchema } from '../models/auditEvent.model';
+import { OrganizationCreatedEventInput } from '../types/organizationCreatedEventInput.type';
+import { ORGANIZATION_SETTINGS_FIELDS } from '../enums/organizationSettingsFields.enum';
+import { ORGANIZATION_ROLES } from '../../organizations/enums/organizationRoles.enum';
+import { OrganizationInvitationAuditInput } from '../types/organizationInvitationAuditInput.type';
+import { OwnershipTransferredAuditInput } from '../types/ownershipTranferredAuditInput.type';
+import { EventMutationAuditInput } from '../types/eventMutationAuditInput.type';
+import { EVENT_STATUS } from '../../events/enums/eventStatus.enum';
 
 export const toProfileUpdatedAuditEvent = (
   input: ProfileUpdatedEventInput,

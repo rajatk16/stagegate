@@ -1,6 +1,6 @@
 import { SetMetadata } from '@nestjs/common';
 
-import type { EventPermission } from '../types';
+import type { EventPermission } from '../types/eventPermission.type';
 import { EVENT_PERMISSIONS_KEY } from '../constants';
 
 export const RequireEventPermissions = (

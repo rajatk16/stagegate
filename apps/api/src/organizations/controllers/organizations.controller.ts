@@ -19,61 +19,57 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 
-import { type OrganizationScope } from '../types';
-import { UsersService } from '../../users/services';
-import { OrganizationAuditReader } from '../../audit/services';
-import { InvitationsService } from '../../invitations/services';
-import { toOrganizationInvitationResponseDto } from '../../invitations/mappers';
+import { type OrganizationScope } from '../types/organizationScope.type';
+import { UsersService } from '../../users/services/users.service';
+import { OrganizationAuditReader } from '../../audit/services/organizationAuditReader.service';
+import { InvitationsService } from '../../invitations/services/invitations.service';
+import { toOrganizationInvitationResponseDto } from '../../invitations/mappers/invitationResponse.mappers';
+import { ListOrganizationAuditQueryDto } from '../../audit/dtos/listOrganizationAuditQuery.dto';
+import { OrganizationsService } from '../services/organizations.service';
 import {
-  ListOrganizationAuditQueryDto,
-  OrganizationAuditPageResponseDto,
-} from '../../audit/dtos';
-import {
-  OrganizationScoped,
-  CurrentOrganization,
-  RequireOrganizationPermissions,
-} from '../decorators';
-import {
-  CreateOrganizationInvitationDto,
-  OrganizationInvitationResponseDto,
-  ListOrganizationInvitationsQueryDto,
-} from '../../invitations/dtos';
-import {
-  OrganizationsService,
   OrganizationLogoService,
   UploadedOrganizationLogo,
-  OrganizationMembersService,
-} from '../services';
+} from '../services/organizationLogo.service';
+import { OrganizationMembersService } from '../services/organizationMembers.service';
+import { SensitiveAction } from '../../auth/decorators/sensitiveAction.decorator';
+import { CurrentUser } from '../../auth/decorators/currentUser.decorator';
+import { CreateOrganizationDto } from '../dtos/createOrganization.dto';
+import { OrganizationResponseDto } from '../dtos/organizationResponse.dto';
 import {
-  CurrentUser,
-  SensitiveAction,
-  ThrottleUserWrites,
-  RequireVerifiedEmail,
-  RequireRecentAuthentication,
-} from '../../auth/decorators';
-import {
-  toOrganizationResponseDto,
   toMyOrganizationsResponseDto,
+  toOrganizationPrivateResponseDto,
+  toOrganizationResponseDto,
+  toOrganizationWithMembershipResponseDto,
+} from '../mappers/organization.mapper';
+import { ListMyOrganizationsQueryDto } from '../dtos/listMyOrganizationsQuery.dto';
+import { MyOrganizationsResponseDto } from '../dtos/myOrganizationsResponse.dto';
+import { OrganizationScoped } from '../decorators/organizationScoped.decorator';
+import { RequireOrganizationPermissions } from '../decorators/requiredOrganizationPermissions.decorator';
+import { CurrentOrganization } from '../decorators/currentOrganization.decorator';
+import { RequireVerifiedEmail } from '../../auth/decorators/requireVerifiedEmail.decorator';
+import { ThrottleUserWrites } from '../../auth/decorators/throttleUserWrites.decorator';
+import { UpdateOrganizationSettingsDto } from '../dtos/updateOrganizationSettings.dto';
+import { OrganizationPrivateResponseDto } from '../dtos/organizationPrivateResponse.dto';
+import { ListOrganizationMembersQueryDto } from '../dtos/listOrganizationMembersQuery.dto';
+import {
+  OrganizationMemberResponseDto,
+  OrganizationMembersResponseDto,
+} from '../dtos/organizationMembersResponse.dto';
+import {
   toOrganizationMemberResponseDto,
   toOrganizationMembersResponseDto,
-  toOrganizationPrivateResponseDto,
-  toOrganizationWithMembershipResponseDto,
-} from '../mappers';
+} from '../mappers/organizationMember.mapper';
+import { UpdateOrganizationMemberRoleDto } from '../dtos/updateOrganizationMemberRole.dto';
+import { ListOrganizationInvitationsQueryDto } from '../../invitations/dtos/listOrganizationInvitationsQuery.dto';
+import { CreateOrganizationInvitationDto } from '../../invitations/dtos/createOrganizationInvitation.dto';
+import { OrganizationInvitationResponseDto } from '../../invitations/dtos/organizationInvitationResponse.dto';
+import { UpdateOrganizationMemberStatusDto } from '../dtos/updateOrganizationMemberStatus.dto';
+import { RequireRecentAuthentication } from '../../auth/decorators/requireRecentAuthentication.decorator';
 import {
-  CreateOrganizationDto,
-  OrganizationResponseDto,
-  MyOrganizationsResponseDto,
-  ListMyOrganizationsQueryDto,
-  OrganizationMemberResponseDto,
-  UpdateOrganizationSettingsDto,
-  OrganizationPrivateResponseDto,
-  OrganizationMembersResponseDto,
-  UpdateOrganizationMemberRoleDto,
-  ListOrganizationMembersQueryDto,
-  UpdateOrganizationMemberStatusDto,
   TransferOrganizationOwnershipDto,
   TransferOrganizationOwnershipResponseDto,
-} from '../dtos';
+} from '../dtos/transferOrganizationOwnership.dto';
+import { OrganizationAuditPageResponseDto } from '../../audit/dtos/organizationAuditResponse.dto';
 
 @Controller('organizations')
 export class OrganizationsController {

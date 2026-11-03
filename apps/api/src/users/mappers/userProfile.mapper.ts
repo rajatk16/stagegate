@@ -1,7 +1,7 @@
 import { DecodedIdToken } from 'firebase-admin/auth';
 
-import { UserProfile } from '../models';
-import { MeResponseDto } from '../dtos';
+import { UserProfile } from '../models/userProfile.model';
+import { MeResponseDto } from '../dtos/meResponse.dto';
 
 export const toNewUserProfile = (
   user: DecodedIdToken,

@@ -1,30 +1,25 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { FieldPath, Filter } from 'firebase-admin/firestore';
-
-import { auditEventConverter } from '../converters';
-import { ApiException } from '../../common/exceptions';
-import { FirebaseService } from '../../firebase/services';
-import { toOrganizationAuditEventResponseDto } from '../mappers';
-import type { OrganizationScope } from '../../organizations/types';
-import { assertOrganizationPermissions } from '../../organizations/utils';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { auditEventConverter } from '../converters/auditEvent.converter';
+import { OrganizationScope } from '../../organizations/types/organizationScope.type';
+import { ListOrganizationAuditQueryDto } from '../dtos/listOrganizationAuditQuery.dto';
+import { OrganizationAuditPageResponseDto } from '../dtos/organizationAuditResponse.dto';
 import {
-  ListOrganizationAuditQueryDto,
-  OrganizationAuditPageResponseDto,
-} from '../dtos';
-import {
-  ORGANIZATIONS_COLLECTION,
-  ORGANIZATION_MEMBERSHIPS_COLLECTION,
-} from '../../organizations/constants';
-import {
-  organizationConverter,
-  organizationMembershipConverter,
-} from '../../organizations/converters';
-import {
-  invalidAuditCursor,
-  getAuditOrganizationId,
   decodeOrganizationAuditCursor,
   encodeOrganizationAuditCursor,
-} from '../utils';
+  invalidAuditCursor,
+} from '../utils/organizationAuditCursor.util';
+import {
+  ORGANIZATION_MEMBERSHIPS_COLLECTION,
+  ORGANIZATIONS_COLLECTION,
+} from '../../organizations/constants';
+import { organizationConverter } from '../../organizations/converters/organization.converter';
+import { organizationMembershipConverter } from '../../organizations/converters/organizationMembership.converter';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { assertOrganizationPermissions } from '../../organizations/utils/organization.util';
+import { getAuditOrganizationId } from '../utils/organizationAuditScope.util';
+import { toOrganizationAuditEventResponseDto } from '../mappers/organizationAuditResponse.mapper';
 
 @Injectable()
 export class OrganizationAuditReader {

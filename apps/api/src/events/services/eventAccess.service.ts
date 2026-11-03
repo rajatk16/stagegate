@@ -5,28 +5,27 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import { EVENT_ROLES } from '../enums';
-import { eventObjectSchema } from '../models';
-import { eventConverter } from '../converters';
-import { ApiException } from '../../common/exceptions';
-import { FirebaseService } from '../../firebase/services';
-import { EventMembershipRepository } from '../repositories/eventMembership.repository';
-import { DiagnosticError } from '../../observalibility/errors';
-import { ORGANIZATION_ROLES } from '../../organizations/enums';
-import { organizationSchema } from '../../organizations/models';
-import { EventAuthority, EventPermission, EventScope } from '../types';
-import { EVENT_ROLE_PERMISSIONS, EVENTS_COLLECTION } from '../constants';
-import { assertActiveOrganizationMembership } from '../../organizations/utils';
 import {
-  OrganizationRepository,
-  OrganizationMembershipRepository,
-} from '../../organizations/repositories';
+  EVENT_ROLE_PERMISSIONS,
+  EVENTS_COLLECTION,
+  ORGANIZATION_ADMIN_EVENT_PERMISSIONS,
+} from '../constants';
 import { getOrganizationMembershipKey } from '../../organizations/utils/organizationMembershipKey.util';
-
-type EventIdentity = Pick<
-  EventScope,
-  'actorUid' | 'organizationId' | 'eventId'
->;
+import { parseEventIdentity } from '../utils/event.util';
+import { EventIdentity } from '../models/eventIdentity.model';
+import { isOrganizationAdministrator } from '../utils/eventMembership.util';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { OrganizationRepository } from '../../organizations/repositories/organizations.repository';
+import { EventMembershipRepository } from '../repositories/eventMembership.repository';
+import { OrganizationMembershipRepository } from '../../organizations/repositories/organizationMembership.repository';
+import { eventConverter } from '../converters/event.converter';
+import { EventPermission } from '../types/eventPermission.type';
+import { EventScope } from '../types/eventScope.type';
+import { assertActiveOrganizationMembership } from '../../organizations/utils/organization.util';
+import { EventAuthority } from '../types/eventAuthority.type';
+import { EVENT_ROLES } from '../enums/eventRoles.enum';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 
 const eventNotFound = (): ApiException =>
   new ApiException(HttpStatus.NOT_FOUND, 'EVENT_NOT_FOUND', 'Event not found');
@@ -52,38 +51,32 @@ export class EventAccessService {
     actorUid: string,
     rawOrganizationId: unknown,
     rawEventId: unknown,
+    required: readonly EventPermission[] = ['event:read'],
   ): Promise<EventScope> {
-    const organizationId =
-      organizationSchema.shape.id.safeParse(rawOrganizationId);
-
-    const eventId = eventObjectSchema.shape.id.safeParse(rawEventId);
-
-    if (!organizationId.success || !eventId.success) {
-      throw new ApiException(
-        HttpStatus.BAD_REQUEST,
-        'EVENT_SCOPE_INVALID',
-        'Valid organization and event IDs are required',
-      );
-    }
+    const identity = parseEventIdentity({
+      actorUid,
+      organizationId: rawOrganizationId,
+      eventId: rawEventId,
+    });
 
     return this.firebaseService.firestore.runTransaction((transaction) =>
-      this.requireInTransaction(
-        transaction,
-        {
-          actorUid,
-          organizationId: organizationId.data,
-          eventId: eventId.data,
-        },
-        ['event:read'],
-      ),
+      this.requireInTransaction(transaction, identity, required),
     );
   }
 
   async requireInTransaction(
     transaction: Transaction,
-    identity: EventIdentity,
+    rawIdentity: EventIdentity,
     required: readonly EventPermission[],
   ): Promise<EventScope> {
+    const identity = parseEventIdentity(rawIdentity);
+
+    if (required.length === 0) {
+      throw new InternalServerErrorException(
+        'An event operation must declare a permission.',
+      );
+    }
+
     const loaded = await this.loadInTransaction(transaction, identity);
 
     const organizationMembership = loaded.organizationMembership;
@@ -101,9 +94,9 @@ export class EventAccessService {
         ? loaded.eventMembership
         : null;
 
-    const organizationAdmin =
-      organizationMembership.role === ORGANIZATION_ROLES.OWNER ||
-      organizationMembership.role === ORGANIZATION_ROLES.ADMIN;
+    const organizationAdmin = isOrganizationAdministrator(
+      organizationMembership,
+    );
 
     let authority: EventAuthority;
     let permissions: readonly EventPermission[];
@@ -113,10 +106,7 @@ export class EventAccessService {
         kind: 'ORGANIZATION_ADMIN',
       };
 
-      permissions = [
-        ...EVENT_ROLE_PERMISSIONS[EVENT_ROLES.MANAGER],
-        'event:members:manage',
-      ];
+      permissions = ORGANIZATION_ADMIN_EVENT_PERMISSIONS;
     } else {
       if (!eventMembership) {
         throw eventNotFound();
@@ -132,10 +122,10 @@ export class EventAccessService {
 
       authority = {
         kind: 'EVENT_MEMBER',
-        role: eventMembership.role,
+        role: eventMembership.role as EVENT_ROLES,
       };
 
-      permissions = EVENT_ROLE_PERMISSIONS[eventMembership.role];
+      permissions = EVENT_ROLE_PERMISSIONS[eventMembership.role as EVENT_ROLES];
     }
 
     const scope: EventScope = {
@@ -152,7 +142,10 @@ export class EventAccessService {
     return scope;
   }
 
-  async loadInTransaction(transaction: Transaction, identity: EventIdentity) {
+  private async loadInTransaction(
+    transaction: Transaction,
+    identity: EventIdentity,
+  ) {
     const organizationSnapshot = await transaction.get(
       this.organizationRepository.getDocumentReference(identity.organizationId),
     );
@@ -198,7 +191,7 @@ export class EventAccessService {
       (eventMembership !== null &&
         (eventMembership.organizationId !== identity.organizationId ||
           eventMembership.eventId !== identity.eventId ||
-          eventMembership.uid != identity.actorUid))
+          eventMembership.uid !== identity.actorUid))
     ) {
       throw new DiagnosticError('EVENT_STORAGE_INVARIANT_FAILED');
     }

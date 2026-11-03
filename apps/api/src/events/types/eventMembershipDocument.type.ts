@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { EventMembership } from '../models';
+import { EventMembership } from '../models/eventMembership.model';
 
 export type EventMembershipDocument = Omit<
   EventMembership,

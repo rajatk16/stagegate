@@ -1,4 +1,4 @@
-import { ValidationIssueCode } from '../types';
+import { ValidationIssueCode } from '../types/validationIssueCode.type';
 
 export class ValidationIssueDto {
   field!: string;

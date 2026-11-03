@@ -2,11 +2,11 @@ import { NestFactory } from '@nestjs/core';
 import { ConsoleLogger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { Environment } from './config';
+import { Environment } from './config/environment';
 import { AppModule } from './app.module';
 import { configureHttpApp } from './configureHttpApp';
-import { SystemLogger } from './observalibility/loggers';
-import { toDiagnostic } from './observalibility/mappers';
+import { SystemLogger } from './observalibility/loggers/systemLogger';
+import { toDiagnostic } from './observalibility/mappers/diagnostic.mapper';
 import { installGracefulShutdown } from './installGracefulShutdown';
 
 const bootstrapLogger = new ConsoleLogger('Bootstrap', {

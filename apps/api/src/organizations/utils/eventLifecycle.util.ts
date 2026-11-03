@@ -1,7 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 
-import { EVENT_STATUS } from '../../events/enums';
-import { ApiException } from '../../common/exceptions';
+import { EVENT_STATUS } from '../../events/enums/eventStatus.enum';
+import { ApiException } from '../../common/exceptions/api.exception';
 
 const allowedTransitions: Readonly<
   Record<EVENT_STATUS, readonly EVENT_STATUS[]>

@@ -1,7 +1,8 @@
-import { Event, EventMembership } from '../models';
+import { Event } from '../models/event.model';
 import { EventAuthority } from './eventAuthority.type';
 import { EventPermission } from './eventPermission.type';
-import { OrganizationMembership } from '../../organizations/models';
+import { OrganizationMembership } from '../../organizations/models/organizationMembership.model';
+import { EventMembership } from '../models/eventMembership.model';
 
 export interface EventScope {
   readonly actorUid: string;

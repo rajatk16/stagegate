@@ -1,4 +1,4 @@
-import { PROFILE_FIELDS } from '../enums';
+import { PROFILE_FIELDS } from '../enums/profileFields.enum';
 
 export interface ProfileUpdatedEventInput {
   actorUid: string;

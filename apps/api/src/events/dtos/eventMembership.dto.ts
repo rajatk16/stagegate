@@ -10,7 +10,7 @@ import {
   IsOptional,
 } from 'class-validator';
 
-import { EVENT_ROLES } from '../enums';
+import { EVENT_ROLES } from '../enums/eventRoles.enum';
 
 export class UpdateEventMemberRoleDto {
   @IsEnum(EVENT_ROLES)

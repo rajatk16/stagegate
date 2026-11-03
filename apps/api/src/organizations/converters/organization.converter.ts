@@ -5,9 +5,9 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { OrganizationDocument } from '../types';
-import { Organization, organizationSchema } from '../models';
-import { DiagnosticError } from '../../observalibility/errors';
+import { OrganizationDocument } from '../types/organizationDocument.type';
+import { Organization, organizationSchema } from '../models/organization.model';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 
 const organizationDocumentSchema = organizationSchema.extend({
   createdAt: z.instanceof(Timestamp),

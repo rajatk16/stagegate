@@ -1,8 +1,8 @@
 import { z } from 'zod';
-
-import { EVENT_ROLES } from '../../events/enums';
-import { ORGANIZATION_ROLES } from '../../organizations/enums';
-import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
+import { PROFILE_FIELDS } from '../enums/profileFields.enum';
+import { ORGANIZATION_SETTINGS_FIELDS } from '../enums/organizationSettingsFields.enum';
+import { ORGANIZATION_ROLES } from '../../organizations/enums/organizationRoles.enum';
+import { EVENT_ROLES } from '../../events/enums/eventRoles.enum';
 
 const auditBaseSchema = z.object({
   schemaVersion: z.literal(1),

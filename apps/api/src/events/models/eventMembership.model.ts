@@ -1,7 +1,7 @@
 import z from 'zod';
 
-import { EVENT_ROLES } from '../enums';
-import { organizationMembershipSchema } from '../../organizations/models';
+import { EVENT_ROLES } from '../enums/eventRoles.enum';
+import { organizationMembershipSchema } from '../../organizations/models/organizationMembership.model';
 
 export const eventMembershipSchema = z
   .object({

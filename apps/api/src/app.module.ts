@@ -2,18 +2,18 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { Module, ValidationPipe } from '@nestjs/common';
 
-import { AuthModule } from './auth/modules';
-import { UsersModule } from './users/modules';
-import { validateEnvironment } from './config';
-import { HealthModule } from './health/modules';
-import { FirebaseModule } from './firebase/module';
-import { ApiExceptionFilter } from './common/filters';
-import { toValidationIssues } from './common/mappers';
+import { AuthModule } from './auth/modules/auth.module';
+import { UsersModule } from './users/modules/users.module';
+import { validateEnvironment } from './config/environment';
+import { HealthModule } from './health/modules/health.module';
+import { FirebaseModule } from './firebase/module/firebase.module';
+import { ApiExceptionFilter } from './common/filters/apiException.filter';
+import { toValidationIssues } from './common/mappers/validationError.mapper';
 import { EventsModule } from './events/modules/events.module';
 import { InvitationsModule } from './invitations/modules/invitations.module';
 import { OrganizationModule } from './organizations/modules/organization.module';
-import { ObservabilityModule } from './observalibility/modules';
-import { RequestValidationException } from './common/exceptions';
+import { ObservabilityModule } from './observalibility/modules/observability.module';
+import { RequestValidationException } from './common/exceptions/requestValidation.exception';
 
 @Module({
   imports: [

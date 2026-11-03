@@ -1,8 +1,8 @@
 import { ConsoleLogger, Injectable, OnModuleDestroy } from '@nestjs/common';
 
-import { getFirebaseErrorCode } from '../../auth/mappers';
-import { FirebaseService } from '../../firebase/services';
-import { toDiagnostic } from '../../observalibility/mappers';
+import { getFirebaseErrorCode } from '../../auth/mappers/firebaseAuthError.mapper';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { toDiagnostic } from '../../observalibility/mappers/diagnostic.mapper';
 
 const SUCCESS_CACHE_MS = 10_000;
 const FAILURE_CACHE_MS = 2_000;

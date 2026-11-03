@@ -6,11 +6,12 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import { EventAccessService } from '../services';
 import { IS_PUBLIC_KEY } from '../../auth/constants';
-import { AuthException } from '../../common/exceptions';
-import type { EventPermission, EventRequest } from '../types';
+import { AuthException } from '../../common/exceptions/auth.exception';
+import type { EventPermission } from '../types/eventPermission.type';
+import { EventAccessService } from '../services/eventAccess.service';
 import { EVENT_SCOPE_KEY, EVENT_PERMISSIONS_KEY } from '../constants';
+import { EventRequest } from '../types/eventRequest.type';
 
 @Injectable()
 export class EventScopedGuard implements CanActivate {
@@ -60,10 +61,9 @@ export class EventScopedGuard implements CanActivate {
     const scope = await this.access.resolve(
       request.firebaseUser.uid,
       request.params.organizationId,
-      request.params.eventId as string,
+      request.params.eventId,
+      required,
     );
-
-    this.access.assertPermissions(scope, required);
 
     request.eventScope = scope;
 

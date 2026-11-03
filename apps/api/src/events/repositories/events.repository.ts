@@ -1,38 +1,35 @@
 import { FieldPath } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { EventScope } from '../types';
-import { EVENT_STATUS } from '../enums';
-import { eventConverter, eventMembershipConverter } from '../converters';
+import { EventScope } from '../types/eventScope.type';
+import { EVENT_STATUS } from '../enums/eventStatus.enum';
+import { eventConverter } from '../converters/event.converter';
 import { EVENT_MEMBERSHIPS_COLLECTION, EVENTS_COLLECTION } from '../constants';
-import { AuditWriter } from '../../audit/services';
-import { ApiException } from '../../common/exceptions';
-import { FirebaseService } from '../../firebase/services';
-import { OrganizationScope } from '../../organizations/types';
+import { AuditWriter } from '../../audit/services/auditWriter.service';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { OrganizationScope } from '../../organizations/types/organizationScope.type';
 import { EventAccessService } from '../services/eventAccess.service';
 import { EventSlugsRepository } from './eventSlugs.repository';
-import { DiagnosticError } from '../../observalibility/errors';
-import {
-  assertEventStatusTransition,
-  assertOrganizationPermissions,
-} from '../../organizations/utils';
-import {
-  OrganizationRepository,
-  OrganizationMembershipRepository,
-} from '../../organizations/repositories';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { getOrganizationMembershipKey } from '../../organizations/utils/organizationMembershipKey.util';
 import {
   decodeEventCursor,
   encodeEventCursor,
   invalidEventCursor,
-} from '../utils';
+} from '../utils/eventCursor.util';
+import { isOrganizationAdministrator } from '../utils/eventMembership.util';
 import {
   Event,
   eventSchema,
   EventSettingsUpdate,
   eventSlugReservationSchema,
-} from '../models';
-import { ORGANIZATION_ROLES } from '../../organizations/enums';
-import { getOrganizationMembershipKey } from '../../organizations/utils/organizationMembershipKey.util';
+} from '../models/event.model';
+import { OrganizationRepository } from '../../organizations/repositories/organizations.repository';
+import { OrganizationMembershipRepository } from '../../organizations/repositories/organizationMembership.repository';
+import { assertOrganizationPermissions } from '../../organizations/utils/organization.util';
+import { eventMembershipConverter } from '../converters/eventMembership.converter';
+import { assertEventStatusTransition } from '../../organizations/utils/eventLifecycle.util';
 
 type EventMutation =
   | {
@@ -199,9 +196,7 @@ export class EventsRepository {
 
         assertOrganizationPermissions(membership, ['organization:events:read']);
 
-        const organizationAdmin =
-          membership.role === ORGANIZATION_ROLES.OWNER ||
-          membership.role === ORGANIZATION_ROLES.ADMIN;
+        const organizationAdmin = isOrganizationAdministrator(membership);
 
         if (!organizationAdmin) {
           const membershipKey = getOrganizationMembershipKey(membership);

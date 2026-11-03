@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 
-import { OrganizationMembership } from '../models';
+import { OrganizationMembership } from '../models/organizationMembership.model';
 
 export type OrganizationMembershipDocument = Omit<
   OrganizationMembership,

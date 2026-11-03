@@ -1,4 +1,4 @@
-import { DiagnosticErrorCode } from '../types';
+import { DiagnosticErrorCode } from '../types/diagnosticErrorCode.type';
 
 export class DiagnosticError extends Error {
   constructor(

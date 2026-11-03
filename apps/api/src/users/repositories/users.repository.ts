@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
-import { UserProfile } from '../models';
-import { UserProfileChanges } from '../types';
-import { PROFILE_FIELDS } from '../../audit/enums';
-import { AuditWriter } from '../../audit/services';
-import { userProfileConverter } from '../converters';
-import { toUserProfileUpdateDocument } from '../mappers';
-import { FirebaseService } from '../../firebase/services';
+import { UserProfile } from '../models/userProfile.model';
+import { UserProfileChanges } from '../types/userProfileChanges.type';
+import { PROFILE_FIELDS } from '../../audit/enums/profileFields.enum';
+import { AuditWriter } from '../../audit/services/auditWriter.service';
+import { userProfileConverter } from '../converters/userProfile.converter';
+import { toUserProfileUpdateDocument } from '../mappers/userProfileUpdate.mapper';
+import { FirebaseService } from '../../firebase/services/firebase.service';
 
 @Injectable()
 export class UsersRepository {
