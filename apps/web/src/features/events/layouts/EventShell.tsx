@@ -3,15 +3,22 @@ import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet, useParams } from 'react-router';
 
 import { useAuth } from '@/features/auth';
-import { getEventWorkspacePath } from '@/lib';
-import { Button, InlineAlert } from '@/components';
+import { InlineAlert } from '@/components';
 import { useActiveOrganization } from '@/features/organizations';
-import { isAccessError, useEventAccessQuery, useEventQuery } from '@/app/query';
+import { useEventAccessQuery, useEventQuery } from '@/app/query';
+import { getEventWorkspacePath, getOrganizationPath } from '@/lib';
 
+import { EVENT_SECTIONS } from '../constants';
 import { findEventBySlug } from '../services';
-import { hasActiveEventAccess, hasEventPermission } from '../utils';
-import { EVENT_SLUG_PATTERN } from '../constants';
+import { EventAccessDenied } from '../components';
 import { EventWorkspaceContext } from '../context';
+import {
+  hasEventPermission,
+  hasActiveEventAccess,
+  getEventAccessProblem,
+  getEffectiveEventCapabilities,
+} from '../utils';
+import { SLUG_PATTERN } from '@/app/constants';
 
 type Props = {
   user: User;
@@ -28,6 +35,7 @@ const EventWorkspaceLoader = ({
   eventId,
   eventSlug,
 }: Props) => {
+  const dashboardPath = getOrganizationPath(organizationSlug);
   const eventQuery = useEventQuery(user, organizationId, eventId);
   const accessQuery = useEventAccessQuery(user, organizationId, eventId);
 
@@ -52,30 +60,28 @@ const EventWorkspaceLoader = ({
     return result.data;
   };
 
-  const retry = () => {
-    void Promise.all([eventQuery.refetch(), accessQuery.refetch()]);
-  };
-
   const error = accessQuery.error ?? eventQuery.error;
-  const accessLost =
-    isAccessError(accessQuery.error) || isAccessError(eventQuery.error);
 
-  if (accessLost || ((!accessQuery.data || !eventQuery.data) && error)) {
+  if (error) {
+    const problem = getEventAccessProblem(error);
+
     return (
-      <div className="space-y-4">
-        <InlineAlert tone="error" title="Event unavailable">
-          This event could not be loaded or your access has changed.
-        </InlineAlert>
+      <EventAccessDenied
+        key={problem.kind}
+        title={problem.title}
+        description={problem.description}
+        backTo={dashboardPath}
+        onRefresh={async () => {
+          const results = await Promise.all([
+            eventQuery.refetch(),
+            accessQuery.refetch(),
+          ]);
 
-        <Button
-          type="button"
-          variant="outline"
-          disabled={accessQuery.isFetching || eventQuery.isFetching}
-          onClick={retry}
-        >
-          Refresh event access
-        </Button>
-      </div>
+          const failed = results.find((result) => result.error);
+
+          if (failed?.error) throw failed.error;
+        }}
+      />
     );
   }
 
@@ -86,25 +92,18 @@ const EventWorkspaceLoader = ({
     return <p role="status">Loading event workspace…</p>;
   }
 
+  if (!accessQuery.isFetchedAfterMount) {
+    return <p role="status">Checking current event access…</p>;
+  }
+
   if (!hasActiveEventAccess(access, user.uid)) {
     return (
-      <div className="space-y-4">
-        <InlineAlert tone="warning" title="Event membership required">
-          You need an active event assignment or organization administrator
-          access to open this event.
-        </InlineAlert>
-
-        <Button
-          type="button"
-          variant="outline"
-          disabled={accessQuery.isFetching}
-          onClick={() => {
-            void accessQuery.refetch();
-          }}
-        >
-          Refresh event membership
-        </Button>
-      </div>
+      <EventAccessDenied
+        backTo={dashboardPath}
+        onRefresh={refreshAccess}
+        title="Event membership required"
+        description="You must have active membership in both this organization and this event."
+      />
     );
   }
 
@@ -116,19 +115,21 @@ const EventWorkspaceLoader = ({
     );
   }
 
-  const sections = [
-    { segment: '' as const, label: 'Overview', visible: true },
-    {
-      segment: 'team' as const,
-      label: 'Team',
-      visible: hasEventPermission(access, 'event:members:read'),
-    },
-    {
-      segment: 'settings' as const,
-      label: 'Settings',
-      visible: hasEventPermission(access, 'event:update'),
-    },
-  ];
+  const accessReady =
+    accessQuery.isFetchedAfterMount &&
+    !accessQuery.isFetching &&
+    !accessQuery.error;
+
+  const capabilities = getEffectiveEventCapabilities(
+    access,
+    user.uid,
+    event.status,
+    accessReady,
+  );
+
+  const sections = Object.values(EVENT_SECTIONS).filter((section) =>
+    hasEventPermission(access, section.permission),
+  );
 
   return (
     <EventWorkspaceContext.Provider
@@ -138,6 +139,8 @@ const EventWorkspaceLoader = ({
         organizationSlug,
         event,
         access,
+        capabilities,
+        accessReady,
         refreshAccess,
         reloadEvent,
       }}
@@ -158,29 +161,27 @@ const EventWorkspaceLoader = ({
           aria-label="Event navigation"
           className="flex flex-wrap gap-3 border-b pb-3"
         >
-          {sections
-            .filter((section) => section.visible)
-            .map((section) => (
-              <NavLink
-                key={section.segment}
-                end
-                to={getEventWorkspacePath(
-                  organizationSlug,
-                  eventSlug,
-                  section.segment,
-                )}
-                className={({ isActive }) =>
-                  [
-                    'rounded-xl px-4 py-2 focus-visible:outline-2',
-                    isActive
-                      ? 'bg-primary/10 font-medium'
-                      : 'text-muted-foreground',
-                  ].join(' ')
-                }
-              >
-                {section.label}
-              </NavLink>
-            ))}
+          {sections.map((section) => (
+            <NavLink
+              key={section.segment}
+              end={section.segment === ''}
+              to={getEventWorkspacePath(
+                organizationSlug,
+                eventSlug,
+                section.segment,
+              )}
+              className={({ isActive }) =>
+                [
+                  'rounded-xl px-4 py-2 focus-visible:outline-2',
+                  isActive
+                    ? 'bg-primary/10 font-medium'
+                    : 'text-muted-foreground',
+                ].join(' ')
+              }
+            >
+              {section.label}
+            </NavLink>
+          ))}
         </nav>
 
         <Outlet />
@@ -216,24 +217,23 @@ const EventSlugLookup = (props: LookupProps) => {
     staleTime: 0,
   });
 
-  if (query.error) {
-    return (
-      <div className="space-y-4">
-        <InlineAlert tone="error" title="Event unavailable">
-          This event could not be found or loaded.
-        </InlineAlert>
+  const error = query.error ? getEventAccessProblem(query.error) : null;
 
-        <Button
-          type="button"
-          variant="outline"
-          disabled={query.isFetching}
-          onClick={() => {
-            void query.refetch();
-          }}
-        >
-          Try again
-        </Button>
-      </div>
+  const dashboardPath = getOrganizationPath(props.organizationSlug);
+
+  if (error) {
+    return (
+      <EventAccessDenied
+        key={error.kind}
+        title={error.title}
+        description={error.description}
+        backTo={dashboardPath}
+        onRefresh={async () => {
+          const result = await query.refetch();
+
+          if (result.error) throw result.error;
+        }}
+      />
     );
   }
 
@@ -264,7 +264,7 @@ export const EventShell = () => {
     !eventSlug ||
     eventSlug.length < 3 ||
     eventSlug.length > 63 ||
-    !EVENT_SLUG_PATTERN.test(eventSlug)
+    !SLUG_PATTERN.test(eventSlug)
   ) {
     return (
       <InlineAlert tone="error" title="Invalid event link">

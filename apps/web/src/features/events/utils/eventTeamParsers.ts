@@ -149,13 +149,6 @@ export const parseEventAccess = (
     throw invalidResponse();
   }
 
-  if (
-    authority.kind === 'EVENT_MEMBER' &&
-    permissions.includes('event:members:manage')
-  ) {
-    throw invalidResponse();
-  }
-
   return {
     organizationId,
     eventId,

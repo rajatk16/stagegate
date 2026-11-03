@@ -9,19 +9,26 @@ import {
   useEventMembersQuery,
 } from '@/app/query';
 
-import { RoleEditor, AddEventMemberForm } from '../components';
 import type { AddEventMemberInput } from '../types';
+import { RoleEditor, AddEventMemberForm } from '../components';
 import { useEventTeamWrite, useEventWorkspace } from '../hooks';
-import { addEventMember, updateEventMemberStatus } from '../services';
 import {
   EVENT_ROLE_LABELS,
-  hasEventPermission,
   getGrantableEventRoles,
+  hasEventPermission,
 } from '../utils';
+import { addEventMember, updateEventMemberStatus } from '../services';
 
 export const EventTeam = () => {
-  const { user, organizationId, event, access, refreshAccess } =
-    useEventWorkspace();
+  const {
+    user,
+    event,
+    access,
+    accessReady,
+    capabilities,
+    refreshAccess,
+    organizationId,
+  } = useEventWorkspace();
 
   const client = useQueryClient();
   const write = useEventTeamWrite();
@@ -30,11 +37,9 @@ export const EventTeam = () => {
 
   const [refreshError, setRefreshError] = useState<string | null>(null);
 
-  const canRead = hasEventPermission(access, 'event:members:read');
+  const canRead = capabilities.canReadTeam;
 
-  const canManage =
-    access.authority.kind === 'ORGANIZATION_ADMIN' &&
-    hasEventPermission(access, 'event:members:manage');
+  const canManage = hasEventPermission(access, 'event:members:manage');
 
   const archived = event.status === 'ARCHIVED';
 
@@ -63,11 +68,12 @@ export const EventTeam = () => {
 
   const writesDisabled =
     busy ||
-    write.needsRefresh ||
-    accessError ||
     !canManage ||
-    Boolean(membersQuery.error) ||
-    membersRepeated;
+    accessError ||
+    !accessReady ||
+    membersRepeated ||
+    write.needsRefresh ||
+    Boolean(membersQuery.error);
 
   const refresh = async () => {
     if (write.pending || refreshing) {
@@ -122,7 +128,11 @@ export const EventTeam = () => {
   };
 
   const add = async (values: AddEventMemberInput): Promise<boolean> => {
-    if (writesDisabled || archived || !grantable.includes(values.role)) {
+    if (
+      writesDisabled ||
+      !capabilities.canAddMembers ||
+      !grantable.includes(values.role)
+    ) {
       return false;
     }
 
@@ -261,7 +271,9 @@ export const EventTeam = () => {
                         <RoleEditor
                           key={`${member.uid}:${member.role}:${member.updatedAt}`}
                           member={member}
-                          disabled={writesDisabled}
+                          disabled={
+                            writesDisabled || !capabilities.canChangeMemberRoles
+                          }
                           write={write}
                         />
                       )}
@@ -283,7 +295,12 @@ export const EventTeam = () => {
                           nextStatus === 'SUSPENDED' ? 'Suspend' : 'Reactivate'
                         }
                         destructive={nextStatus === 'SUSPENDED'}
-                        disabled={writesDisabled}
+                        disabled={
+                          writesDisabled ||
+                          (nextStatus === 'SUSPENDED'
+                            ? !capabilities.canSuspendMembers
+                            : !capabilities.canReactivateMembers)
+                        }
                         onConfirm={async () => {
                           const saved = await write.run(async (signal) => {
                             await updateEventMemberStatus(
@@ -331,7 +348,7 @@ export const EventTeam = () => {
         <AddEventMemberForm
           assignedUids={members.map((member) => member.uid)}
           roles={grantable}
-          disabled={writesDisabled || archived}
+          disabled={writesDisabled || !capabilities.canAddMembers}
           pending={write.pending}
           onAdd={add}
         />

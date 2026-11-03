@@ -15,7 +15,7 @@ import {
   normalizeEventSlug,
   suggestEventSlug,
 } from '../utils/eventUtils';
-import { EVENT_SLUG_PATTERN } from '../constants';
+import { SLUG_PATTERN } from '@/app/constants';
 
 type Props = {
   user: User;
@@ -178,7 +178,7 @@ export const CreateEventForm = ({ user, organizationId, onCreated }: Props) => {
               }
 
               return (
-                EVENT_SLUG_PATTERN.test(slug) ||
+                SLUG_PATTERN.test(slug) ||
                 'Use letters and numbers separated by single hyphens.'
               );
             },

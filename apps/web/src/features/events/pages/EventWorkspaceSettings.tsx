@@ -1,12 +1,17 @@
 import { InlineAlert } from '@/components';
 
 import { useEventWorkspace } from '../hooks';
-import { hasEventPermission } from '../utils';
 import { EventSettingsForm } from '../components';
 
 export const EventWorkspaceSettings = () => {
-  const { user, organizationId, event, access, reloadEvent, refreshAccess } =
-    useEventWorkspace();
+  const {
+    user,
+    event,
+    reloadEvent,
+    capabilities,
+    refreshAccess,
+    organizationId,
+  } = useEventWorkspace();
 
   return (
     <div className="space-y-4">
@@ -19,13 +24,13 @@ export const EventWorkspaceSettings = () => {
       )}
 
       <EventSettingsForm
-        key={`${user.uid}:${organizationId}:${event.id}`}
         user={user}
-        organizationId={organizationId}
         event={event}
-        canEdit={hasEventPermission(access, 'event:update')}
         onReload={reloadEvent}
         onRefreshAccess={refreshAccess}
+        organizationId={organizationId}
+        canEdit={capabilities.canEditSettings}
+        key={`${user.uid}:${organizationId}:${event.id}`}
       />
     </div>
   );

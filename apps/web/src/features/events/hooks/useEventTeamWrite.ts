@@ -62,7 +62,7 @@ const getWriteError = (error: unknown): string => {
 };
 
 export const useEventTeamWrite = () => {
-  const { user, organizationId, event } = useEventWorkspace();
+  const { user, organizationId, event, refreshAccess } = useEventWorkspace();
 
   const controllerRef = useRef<AbortController | null>(null);
   const [pending, setPending] = useState(false);
@@ -114,6 +114,15 @@ export const useEventTeamWrite = () => {
         tone: 'error',
         message: getWriteError(error),
       });
+
+      if (
+        error instanceof ApiError &&
+        (error.status === 401 || error.status === 403 || error.status === 404)
+      ) {
+        void refreshAccess().catch(() => {
+          // The workspace renders the resulting access state.
+        });
+      }
 
       return false;
     } finally {
