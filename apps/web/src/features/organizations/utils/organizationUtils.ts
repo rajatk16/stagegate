@@ -11,13 +11,13 @@ import { isOrganizationRole } from './organizationMembersUtils';
 import {
   ORGANIZATION_CAPABILITIES,
   ORGANIZATION_COLOR_PATTERN,
-  ORGANIZATION_SLUG_PATTERN,
 } from '../constants';
 import {
   Organization,
   OrganizationPage,
   OrganizationCapability,
 } from '../types';
+import { SLUG_PATTERN } from '@/app/constants';
 
 export const normalizeOrganizationSlug = (value: string): string =>
   value.trim().toLowerCase();
@@ -69,7 +69,7 @@ export const parseOrganization = (
     typeof value.slug !== 'string' ||
     value.slug.length < 3 ||
     value.slug.length > 63 ||
-    !ORGANIZATION_SLUG_PATTERN.test(value.slug) ||
+    !SLUG_PATTERN.test(value.slug) ||
     !isDateString(value.createdAt) ||
     !isDateString(value.updatedAt) ||
     !isRecord(value.membership) ||

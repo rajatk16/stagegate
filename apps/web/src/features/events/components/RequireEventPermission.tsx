@@ -1,23 +1,32 @@
 import { Outlet } from 'react-router';
 
-import { InlineAlert } from '@/components';
+import { getEventWorkspacePath } from '@/lib';
 
-import { EventPermission } from '../types';
 import { useEventWorkspace } from '../hooks';
 import { hasEventPermission } from '../utils';
+import { EventAccessDenied } from './EventAccessDenied';
+import { EVENT_SECTIONS, EventSectionKey } from '../constants';
 
 export const RequireEventPermission = ({
-  permission,
+  section,
 }: {
-  permission: EventPermission;
+  section: EventSectionKey;
 }) => {
-  const { access } = useEventWorkspace();
+  const { access, event, organizationSlug, refreshAccess } =
+    useEventWorkspace();
 
-  if (!hasEventPermission(access, permission)) {
+  const definition = EVENT_SECTIONS[section];
+
+  if (!hasEventPermission(access, definition.permission)) {
     return (
-      <InlineAlert tone="warning" title="Access unavailable">
-        Your event permissions do not include this operation.
-      </InlineAlert>
+      <EventAccessDenied
+        key={section}
+        onRefresh={refreshAccess}
+        backLabel="Back to event overview"
+        description={definition.deniedDescription}
+        title={`Access denied: ${definition.label}`}
+        backTo={getEventWorkspacePath(organizationSlug, event.slug)}
+      />
     );
   }
 

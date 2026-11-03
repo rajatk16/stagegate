@@ -1,4 +1,4 @@
-import { Link, Navigate, NavLink, Outlet, useParams } from 'react-router';
+import { Link, NavLink, Outlet, useParams } from 'react-router';
 
 import { Badge, Button, InlineAlert } from '@/components';
 import { getOrganizationSectionPath, ORGANIZATION_SECTIONS } from '@/lib';
@@ -43,10 +43,6 @@ export const OrganizationShell = () => {
     );
   }
 
-  if (state.organizations.length === 0) {
-    return <Navigate to="/organizations/new" replace />;
-  }
-
   const organization = state.organizations.find(
     (item) => item.slug === organizationSlug,
   );
@@ -83,7 +79,7 @@ export const OrganizationShell = () => {
   if (!hasOrganizationCapability(organization, 'organization:read')) {
     return (
       <div className="space-y-4">
-        <InlineAlert tone="warning" title="Organization access available">
+        <InlineAlert tone="warning" title="Organization access denied">
           Your account does not currently have access to this organization's
           workspace.
         </InlineAlert>

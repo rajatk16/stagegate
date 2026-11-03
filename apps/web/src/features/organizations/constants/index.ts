@@ -3,7 +3,6 @@ export const UUID_PATTERN =
 
 export const PAGE_SIZE = 20;
 export const ORGANIZATION_COLOR_PATTERN = /^#[0-9a-fA-F]{6}$/;
-export const ORGANIZATION_SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export const ORGANIZATION_CAPABILITIES = [
   'organization:read',

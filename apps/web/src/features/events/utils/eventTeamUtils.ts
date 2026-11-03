@@ -30,20 +30,50 @@ export const hasActiveEventAccess = (
   access: EventAccess,
   expectedUid: string,
 ): boolean => {
-  if (!hasEventPermission(access, 'event:read')) {
-    return false;
-  }
-
-  if (access.authority.kind === 'ORGANIZATION_ADMIN') {
-    return true;
-  }
-
   const membership = access.membership;
 
   return (
+    hasEventPermission(access, 'event:read') &&
     membership !== null &&
     membership.uid === expectedUid &&
     membership.status === 'ACTIVE' &&
-    membership.role === access.authority.role
+    membership.organizationStatus !== 'SUSPENDED' &&
+    membership.effectiveStatus !== 'SUSPENDED'
   );
 };
+
+export const getEffectiveEventCapabilities = (
+  access: EventAccess,
+  expectedUid: string,
+  eventStatus: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
+  accessReady: boolean,
+) => {
+  const active = hasActiveEventAccess(access, expectedUid);
+  const archived = eventStatus === 'ARCHIVED';
+
+  const allows = (permission: EventPermission): boolean =>
+    active && hasEventPermission(access, permission);
+
+  const canRead = allows('event:read');
+  const canReadTeam = allows('event:members:read');
+  const canOpenSettings = allows('event:update');
+
+  const canManageMembers = accessReady && allows('event:members:manage');
+
+  return {
+    canRead,
+    canReadTeam,
+    canOpenSettings,
+    canManageMembers,
+    canSuspendMembers: canManageMembers,
+    canAddMembers: canManageMembers && !archived,
+    canChangeMemberRoles: canManageMembers && !archived,
+    canReactivateMembers: canManageMembers && !archived,
+    canEditSettings: accessReady && canOpenSettings && !archived,
+    canManageStatus: accessReady && allows('event:manage-status'),
+  };
+};
+
+export type EffectiveEventCapabilities = ReturnType<
+  typeof getEffectiveEventCapabilities
+>;

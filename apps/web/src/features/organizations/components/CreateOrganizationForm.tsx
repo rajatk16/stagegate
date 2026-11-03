@@ -8,8 +8,8 @@ import { InlineAlert, InputField, SubmitButton } from '@/components';
 import { createOrganization, getOrganizationErrorMessage } from '../services';
 import { CreateOrganizationInput, Organization } from '../types';
 import { normalizeOrganizationSlug, suggestOrganizationSlug } from '../utils';
-import { ORGANIZATION_SLUG_PATTERN } from '../constants';
 import { queryKeys, useApiMutation } from '@/app/query';
+import { SLUG_PATTERN } from '@/app/constants';
 
 type CreateOrganizationFormProps = {
   user: User;
@@ -186,7 +186,7 @@ export const CreateOrganizationForm = ({
                 return 'Use between 3 and 63 characters.';
               }
 
-              if (!ORGANIZATION_SLUG_PATTERN.test(slug)) {
+              if (!SLUG_PATTERN.test(slug)) {
                 return 'Use letters and numbers separated by single hyphens.';
               }
 

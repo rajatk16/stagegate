@@ -237,6 +237,10 @@ export const EventSettingsForm = (props: Props) => {
         (error.status === 401 || error.status === 403 || error.status === 404)
       ) {
         setAccessLost(true);
+
+        void props.onRefreshAccess().catch(() => {
+          // The workspace displays the resulting access failure.
+        });
       }
 
       setMustReload(isEventSettingsSaveUncertain(error));
@@ -469,9 +473,20 @@ export const EventSettingsForm = (props: Props) => {
           <ConfirmDialog
             triggerLabel="Refresh access"
             title="Refresh event access?"
-            description="This reloads your access and may discard your current unsaved draft."
+            description="This checks your current event access. Your draft is preserved while the form remains open."
             confirmLabel="Refresh access"
-            onConfirm={props.onRefreshAccess}
+            pendingLabel="Refreshing access..."
+            errorMessage="Your event access could not be refreshed. Try again or contact an administrator."
+            disabled={busy}
+            onConfirm={async () => {
+              await props.onRefreshAccess();
+
+              if (!mountedRef.current) return;
+
+              setAccessLost(false);
+              clearErrors('root');
+              setNotice('Event access refreshed.');
+            }}
           />
         )}
       </div>

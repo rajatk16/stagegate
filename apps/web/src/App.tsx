@@ -119,19 +119,15 @@ export const App = () => (
               </Route>
 
               <Route path="events/:eventSlug" element={<EventShell />}>
-                <Route index element={<EventOverview />} />
+                <Route element={<RequireEventPermission section="overview" />}>
+                  <Route index element={<EventOverview />} />
+                </Route>
 
-                <Route
-                  element={
-                    <RequireEventPermission permission="event:members:read" />
-                  }
-                >
+                <Route element={<RequireEventPermission section="team" />}>
                   <Route path="team" element={<EventTeam />} />
                 </Route>
 
-                <Route
-                  element={<RequireEventPermission permission="event:update" />}
-                >
+                <Route element={<RequireEventPermission section="settings" />}>
                   <Route path="settings" element={<EventWorkspaceSettings />} />
                 </Route>
               </Route>
