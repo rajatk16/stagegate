@@ -1,0 +1,8 @@
+export enum SubmissionWindowState {
+  UNPUBLISHED = 'UNPUBLISHED',
+  ARCHIVED = 'ARCHIVED',
+  UNCONFIGURED = 'UNCONFIGURED',
+  NOT_OPEN = 'NOT_OPEN',
+  OPEN = 'OPEN',
+  CLOSED = 'CLOSED',
+}

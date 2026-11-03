@@ -2,15 +2,14 @@ import { Transform, TransformFnParams } from 'class-transformer';
 import {
   IsEnum,
   Length,
-  Matches,
   IsString,
-  IsISO8601,
   MaxLength,
   IsOptional,
   ValidateIf,
 } from 'class-validator';
 
 import { EVENT_FORMAT } from '../enums/eventFormat.enum';
+import { IsInstant } from '../../common/validators/isInstant.validator';
 
 const trimText = ({ value }: TransformFnParams): unknown =>
   typeof value === 'string' ? value.trim() : value;
@@ -42,14 +41,20 @@ export class UpdateEventDto {
   location?: string | null;
 
   @IsOptional()
-  @IsISO8601({ strict: true, strictSeparator: true })
-  @Matches(/T.*(?:Z|[+-]\d{2}:\d{2})$/)
+  @IsInstant()
   startsAt?: string | null;
 
   @IsOptional()
-  @IsISO8601({ strict: true, strictSeparator: true })
-  @Matches(/T.*(?:Z|[+-]\d{2}:\d{2})$/)
+  @IsInstant()
   endsAt?: string | null;
+
+  @IsOptional()
+  @IsInstant()
+  submissionOpensAt?: string | null;
+
+  @IsOptional()
+  @IsInstant()
+  submissionClosesAt?: string | null;
 
   @Transform(trimText)
   @ValidateIf((_object: unknown, value: unknown) => value !== undefined)

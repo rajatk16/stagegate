@@ -12,19 +12,28 @@ import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 
 export type EventDocument = Omit<
   Event,
-  'createdAt' | 'updatedAt' | 'startsAt' | 'endsAt'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'startsAt'
+  | 'endsAt'
+  | 'submissionOpensAt'
+  | 'submissionClosesAt'
 > & {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   startsAt: Timestamp | null;
   endsAt: Timestamp | null;
+  submissionOpensAt: Timestamp | null;
+  submissionClosesAt: Timestamp | null;
 };
 
 const eventDocumentSchema = eventObjectSchema.extend({
   createdAt: z.instanceof(Timestamp),
   updatedAt: z.instanceof(Timestamp),
-  endsAt: z.instanceof(Timestamp).nullable().default(null),
   startsAt: z.instanceof(Timestamp).nullable().default(null),
+  endsAt: z.instanceof(Timestamp).nullable().default(null),
+  submissionOpensAt: z.instanceof(Timestamp).nullable().default(null),
+  submissionClosesAt: z.instanceof(Timestamp).nullable().default(null),
 });
 
 const rejectPartialWrite = (options?: SetOptions): void => {
@@ -52,6 +61,15 @@ export const eventConverter: FirestoreDataConverter<Event, EventDocument> = {
       startsAt:
         event.startsAt === null ? null : Timestamp.fromDate(event.startsAt),
       endsAt: event.endsAt === null ? null : Timestamp.fromDate(event.endsAt),
+      submissionOpensAt:
+        event.submissionOpensAt === null
+          ? null
+          : Timestamp.fromDate(event.submissionOpensAt),
+
+      submissionClosesAt:
+        event.submissionClosesAt === null
+          ? null
+          : Timestamp.fromDate(event.submissionClosesAt),
     };
   },
 
@@ -69,6 +87,8 @@ export const eventConverter: FirestoreDataConverter<Event, EventDocument> = {
       updatedAt: document.updatedAt.toDate(),
       endsAt: document.endsAt?.toDate() ?? null,
       startsAt: document.startsAt?.toDate() ?? null,
+      submissionOpensAt: document.submissionOpensAt?.toDate() ?? null,
+      submissionClosesAt: document.submissionClosesAt?.toDate() ?? null,
     });
   },
 };

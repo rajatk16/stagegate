@@ -5,12 +5,13 @@ import { Module, ValidationPipe } from '@nestjs/common';
 import { AuthModule } from './auth/modules/auth.module';
 import { UsersModule } from './users/modules/users.module';
 import { validateEnvironment } from './config/environment';
+import { EventsModule } from './events/modules/events.module';
 import { HealthModule } from './health/modules/health.module';
 import { FirebaseModule } from './firebase/module/firebase.module';
 import { ApiExceptionFilter } from './common/filters/apiException.filter';
 import { toValidationIssues } from './common/mappers/validationError.mapper';
-import { EventsModule } from './events/modules/events.module';
 import { InvitationsModule } from './invitations/modules/invitations.module';
+import { SubmissionsModule } from './submissions/modules/submissions.module';
 import { OrganizationModule } from './organizations/modules/organization.module';
 import { ObservabilityModule } from './observalibility/modules/observability.module';
 import { RequestValidationException } from './common/exceptions/requestValidation.exception';
@@ -28,6 +29,7 @@ import { RequestValidationException } from './common/exceptions/requestValidatio
     HealthModule,
     FirebaseModule,
     InvitationsModule,
+    SubmissionsModule,
     OrganizationModule,
     ObservabilityModule,
   ],

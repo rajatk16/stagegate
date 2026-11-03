@@ -13,9 +13,10 @@ export class EventResponseDto {
   startsAt!: string | null;
   description!: string | null;
   format!: EVENT_FORMAT | null;
-
   createdAt!: string;
   updatedAt!: string;
+  submissionOpensAt!: string | null;
+  submissionClosesAt!: string | null;
 }
 
 export class EventPageResponseDto {
