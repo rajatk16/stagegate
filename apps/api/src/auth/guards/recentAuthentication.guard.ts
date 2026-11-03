@@ -1,9 +1,9 @@
 import { Reflector } from '@nestjs/core';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 
-import { AuthenticatedRequest } from '../types';
-import { assertRecentAuthentication } from '../utils';
-import { AuthException } from '../../common/exceptions';
+import { AuthenticatedRequest } from '../types/authenticatedRequest.type';
+import { assertRecentAuthentication } from '../utils/assertRecentAuthentication.util';
+import { AuthException } from '../../common/exceptions/auth.exception';
 import { REQUIRES_RECENT_AUTHENTICATION_KEY } from '../constants';
 
 @Injectable()

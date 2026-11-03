@@ -1,8 +1,8 @@
 import { Transform, TransformFnParams } from 'class-transformer';
 import { IsEmail, IsEnum, IsString, MaxLength } from 'class-validator';
 
-import { EVENT_ROLES } from '../../events/enums';
-import { normalizeInvitationEmail } from '../utils';
+import { EVENT_ROLES } from '../../events/enums/eventRoles.enum';
+import { normalizeInvitationEmail } from '../utils/invitationToken.util';
 
 export class CreateEventInvitationDto {
   @Transform(({ value }: TransformFnParams): unknown =>

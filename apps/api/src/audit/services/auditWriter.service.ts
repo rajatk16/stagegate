@@ -1,33 +1,32 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { Transaction } from 'firebase-admin/firestore';
-
-import { EVENT_STATUS } from '../../events/enums';
-import { auditEventConverter } from '../converters';
-import { AuditEvent, auditEventSchema } from '../models';
-import { FirebaseService } from '../../firebase/services';
-import { ORGANIZATION_ROLES } from '../../organizations/enums';
-import { DiagnosticError } from '../../observalibility/errors';
-import { RequestContextService } from '../../observalibility/services';
-import { ORGANIZATION_SETTINGS_FIELDS, PROFILE_FIELDS } from '../enums';
-import { EventMembershipAuditInput, EventMutationAuditInput } from '../types';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { RequestContextService } from '../../observalibility/services/requestContext.service';
+import { PROFILE_FIELDS } from '../enums/profileFields.enum';
+import { AuditEvent, auditEventSchema } from '../models/auditEvent.model';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 import {
-  OwnershipTransferredAuditInput,
-  OrganizationInvitationAuditInput,
-} from '../types';
-import {
-  toEventUpdatedAuditEvent,
-  toEventCreatedAuditEvent,
-  toProfileUpdatedAuditEvent,
-  toEventStatusChangedAuditEvent,
-  toOrganizationCreatedAuditEvent,
   OrganizationMemberStatusAuditInput,
+  toEventCreatedAuditEvent,
+  toEventStatusChangedAuditEvent,
+  toEventUpdatedAuditEvent,
+  toOrganizationCreatedAuditEvent,
   toOrganizationInvitationAuditEvent,
-  toOrganizationSettingsUpdatedAuditEvent,
   toOrganizationMemberRoleChangedAuditEvent,
   toOrganizationMemberStatusChangedAuditEvent,
   toOrganizationOwnershipTransferredAuditEvent,
-} from '../mappers';
+  toOrganizationSettingsUpdatedAuditEvent,
+  toProfileUpdatedAuditEvent,
+} from '../mappers/auditEvent.mapper';
+import { auditEventConverter } from '../converters/auditEvent.converter';
+import { ORGANIZATION_SETTINGS_FIELDS } from '../enums/organizationSettingsFields.enum';
+import { ORGANIZATION_ROLES } from '../../organizations/enums/organizationRoles.enum';
+import { OrganizationInvitationAuditInput } from '../types/organizationInvitationAuditInput.type';
+import { OwnershipTransferredAuditInput } from '../types/ownershipTranferredAuditInput.type';
+import { EventMutationAuditInput } from '../types/eventMutationAuditInput.type';
+import { EVENT_STATUS } from '../../events/enums/eventStatus.enum';
+import { EventMembershipAuditInput } from '../types/eventMembershipAuditInput.type';
 
 @Injectable()
 export class AuditWriter {

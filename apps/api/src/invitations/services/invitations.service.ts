@@ -3,25 +3,30 @@ import { ConfigService } from '@nestjs/config';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { ConsoleLogger, HttpStatus, Injectable } from '@nestjs/common';
 
-import { Environment } from '../../config';
-import { toAuthException } from '../../auth/mappers';
-import { InvitationsRepository } from '../repositories';
-import { FirebaseService } from '../../firebase/services';
-import { toDiagnostic } from '../../observalibility/mappers';
-import { OrganizationScope } from '../../organizations/types';
-import { ApiException, AuthException } from '../../common/exceptions';
-import { assertOrganizationPermissions } from '../../organizations/utils';
-import { createInvitationToken, normalizeInvitationEmail } from '../utils';
-import { InvitationAcceptanceResult, InvitationIssueResult } from '../types';
-import { EmailReceipt, TransactionalEmailProvider } from '../../email/types';
-import { ORGANIZATION_ROLE_CHANGE_TARGETS } from '../../organizations/constants';
-import { CreateOrganizationInvitationDto } from '../dtos';
-
+import { Environment } from '../../config/environment';
+import { toAuthException } from '../../auth/mappers/firebaseAuthError.mapper';
+import { InvitationsRepository } from '../repositories/invitations.repository';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { toDiagnostic } from '../../observalibility/mappers/diagnostic.mapper';
+import { OrganizationScope } from '../../organizations/types/organizationScope.type';
+import { TransactionalEmailProvider } from '../../email/types/transactionalEmailProvider.type';
+import { CreateOrganizationInvitationDto } from '../dtos/createOrganizationInvitation.dto';
+import { InvitationIssueResult } from '../types/invitationIssueResult.type';
+import {
+  createInvitationToken,
+  normalizeInvitationEmail,
+} from '../utils/invitationToken.util';
 import {
   INVITABLE_ORGANIZATION_ROLES,
-  organizationInvitationSchema,
   OrganizationInvitation,
-} from '../models';
+  organizationInvitationSchema,
+} from '../models/organizationInvitation.model';
+import { InvitationAcceptanceResult } from '../types/invitationAcceptanceResult.type';
+import { assertOrganizationPermissions } from '../../organizations/utils/organization.util';
+import { ORGANIZATION_ROLE_CHANGE_TARGETS } from '../../organizations/constants';
+import { AuthException } from '../../common/exceptions/auth.exception';
+import { EmailReceipt } from '../../email/types/emailReceipt.type';
+import { ApiException } from '../../common/exceptions/api.exception';
 
 @Injectable()
 export class InvitationsService {

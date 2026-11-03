@@ -1,8 +1,8 @@
 import { Transform, TransformFnParams } from 'class-transformer';
 import { IsEmail, IsEnum, IsString, MaxLength } from 'class-validator';
 
-import { normalizeInvitationEmail } from '../utils';
-import { INVITABLE_ORGANIZATION_ROLES } from '../models';
+import { normalizeInvitationEmail } from '../utils/invitationToken.util';
+import { INVITABLE_ORGANIZATION_ROLES } from '../models/organizationInvitation.model';
 
 export class CreateOrganizationInvitationDto {
   @Transform(({ value }: TransformFnParams): unknown =>

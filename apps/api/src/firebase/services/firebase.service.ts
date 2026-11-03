@@ -10,7 +10,7 @@ import {
   applicationDefault,
 } from 'firebase-admin';
 
-import { Environment } from '../../config';
+import { Environment } from '../../config/environment';
 
 @Injectable()
 export class FirebaseService implements OnApplicationShutdown {

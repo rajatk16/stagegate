@@ -2,8 +2,9 @@ import { STATUS_CODES } from 'http';
 import createHttpError from 'http-errors';
 import { HttpException } from '@nestjs/common';
 
-import { ApiErrorResponseDto } from '../dtos';
-import { ApiException, RequestValidationException } from '../exceptions';
+import { ApiErrorResponseDto } from '../dtos/apiErrorResponse.dto';
+import { ApiException } from '../exceptions/api.exception';
+import { RequestValidationException } from '../exceptions/requestValidation.exception';
 
 type PublicError = Pick<
   ApiErrorResponseDto,

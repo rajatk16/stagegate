@@ -1,17 +1,15 @@
 import { randomUUID } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { EventScope } from '../types';
+import { EventScope } from '../types/eventScope.type';
 import { EventsRepository } from '../repositories/events.repository';
-import { ApiException } from '../../common/exceptions';
-import { OrganizationScope } from '../../organizations/types';
-import { Event, eventSchema, EventSettingsUpdate } from '../models';
-import {
-  CreateEventDto,
-  UpdateEventDto,
-  ListEventQueryDto,
-  UpdateEventStatusDto,
-} from '../dtos';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { OrganizationScope } from '../../organizations/types/organizationScope.type';
+import { Event, eventSchema, EventSettingsUpdate } from '../models/event.model';
+import { CreateEventDto } from '../dtos/createEvent.dto';
+import { ListEventQueryDto } from '../dtos/listEventsQuery.dto';
+import { UpdateEventDto } from '../dtos/updateEvent.dto';
+import { UpdateEventStatusDto } from '../dtos/updateEventStatus.dto';
 
 @Injectable()
 export class EventsService {

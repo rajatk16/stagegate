@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
-import { EventMembership } from '../models';
-import { eventMembershipConverter } from '../converters';
-import { FirebaseService } from '../../firebase/services';
+import { EventMembership } from '../models/eventMembership.model';
+import { eventMembershipConverter } from '../converters/eventMembership.converter';
+import { FirebaseService } from '../../firebase/services/firebase.service';
 import { ORGANIZATIONS_COLLECTION } from '../../organizations/constants';
 import { EVENT_MEMBERSHIPS_COLLECTION, EVENTS_COLLECTION } from '../constants';
 

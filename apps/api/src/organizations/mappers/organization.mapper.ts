@@ -1,25 +1,21 @@
 import { ORGANIZATION_ROLE_PERMISSIONS } from '../constants';
-import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
+import { randomUUID } from 'node:crypto';
+import { Organization, organizationSchema } from '../models/organization.model';
+import { organizationMembershipSchema } from '../models/organizationMembership.model';
+import { organizationSlugSchema } from '../models/organizationSlug.model';
+import { CreateOrganizationDto } from '../dtos/createOrganization.dto';
+import { OrganizationCreation } from '../types/organizationCreation.type';
+import { ORGANIZATION_ROLES } from '../enums/organizationRoles.enum';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums/organizationMembershipStatus.enum';
 import {
   MyOrganizationsPage,
-  OrganizationCreation,
   OrganizationWithMembership,
-} from '../types';
-import {
-  Organization,
-  organizationSchema,
-  organizationSlugSchema,
-  organizationMembershipSchema,
-} from '../models';
-import {
-  CreateOrganizationDto,
-  OrganizationResponseDto,
-  MyOrganizationsResponseDto,
-  OrganizationPublicResponseDto,
-  OrganizationPrivateResponseDto,
-  OrganizationMembershipResponseDto,
-} from '../dtos';
-import { randomUUID } from 'node:crypto';
+} from '../types/organizationPage.type';
+import { OrganizationResponseDto } from '../dtos/organizationResponse.dto';
+import { MyOrganizationsResponseDto } from '../dtos/myOrganizationsResponse.dto';
+import { OrganizationPrivateResponseDto } from '../dtos/organizationPrivateResponse.dto';
+import { OrganizationMembershipResponseDto } from '../dtos/organizationMembershipResponse.dto';
+import { OrganizationPublicResponseDto } from '../dtos/organizationPublicResponse.dto';
 
 export const toNewOrganization = (
   dto: CreateOrganizationDto,

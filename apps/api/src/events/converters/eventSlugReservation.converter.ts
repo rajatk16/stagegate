@@ -5,10 +5,13 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { EVENT_SLUGS_COLLECTION } from '../constants';
-import { DiagnosticError } from '../../observalibility/errors';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 import { ORGANIZATIONS_COLLECTION } from '../../organizations/constants';
-import { EventSlugReservation, eventSlugReservationSchema } from '../models';
+import { EVENTS_SLUG_COLLECTION } from '../constants';
+import {
+  EventSlugReservation,
+  eventSlugReservationSchema,
+} from '../models/event.model';
 
 export type EventSlugReservationDocument = Omit<
   EventSlugReservation,
@@ -55,7 +58,7 @@ export const eventSlugReservationConverter: FirestoreDataConverter<
 
     assertIdentity(
       snapshot.ref.path ===
-        `${ORGANIZATIONS_COLLECTION}/${document.organizationId}/${EVENT_SLUGS_COLLECTION}/${document.slug}`,
+        `${ORGANIZATIONS_COLLECTION}/${document.organizationId}/${EVENTS_SLUG_COLLECTION}/${document.slug}`,
     );
 
     return {

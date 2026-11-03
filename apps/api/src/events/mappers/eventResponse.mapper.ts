@@ -1,5 +1,5 @@
-import { Event } from '../models';
-import { EventResponseDto } from '../dtos';
+import { Event } from '../models/event.model';
+import { EventResponseDto } from '../dtos/eventResponse.dto';
 
 export const toEventResponseDto = (event: Event): EventResponseDto => ({
   id: event.id,

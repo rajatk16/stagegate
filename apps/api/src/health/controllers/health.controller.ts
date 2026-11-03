@@ -1,9 +1,9 @@
 import { SkipThrottle } from '@nestjs/throttler';
 import { Controller, Get, Header, HttpStatus } from '@nestjs/common';
 
-import { Public } from '../../auth/decorators';
-import { ReadinessService } from '../services';
-import { ApiException } from '../../common/exceptions';
+import { Public } from '../../auth/decorators/public.decorator';
+import { ReadinessService } from '../services/readiness.service';
+import { ApiException } from '../../common/exceptions/api.exception';
 
 @Controller('health')
 @SkipThrottle({ ip: true, user: true })

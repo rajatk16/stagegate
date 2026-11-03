@@ -1,15 +1,15 @@
-import type { OrganizationMembership } from '../models';
-import type { OrganizationMembersPage } from '../types';
 import {
   OrganizationMemberResponseDto,
   OrganizationMembersResponseDto,
   OrganizationTeamMemberResponseDto,
-} from '../dtos';
+} from '../dtos/organizationMembersResponse.dto';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums/organizationMembershipStatus.enum';
+import type { OrganizationMembership } from '../models/organizationMembership.model';
+import type { OrganizationMembersPage } from '../types/organizationMembersPage.type';
 import {
   canManageOrganizationMemberStatus,
   canTransferOrganizationOwnership,
-} from '../utils';
-import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums';
+} from '../utils/organization.util';
 
 export const toOrganizationMemberResponseDto = (
   membership: OrganizationMembership,

@@ -1,16 +1,17 @@
 import z from 'zod';
 import { HttpStatus, InternalServerErrorException } from '@nestjs/common';
 
-import { OrganizationPermission } from '../types';
-import { OrganizationMembership } from '../models';
-import { ApiException } from '../../common/exceptions';
-import { DiagnosticError } from '../../observalibility/errors';
-import { RequestValidationException } from '../../common/exceptions';
-import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
+import { OrganizationPermission } from '../types/organizationPermission.type';
+import { OrganizationMembership } from '../models/organizationMembership.model';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { RequestValidationException } from '../../common/exceptions/requestValidation.exception';
 import {
   ORGANIZATION_ROLE_PERMISSIONS,
   ORGANIZATION_ROLE_CHANGE_TARGETS,
 } from '../constants';
+import { ORGANIZATION_ROLES } from '../enums/organizationRoles.enum';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums/organizationMembershipStatus.enum';
 
 export const normalizeOrganizationSlug = (value: string): string =>
   value.trim().toLowerCase();

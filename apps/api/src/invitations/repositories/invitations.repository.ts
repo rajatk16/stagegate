@@ -1,39 +1,33 @@
+import { randomUUID } from 'node:crypto';
 import { FieldPath } from 'firebase-admin/firestore';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { AuditWriter } from '../../audit/services';
-import { FirebaseService } from '../../firebase/services';
-import { OrganizationScope } from '../../organizations/types';
-import { DiagnosticError } from '../../observalibility/errors';
-import { organizationInvitationConverter } from '../converters';
+import { AuditWriter } from '../../audit/services/auditWriter.service';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { OrganizationScope } from '../../organizations/types/organizationScope.type';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { organizationInvitationConverter } from '../converters/organizationInvitation.converter';
 import { ORGANIZATION_INVITATIONS_COLLECTION } from '../constants';
-import { organizationMembershipSchema } from '../../organizations/models';
-import { ORGANIZATION_MEMBERSHIP_STATUS } from '../../organizations/enums';
-import { assertActiveOrganizationMembership } from '../../organizations/utils';
-import {
-  ApiException,
-  RequestValidationException,
-} from '../../common/exceptions';
-import {
-  OrganizationRepository,
-  OrganizationMembershipRepository,
-} from '../../organizations/repositories';
-import {
-  InvitationCreationResult,
-  InvitationAcceptanceInput,
-  InvitationAcceptanceResult,
-} from '../types';
-import {
-  assertInvitationGrant,
-  matchesInvitationToken,
-  normalizeInvitationEmail,
-} from '../utils';
+import { organizationMembershipSchema } from '../../organizations/models/organizationMembership.model';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../../organizations/enums/organizationMembershipStatus.enum';
+import { assertActiveOrganizationMembership } from '../../organizations/utils/organization.util';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { OrganizationRepository } from '../../organizations/repositories/organizations.repository';
+import { InvitationCreationResult } from '../types/invitationCreationResult.type';
+import { assertInvitationGrant } from '../utils/assertInvitationGrant.util';
 import {
   OrganizationInvitation,
-  isOrganizationInvitation,
   organizationInvitationSchema,
-} from '../models';
-import { randomUUID } from 'node:crypto';
+} from '../models/organizationInvitation.model';
+import { OrganizationMembershipRepository } from '../../organizations/repositories/organizationMembership.repository';
+import { isOrganizationInvitation } from '../models/invitation.model';
+import { InvitationAcceptanceInput } from '../types/invitationAcceptanceInput.type';
+import { InvitationAcceptanceResult } from '../types/invitationAcceptanceResult.type';
+import {
+  matchesInvitationToken,
+  normalizeInvitationEmail,
+} from '../utils/invitationToken.util';
+import { RequestValidationException } from '../../common/exceptions/requestValidation.exception';
 
 const invalidInvitation = (): ApiException =>
   new ApiException(
@@ -416,6 +410,7 @@ export class InvitationsRepository {
     }
 
     const snapshot = await query.limit(pageSize + 1).get();
+
     const items = snapshot.docs
       .slice(0, pageSize)
       .map((document) => document.data())

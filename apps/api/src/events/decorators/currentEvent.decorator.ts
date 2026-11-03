@@ -4,7 +4,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import type { EventRequest, EventScope } from '../types';
+import type { EventRequest } from '../types/eventRequest.type';
+import { EventScope } from '../types/eventScope.type';
 
 export const CurrentEvent = createParamDecorator(
   (_data: unknown, context: ExecutionContext): EventScope => {

@@ -1,4 +1,4 @@
-import type { AuditEvent } from '../models';
+import type { AuditEvent } from '../models/auditEvent.model';
 
 export const getAuditOrganizationId = (event: AuditEvent): string | null => {
   switch (event.action) {

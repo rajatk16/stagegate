@@ -8,12 +8,11 @@ import {
   type ArgumentsHost,
   type ExceptionFilter,
 } from '@nestjs/common';
-
-import { ApiException } from '../exceptions';
-import { ApiErrorResponseDto } from '../dtos';
-import { toPublicApiError } from '../mappers';
-import { RequestContextService } from '../../observalibility/services';
-import { toDiagnostic } from '../../observalibility/mappers';
+import { RequestContextService } from '../../observalibility/services/requestContext.service';
+import { toPublicApiError } from '../mappers/apiError.mapper';
+import { toDiagnostic } from '../../observalibility/mappers/diagnostic.mapper';
+import { ApiErrorResponseDto } from '../dtos/apiErrorResponse.dto';
+import { ApiException } from '../exceptions/api.exception';
 
 @Catch()
 export class ApiExceptionFilter implements ExceptionFilter {

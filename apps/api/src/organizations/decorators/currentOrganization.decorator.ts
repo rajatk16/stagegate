@@ -4,7 +4,8 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import { OrganizationRequest, OrganizationScope } from '../types';
+import { OrganizationRequest } from '../types/organizationRequest.type';
+import { OrganizationScope } from '../types/organizationScope.type';
 
 export const CurrentOrganization = createParamDecorator(
   (_data: unknown, context: ExecutionContext): OrganizationScope => {

@@ -1,6 +1,6 @@
 import { HttpStatus } from '@nestjs/common';
 
-import { ValidationIssueDto } from '../dtos';
+import { ValidationIssueDto } from '../dtos/validationIssue.dto';
 import { ApiException } from './api.exception';
 
 export class RequestValidationException extends ApiException {

@@ -2,36 +2,33 @@ import z from 'zod';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { FieldPath, Timestamp, Transaction } from 'firebase-admin/firestore';
 
-import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
-import { AuditWriter } from '../../audit/services';
-import { ApiException } from '../../common/exceptions';
-import { FirebaseService } from '../../firebase/services';
-import { assertRecentAuthentication } from '../../auth/utils';
-import { DiagnosticError } from '../../observalibility/errors';
 import {
   OrganizationMembership,
   organizationMembershipSchema,
-} from '../models';
+} from '../models/organizationMembership.model';
 import {
   ORGANIZATIONS_COLLECTION,
   ORGANIZATION_MEMBERSHIPS_COLLECTION,
 } from '../constants';
+import { FirebaseService } from '../../firebase/services/firebase.service';
+import { AuditWriter } from '../../audit/services/auditWriter.service';
+import { organizationConverter } from '../converters/organization.converter';
+import { organizationMembershipConverter } from '../converters/organizationMembership.converter';
+import { ORGANIZATION_ROLES } from '../enums/organizationRoles.enum';
 import {
-  organizationConverter,
-  organizationMembershipConverter,
-} from '../converters';
-import {
-  OrganizationScope,
-  OwnershipTransferResult,
-  OrganizationMembershipPage,
-  OrganizationMembershipDocument,
-} from '../types';
-import {
-  assertOrganizationRoleChange,
-  assertOrganizationPermissions,
-  canManageOrganizationMemberStatus,
   assertActiveOrganizationMembership,
-} from '../utils';
+  assertOrganizationPermissions,
+  assertOrganizationRoleChange,
+  canManageOrganizationMemberStatus,
+} from '../utils/organization.util';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { assertRecentAuthentication } from '../../auth/utils/assertRecentAuthentication.util';
+import { OrganizationScope } from '../types/organizationScope.type';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { OrganizationMembershipDocument } from '../types/organizationMembershipDocument.type';
+import { OrganizationMembershipPage } from '../types/organizationPage.type';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums/organizationMembershipStatus.enum';
+import { OwnershipTransferResult } from '../types/ownershipTranferResult.type';
 
 type MembershipLifecycleCommand =
   | {

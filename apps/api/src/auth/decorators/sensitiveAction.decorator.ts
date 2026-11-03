@@ -1,7 +1,7 @@
 import { applyDecorators, SetMetadata } from '@nestjs/common';
 
-import { SensitiveActionName } from '../policies';
 import { SENSITIVE_ACTION_KEY } from '../constants';
+import { SensitiveActionName } from '../policies/sensitiveAction.policy';
 import { RequireVerifiedEmail } from './requireVerifiedEmail.decorator';
 
 export const SensitiveAction = (action: SensitiveActionName): MethodDecorator =>

@@ -4,10 +4,12 @@ import {
   SetOptions,
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
-
-import { EventMembershipDocument } from '../types';
-import { DiagnosticError } from '../../observalibility/errors';
-import { EventMembership, eventMembershipSchema } from '../models';
+import {
+  EventMembership,
+  eventMembershipSchema,
+} from '../models/eventMembership.model';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { EventMembershipDocument } from '../types/eventMembershipDocument.type';
 
 const membershipDocumentSchema = eventMembershipSchema.extend({
   createdAt: z.instanceof(Timestamp),

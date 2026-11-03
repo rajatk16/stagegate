@@ -1,4 +1,4 @@
-import type { OrganizationMembership } from '../../organizations/models';
+import type { OrganizationMembership } from '../../organizations/models/organizationMembership.model';
 
 export interface InvitationAcceptanceResult {
   scopeType: 'ORGANIZATION';

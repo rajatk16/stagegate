@@ -1,15 +1,16 @@
 import z from 'zod';
 import { length } from 'class-validator';
 
-import { EVENT_FORMAT, EVENT_STATUS } from '../enums';
-import { EVENT_SLUG_PATTERN } from '../constants';
-import { organizationSchema } from '../../organizations/models';
+import { EVENT_FORMAT } from '../enums/eventFormat.enum';
+import { SLUG_PATTERN } from '../../common/constants';
+import { organizationSchema } from '../../organizations/models/organization.model';
+import { EVENT_STATUS } from '../enums/eventStatus.enum';
 
 export const eventSlugValueSchema = z
   .string()
   .min(3)
   .max(63)
-  .regex(EVENT_SLUG_PATTERN);
+  .regex(SLUG_PATTERN);
 
 const nullableText = (maximumLength: number) =>
   z
@@ -80,7 +81,8 @@ export const eventSchema = eventObjectSchema.superRefine((event, context) => {
   if (
     event.startsAt !== null &&
     event.endsAt !== null &&
-    event.endsAt.getTime() <= event.startsAt.getTime()
+    event.endsAt
+    // event.endsAt.getTime() <= event.startsAt.getTime()
   ) {
     context.addIssue({
       code: z.ZodIssueCode.custom,

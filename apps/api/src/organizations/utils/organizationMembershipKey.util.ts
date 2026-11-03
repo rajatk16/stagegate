@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { OrganizationMembership } from '../models';
+import { OrganizationMembership } from '../models/organizationMembership.model';
 
 export const getOrganizationMembershipKey = (
   membership: OrganizationMembership,

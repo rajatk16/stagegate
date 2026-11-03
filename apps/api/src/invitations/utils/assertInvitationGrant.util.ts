@@ -1,9 +1,9 @@
 import { HttpStatus } from '@nestjs/common';
 
-import { ApiException } from '../../common/exceptions';
-import { INVITABLE_ORGANIZATION_ROLES } from '../models';
-import { OrganizationMembership } from '../../organizations/models';
-import { assertOrganizationPermissions } from '../../organizations/utils';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { INVITABLE_ORGANIZATION_ROLES } from '../models/organizationInvitation.model';
+import { OrganizationMembership } from '../../organizations/models/organizationMembership.model';
+import { assertOrganizationPermissions } from '../../organizations/utils/organization.util';
 import { ORGANIZATION_ROLE_CHANGE_TARGETS } from '../../organizations/constants';
 
 export const assertInvitationGrant = (

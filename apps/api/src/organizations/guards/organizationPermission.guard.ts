@@ -6,8 +6,9 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 
-import { OrganizationAccessService } from '../services';
-import { OrganizationPermission, OrganizationRequest } from '../types';
+import { OrganizationAccessService } from '../services/organizationAccess.service';
+import { OrganizationPermission } from '../types/organizationPermission.type';
+import { OrganizationRequest } from '../types/organizationRequest.type';
 import {
   ORGANIZATION_SCOPE_KEY,
   ORGANIZATION_PERMISSIONS_KEY,

@@ -1,6 +1,6 @@
 import type { Timestamp } from 'firebase-admin/firestore';
 
-import type { AuditEvent } from '../models';
+import type { AuditEvent } from '../models/auditEvent.model';
 
 type WithFirestoreTimestamp<T> = T extends {
   occurredAt: Date;

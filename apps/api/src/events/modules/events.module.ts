@@ -1,14 +1,15 @@
 import { Module } from '@nestjs/common';
 
-import { AuditModule } from '../../audit/modules';
-import { FirebaseModule } from '../../firebase/module';
+import { AuditModule } from '../../audit/modules/audit.module';
+import { FirebaseModule } from '../../firebase/module/firebase.module';
 import { EventAccessModule } from './eventAccess.module';
 import { EventsService } from '../services/events.service';
 import { EventsRepository } from '../repositories/events.repository';
 import { EventSlugsRepository } from '../repositories/eventSlugs.repository';
 import { EventMembersService } from '../services/eventMembers.service';
-import { EventsController, EventMembersController } from '../controllers';
+import { EventMembersController } from '../controllers/eventMembers.controller';
 import { OrganizationPersistenceModule } from '../../organizations/modules/organizationPersistence.module';
+import { EventsController } from '../controllers/events.controller';
 
 @Module({
   controllers: [EventsController, EventMembersController],

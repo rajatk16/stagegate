@@ -1,4 +1,4 @@
-import { OrganizationMembership } from '../models';
+import { OrganizationMembership } from '../models/organizationMembership.model';
 
 export interface OwnershipTransferResult {
   organizationId: string;

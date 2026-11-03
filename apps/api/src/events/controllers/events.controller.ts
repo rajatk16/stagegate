@@ -12,29 +12,25 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 
-import { type EventScope } from '../types';
-import { EventsService } from '../services';
-import { toEventResponseDto } from '../mappers';
-import { SensitiveAction } from '../../auth/decorators';
-import type { OrganizationScope } from '../../organizations/types';
+import { type EventScope } from '../types/eventScope.type';
+import { EventsService } from '../services/events.service';
+import { toEventResponseDto } from '../mappers/eventResponse.mapper';
+import { SensitiveAction } from '../../auth/decorators/sensitiveAction.decorator';
+import type { OrganizationScope } from '../../organizations/types/organizationScope.type';
+import { OrganizationScoped } from '../../organizations/decorators/organizationScoped.decorator';
+import { RequireOrganizationPermissions } from '../../organizations/decorators/requiredOrganizationPermissions.decorator';
+import { CurrentOrganization } from '../../organizations/decorators/currentOrganization.decorator';
+import { CreateEventDto } from '../dtos/createEvent.dto';
 import {
-  CurrentEvent,
-  EventScoped,
-  RequireEventPermissions,
-} from '../decorators';
-import {
-  CurrentOrganization,
-  OrganizationScoped,
-  RequireOrganizationPermissions,
-} from '../../organizations/decorators';
-import {
-  CreateEventDto,
-  UpdateEventDto,
-  EventResponseDto,
-  ListEventQueryDto,
   EventPageResponseDto,
-  UpdateEventStatusDto,
-} from '../dtos';
+  EventResponseDto,
+} from '../dtos/eventResponse.dto';
+import { ListEventQueryDto } from '../dtos/listEventsQuery.dto';
+import { UpdateEventDto } from '../dtos/updateEvent.dto';
+import { UpdateEventStatusDto } from '../dtos/updateEventStatus.dto';
+import { EventScoped } from '../decorators/eventScoped.decorator';
+import { RequireEventPermissions } from '../decorators/requireEventPermissions.decorator';
+import { CurrentEvent } from '../decorators/currentEvent.decorator';
 
 @Controller('organizations/:organizationId/events')
 export class EventsController {

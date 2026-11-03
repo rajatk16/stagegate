@@ -2,32 +2,29 @@ import z from 'zod';
 import { Injectable } from '@nestjs/common';
 import { DecodedIdToken } from 'firebase-admin/auth';
 
-import { UsersService } from '../../users/services';
-import { assertOrganizationPermissions } from '../utils';
-import { assertRecentAuthentication } from '../../auth/utils';
-import { DiagnosticError } from '../../observalibility/errors';
-import { OrganizationMembershipRepository } from '../repositories';
-import { RequestValidationException } from '../../common/exceptions';
-import { ORGANIZATION_MEMBERSHIP_STATUS, ORGANIZATION_ROLES } from '../enums';
+import { UsersService } from '../../users/services/users.service';
+import { assertOrganizationPermissions } from '../utils/organization.util';
+import { assertRecentAuthentication } from '../../auth/utils/assertRecentAuthentication.util';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { OrganizationMembershipRepository } from '../repositories/organizationMembership.repository';
+import { RequestValidationException } from '../../common/exceptions/requestValidation.exception';
 import {
   OrganizationMembership,
   organizationMembershipSchema,
-} from '../models';
+} from '../models/organizationMembership.model';
 import {
   decodeOrganizationMembersCursor,
   encodeOrganizationMembersCursor,
 } from '../utils/organizationMembersCursor.util';
-import {
-  OrganizationScope,
-  OrganizationMembersPage,
-  OwnershipTransferResult,
-} from '../types';
-import {
-  ListOrganizationMembersQueryDto,
-  UpdateOrganizationMemberRoleDto,
-  TransferOrganizationOwnershipDto,
-  UpdateOrganizationMemberStatusDto,
-} from '../dtos';
+import { OrganizationScope } from '../types/organizationScope.type';
+import { ListOrganizationMembersQueryDto } from '../dtos/listOrganizationMembersQuery.dto';
+import { OrganizationMembersPage } from '../types/organizationMembersPage.type';
+import { UpdateOrganizationMemberRoleDto } from '../dtos/updateOrganizationMemberRole.dto';
+import { ORGANIZATION_ROLES } from '../enums/organizationRoles.enum';
+import { UpdateOrganizationMemberStatusDto } from '../dtos/updateOrganizationMemberStatus.dto';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums/organizationMembershipStatus.enum';
+import { TransferOrganizationOwnershipDto } from '../dtos/transferOrganizationOwnership.dto';
+import { OwnershipTransferResult } from '../types/ownershipTranferResult.type';
 
 @Injectable()
 export class OrganizationMembersService {

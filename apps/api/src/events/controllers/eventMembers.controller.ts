@@ -11,20 +11,18 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 
-import type { EventScope } from '../types';
-import { EventMembersService } from '../services';
-import { SensitiveAction } from '../../auth/decorators';
+import type { EventScope } from '../types/eventScope.type';
+import { EventMembersService } from '../services/eventMembers.service';
+import { SensitiveAction } from '../../auth/decorators/sensitiveAction.decorator';
 import {
-  EventScoped,
-  CurrentEvent,
-  RequireEventPermissions,
-} from '../decorators';
-import {
-  AddEventMemberDto,
   ListEventMembersQueryDto,
   UpdateEventMemberRoleDto,
   UpdateEventMemberStatusDto,
-} from '../dtos';
+} from '../dtos/eventMembership.dto';
+import { AddEventMemberDto } from '../dtos/addEventMember.dto';
+import { EventScoped } from '../decorators/eventScoped.decorator';
+import { RequireEventPermissions } from '../decorators/requireEventPermissions.decorator';
+import { CurrentEvent } from '../decorators/currentEvent.decorator';
 
 @Controller('organizations/:organizationId/events/:eventId')
 @EventScoped()

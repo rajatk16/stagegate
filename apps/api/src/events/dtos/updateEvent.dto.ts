@@ -10,7 +10,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 
-import { EVENT_FORMAT } from '../enums';
+import { EVENT_FORMAT } from '../enums/eventFormat.enum';
 
 const trimText = ({ value }: TransformFnParams): unknown =>
   typeof value === 'string' ? value.trim() : value;

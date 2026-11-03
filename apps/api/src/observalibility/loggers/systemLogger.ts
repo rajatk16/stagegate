@@ -1,6 +1,6 @@
 import { ConsoleLogger } from '@nestjs/common';
 
-import { toDiagnostic } from '../mappers';
+import { toDiagnostic } from '../mappers/diagnostic.mapper';
 
 export class SystemLogger extends ConsoleLogger {
   constructor() {

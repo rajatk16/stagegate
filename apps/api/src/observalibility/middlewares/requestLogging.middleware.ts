@@ -2,8 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { NextFunction, Request, Response } from 'express';
 import { ConsoleLogger, Injectable, NestMiddleware } from '@nestjs/common';
 
-import { RequestContext } from '../types';
-import { RequestContextService } from '../services';
+import { RequestContext } from '../types/requestContext.type';
+import { RequestContextService } from '../services/requestContext.service';
 
 const METHODS = new Set([
   'GET',

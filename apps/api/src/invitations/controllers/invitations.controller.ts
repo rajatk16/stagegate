@@ -12,17 +12,13 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 
-import { InvitationsService } from '../services';
-import { toAcceptInvitationResponse } from '../mappers';
-import {
-  AcceptOrganizationInvitationDto,
-  ListOrganizationInvitationsQueryDto,
-} from '../dtos';
-import {
-  CurrentUser,
-  ThrottleUserWrites,
-  RequireVerifiedEmail,
-} from '../../auth/decorators';
+import { InvitationsService } from '../services/invitations.service';
+import { toAcceptInvitationResponse } from '../mappers/invitationResponse.mappers';
+import { RequireVerifiedEmail } from '../../auth/decorators/requireVerifiedEmail.decorator';
+import { ThrottleUserWrites } from '../../auth/decorators/throttleUserWrites.decorator';
+import { CurrentUser } from '../../auth/decorators/currentUser.decorator';
+import { AcceptOrganizationInvitationDto } from '../dtos/acceptOrganizationInvitation.dto';
+import { ListOrganizationInvitationsQueryDto } from '../dtos/listOrganizationInvitationsQuery.dto';
 
 @Controller('invitations')
 export class InvitationsController {

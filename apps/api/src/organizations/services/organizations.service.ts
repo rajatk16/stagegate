@@ -2,33 +2,29 @@ import { randomUUID } from 'node:crypto';
 import { DecodedIdToken } from 'firebase-admin/auth';
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { toNewOrganization } from '../mappers';
-import { ApiException } from '../../common/exceptions';
-import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums';
 import { RESERVED_ORGANIZATION_SLUGS } from '../constants';
-import { organizationSettingsChangesSchema } from '../models';
-import { DiagnosticError } from '../../observalibility/errors';
-import { RequestValidationException } from '../../common/exceptions';
-import {
-  OrganizationRepository,
-  OrganizationMembershipRepository,
-} from '../repositories';
-import {
-  CreateOrganizationDto,
-  ListMyOrganizationsQueryDto,
-  UpdateOrganizationSettingsDto,
-} from '../dtos';
+import { organizationSettingsChangesSchema } from '../models/organizationSettingsChanges.model';
+import { OrganizationRepository } from '../repositories/organizations.repository';
+import { OrganizationMembershipRepository } from '../repositories/organizationMembership.repository';
+import { CreateOrganizationDto } from '../dtos/createOrganization.dto';
+import { OrganizationCreation } from '../types/organizationCreation.type';
 import {
   decodeOrganizationCursor,
   encodeOrganizationCursor,
   normalizeOrganizationSlug,
-} from '../utils';
+} from '../utils/organization.util';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { toNewOrganization } from '../mappers/organization.mapper';
+import { ListMyOrganizationsQueryDto } from '../dtos/listMyOrganizationsQuery.dto';
 import {
-  OrganizationScope,
   MyOrganizationsPage,
-  OrganizationCreation,
   OrganizationWithMembership,
-} from '../types';
+} from '../types/organizationPage.type';
+import { ORGANIZATION_MEMBERSHIP_STATUS } from '../enums/organizationMembershipStatus.enum';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { OrganizationScope } from '../types/organizationScope.type';
+import { UpdateOrganizationSettingsDto } from '../dtos/updateOrganizationSettings.dto';
+import { RequestValidationException } from '../../common/exceptions/requestValidation.exception';
 
 @Injectable()
 export class OrganizationsService {

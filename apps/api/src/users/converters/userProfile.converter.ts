@@ -5,9 +5,9 @@ import {
   FirestoreDataConverter,
 } from 'firebase-admin/firestore';
 
-import { UserProfileDocument } from '../types';
-import { UserProfile, userProfileSchema } from '../models';
-import { DiagnosticError } from '../../observalibility/errors';
+import { UserProfileDocument } from '../types/userProfileDocument.type';
+import { UserProfile, userProfileSchema } from '../models/userProfile.model';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 
 const userProfileDocumentSchema = userProfileSchema.extend({
   createdAt: z.instanceof(Timestamp),

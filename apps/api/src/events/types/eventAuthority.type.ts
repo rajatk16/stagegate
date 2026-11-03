@@ -1,4 +1,4 @@
-import { EVENT_ROLES } from '../enums';
+import { EVENT_ROLES } from '../enums/eventRoles.enum';
 
 export type EventAuthority =
   | {

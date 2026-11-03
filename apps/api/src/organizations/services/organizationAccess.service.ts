@@ -1,17 +1,16 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 
-import { organizationSchema } from '../models';
-import { ApiException } from '../../common/exceptions';
-import { DiagnosticError } from '../../observalibility/errors';
-import { OrganizationPermission, OrganizationScope } from '../types';
+import { organizationSchema } from '../models/organization.model';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { OrganizationRepository } from '../repositories/organizations.repository';
+import { OrganizationMembershipRepository } from '../repositories/organizationMembership.repository';
+import { OrganizationScope } from '../types/organizationScope.type';
 import {
-  assertOrganizationPermissions,
   assertActiveOrganizationMembership,
-} from '../utils';
-import {
-  OrganizationRepository,
-  OrganizationMembershipRepository,
-} from '../repositories';
+  assertOrganizationPermissions,
+} from '../utils/organization.util';
+import { OrganizationPermission } from '../types/organizationPermission.type';
 
 const organizationNotFound = (): ApiException =>
   new ApiException(

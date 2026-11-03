@@ -1,15 +1,8 @@
-import { EVENT_ROLES } from '../enums';
-import { EventAuthority } from '../types';
-import { EVENT_ROLE_GRANT_TARGETS } from '../constants';
+import { ORGANIZATION_ROLES } from '../../organizations/enums/organizationRoles.enum';
+import { OrganizationMembership } from '../../organizations/models/organizationMembership.model';
 
-export const canGrantEventRole = (
-  authority: EventAuthority,
-  role: EVENT_ROLES,
-): boolean => {
-  switch (authority.kind) {
-    case 'ORGANIZATION_ADMIN':
-      return true;
-    case 'EVENT_MEMBER':
-      return EVENT_ROLE_GRANT_TARGETS[authority.role].includes(role);
-  }
-};
+export const isOrganizationAdministrator = (
+  membership: Pick<OrganizationMembership, 'role'>,
+): boolean =>
+  membership.role === ORGANIZATION_ROLES.OWNER ||
+  membership.role === ORGANIZATION_ROLES.ADMIN;

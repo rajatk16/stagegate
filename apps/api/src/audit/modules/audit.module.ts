@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { AuditWriter, OrganizationAuditReader } from '../services';
+import { AuditWriter } from '../services/auditWriter.service';
 import { FirebaseModule } from '../../firebase/module/firebase.module';
+import { OrganizationAuditReader } from '../services/organizationAuditReader.service';
 
 @Module({
   imports: [FirebaseModule],

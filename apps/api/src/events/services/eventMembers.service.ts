@@ -1,22 +1,21 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { FieldPath } from 'firebase-admin/firestore';
 
-import { EVENT_STATUS, EVENT_ROLES } from '../enums';
-import type { EventScope } from '../types';
-import { eventMembershipSchema } from '../models';
-import { AuditWriter } from '../../audit/services';
-import { toEventMembershipResponse } from '../mappers';
-import { FirebaseService } from '../../firebase/services';
+import { getOrganizationMembershipKey } from '../../organizations/utils/organizationMembershipKey.util';
+import { isOrganizationAdministrator } from '../utils/eventMembership.util';
+import { FirebaseService } from '../../firebase/services/firebase.service';
 import { EventAccessService } from './eventAccess.service';
 import { EventMembershipRepository } from '../repositories/eventMembership.repository';
-import { ORGANIZATION_ROLES } from '../../organizations/enums';
-import { OrganizationMembershipRepository } from '../../organizations/repositories';
-import {
-  ApiException,
-  RequestValidationException,
-} from '../../common/exceptions';
-import { AddEventMemberDto } from '../dtos';
-import { getOrganizationMembershipKey } from '../../organizations/utils/organizationMembershipKey.util';
+import { OrganizationMembershipRepository } from '../../organizations/repositories/organizationMembership.repository';
+import { AuditWriter } from '../../audit/services/auditWriter.service';
+import { eventMembershipSchema } from '../models/eventMembership.model';
+import { ApiException } from '../../common/exceptions/api.exception';
+import { EventScope } from '../types/eventScope.type';
+import { toEventMembershipResponse } from '../mappers/eventMembershipResponse.mapper';
+import { EVENT_ROLES } from '../enums/eventRoles.enum';
+import { RequestValidationException } from '../../common/exceptions/requestValidation.exception';
+import { EVENT_STATUS } from '../enums/eventStatus.enum';
+import { AddEventMemberDto } from '../dtos/addEventMember.dto';
 
 type MemberMutation =
   | {
@@ -221,10 +220,7 @@ export class EventMembersService {
           );
         }
 
-        if (
-          targetOrganization.role === ORGANIZATION_ROLES.OWNER ||
-          targetOrganization.role === ORGANIZATION_ROLES.ADMIN
-        ) {
+        if (isOrganizationAdministrator(targetOrganization)) {
           throw new ApiException(
             HttpStatus.FORBIDDEN,
             'EVENT_ORGANIZATION_ADMIN_CHANGE_FORBIDDEN',
@@ -362,10 +358,7 @@ export class EventMembersService {
           );
         }
 
-        if (
-          parent.role === ORGANIZATION_ROLES.OWNER ||
-          parent.role === ORGANIZATION_ROLES.ADMIN
-        ) {
+        if (isOrganizationAdministrator(parent)) {
           throw new ApiException(
             HttpStatus.CONFLICT,
             'EVENT_ORGANIZATION_ADMIN_ASSIGNMENT_UNNECESSARY',

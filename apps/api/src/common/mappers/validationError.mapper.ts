@@ -1,7 +1,7 @@
 import { ValidationError } from '@nestjs/common';
 
-import { ValidationIssueDto } from '../dtos';
-import { ValidationIssueCode } from '../types';
+import { ValidationIssueDto } from '../dtos/validationIssue.dto';
+import { ValidationIssueCode } from '../types/validationIssueCode.type';
 
 const publicFields = new Set([
   'uid',

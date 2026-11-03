@@ -1,7 +1,7 @@
-import type { EmailReceipt } from '../../email/types';
+import type { EmailReceipt } from '../../email/types/emailReceipt.type';
 
-import type { OrganizationInvitation } from '../models';
-import { OrganizationMembershipResponseDto } from '../../organizations/dtos';
+import type { OrganizationInvitation } from '../models/organizationInvitation.model';
+import { OrganizationMembershipResponseDto } from '../../organizations/dtos/organizationMembershipResponse.dto';
 
 export class OrganizationInvitationResponseDto {
   id!: string;

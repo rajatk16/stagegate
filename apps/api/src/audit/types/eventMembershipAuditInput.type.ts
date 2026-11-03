@@ -1,4 +1,4 @@
-import type { EVENT_ROLES } from '../../events/enums';
+import type { EVENT_ROLES } from '../../events/enums/eventRoles.enum';
 
 type EventMembershipAuditBase = {
   actorUid: string;

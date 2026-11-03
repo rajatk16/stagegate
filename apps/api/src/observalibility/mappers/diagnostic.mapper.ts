@@ -1,8 +1,8 @@
 import { ZodError } from 'zod';
 
 import { knownCodes } from '../constants';
-import { SafeDiagnostic } from '../types';
-import { DiagnosticError } from '../errors';
+import { SafeDiagnostic } from '../types/safeDiagnostic.type';
+import { DiagnosticError } from '../errors/diagnostic.error';
 
 export const toDiagnostic = (error: unknown): SafeDiagnostic => {
   let current = error;

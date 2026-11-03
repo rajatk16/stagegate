@@ -2,21 +2,19 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 
-import { EventScopedGuard } from '../../events/guards';
+import { EventScopedGuard } from '../../events/guards/eventScope.guard';
 import { EventAccessModule } from '../../events/modules/eventAccess.module';
 import { OrganizationModule } from '../../organizations/modules/organization.module';
 import { FirebaseModule } from '../../firebase/module/firebase.module';
 import {
-  OrganizationScopeGuard,
-  OrganizationPermissionGuard,
-} from '../../organizations/guards';
-import {
-  FirebaseTokenGuard,
-  VerifiedEmailGuard,
   SensitiveIpThrottleGuard,
-  RecentAuthenticationGuard,
   SensitiveUserThrottleGuard,
-} from '../guards';
+} from '../guards/sensitiveThrottle.guard';
+import { FirebaseTokenGuard } from '../guards/firebaseToken.guard';
+import { VerifiedEmailGuard } from '../guards/verifiedEmail.guard';
+import { RecentAuthenticationGuard } from '../guards/recentAuthentication.guard';
+import { OrganizationScopeGuard } from '../../organizations/guards/organizationScope.guard';
+import { OrganizationPermissionGuard } from '../../organizations/guards/organizationPermission.guard';
 
 @Module({
   imports: [

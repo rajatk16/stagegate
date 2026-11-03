@@ -6,9 +6,9 @@ import {
 } from 'firebase-admin/firestore';
 
 import { EVENTS_COLLECTION } from '../constants';
-import { DiagnosticError } from '../../observalibility/errors';
-import { Event, eventObjectSchema, eventSchema } from '../models';
 import { ORGANIZATIONS_COLLECTION } from '../../organizations/constants';
+import { Event, eventObjectSchema, eventSchema } from '../models/event.model';
+import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
 
 export type EventDocument = Omit<
   Event,
