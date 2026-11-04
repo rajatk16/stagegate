@@ -30,12 +30,16 @@ export const hasActiveEventAccess = (
   access: EventAccess,
   expectedUid: string,
 ): boolean => {
+  if (!hasEventPermission(access, 'event:read')) return false;
+
+  if (access.authority.kind === 'ORGANIZATION_ADMIN') return true;
+
   const membership = access.membership;
 
   return (
-    hasEventPermission(access, 'event:read') &&
     membership !== null &&
     membership.uid === expectedUid &&
+    membership.role === access.authority.role &&
     membership.status === 'ACTIVE' &&
     membership.organizationStatus !== 'SUSPENDED' &&
     membership.effectiveStatus !== 'SUSPENDED'

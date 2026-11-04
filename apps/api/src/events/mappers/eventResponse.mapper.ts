@@ -15,6 +15,8 @@ export const toEventResponseDto = (event: Event): EventResponseDto => ({
   updatedAt: event.updatedAt.toISOString(),
   endsAt: event.endsAt?.toISOString() ?? null,
   startsAt: event.startsAt?.toISOString() ?? null,
+  submissionInstructions: event.submissionInstructions,
+  maxSubmissionsPerPerson: event.maxSubmissionsPerPerson,
   submissionOpensAt: event.submissionOpensAt?.toISOString() ?? null,
   submissionClosesAt: event.submissionClosesAt?.toISOString() ?? null,
 });

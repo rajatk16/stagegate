@@ -25,3 +25,5 @@ export const EVENT_SECTIONS: Record<string, EventSection> = {
 };
 
 export type EventSectionKey = keyof typeof EVENT_SECTIONS;
+
+export const CFP_INSTRUCTIONS_MAX_LENGTH = 10_000;

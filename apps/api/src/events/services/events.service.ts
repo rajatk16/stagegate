@@ -90,6 +90,14 @@ export class EventsService {
       changes.timezone = input.timezone;
     }
 
+    if (input.submissionInstructions !== undefined) {
+      changes.submissionInstructions = input.submissionInstructions;
+    }
+
+    if (input.maxSubmissionsPerPerson !== undefined) {
+      changes.maxSubmissionsPerPerson = input.maxSubmissionsPerPerson;
+    }
+
     if (Object.keys(changes).length === 0) {
       throw new ApiException(
         HttpStatus.BAD_REQUEST,

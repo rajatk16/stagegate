@@ -17,6 +17,8 @@ export class EventResponseDto {
   updatedAt!: string;
   submissionOpensAt!: string | null;
   submissionClosesAt!: string | null;
+  submissionInstructions!: string | null;
+  maxSubmissionsPerPerson!: number | null;
 }
 
 export class EventPageResponseDto {
