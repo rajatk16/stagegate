@@ -3,54 +3,9 @@ import { Temporal } from '@js-temporal/polyfill';
 import { ApiError } from '@/lib';
 import { isRecord } from '@/app/utils';
 
-import { EventFormat, EventSettings } from '../types';
 import { parseEvent } from './eventUtils';
-
-export const isValidEventTimezone = (value: string): boolean => {
-  if (value !== 'UTC' && !value.includes('/')) return false;
-
-  try {
-    new Intl.DateTimeFormat('en', { timeZone: value });
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-export const toEventInstant = (
-  localValue: string,
-  timezone: string,
-): string | null => {
-  if (!localValue) return null;
-
-  return Temporal.PlainDateTime.from(localValue, {
-    overflow: 'reject',
-  })
-    .toZonedDateTime(timezone, { disambiguation: 'reject' })
-    .toInstant()
-    .toString({ fractionalSecondDigits: 3 });
-};
-
-export const toEventLocalInput = (
-  instant: string | null,
-  timezone: string,
-): string => {
-  if (instant === null) return '';
-
-  return Temporal.Instant.from(instant)
-    .toZonedDateTimeISO(timezone)
-    .toPlainDateTime()
-    .toString({ smallestUnit: 'second' });
-};
-
-export const isEventEndAfterStart = (
-  startsAt: string,
-  endsAt: string,
-): boolean =>
-  Temporal.Instant.compare(
-    Temporal.Instant.from(endsAt),
-    Temporal.Instant.from(startsAt),
-  ) > 0;
+import { EventFormat, EventSettings } from '../types';
+import { isEventEndAfterStart, isValidEventTimezone } from './eventTimeUtils';
 
 const isNullableText = (
   value: unknown,
@@ -99,6 +54,15 @@ export const parseEventSettings = (
     !isNullableText(value.location, 500) ||
     !isNullableInstant(value.startsAt) ||
     !isNullableInstant(value.endsAt) ||
+    !isNullableInstant(value.submissionOpensAt) ||
+    !isNullableInstant(value.submissionClosesAt) ||
+    !isNullableText(value.submissionInstructions, 10_000) ||
+    !(
+      value.maxSubmissionsPerPerson === null ||
+      (typeof value.maxSubmissionsPerPerson === 'number' &&
+        Number.isSafeInteger(value.maxSubmissionsPerPerson) &&
+        value.maxSubmissionsPerPerson >= 1)
+    ) ||
     typeof value.timezone !== 'string' ||
     !isValidEventTimezone(value.timezone)
   ) {
@@ -107,6 +71,17 @@ export const parseEventSettings = (
 
   const startsAt = value.startsAt;
   const endsAt = value.endsAt;
+  const submissionOpensAt = value.submissionOpensAt;
+  const submissionClosesAt = value.submissionClosesAt;
+
+  if (
+    (submissionOpensAt === null) !== (submissionClosesAt === null) ||
+    (submissionOpensAt !== null &&
+      submissionClosesAt !== null &&
+      !isEventEndAfterStart(submissionOpensAt, submissionClosesAt))
+  ) {
+    throw invalidSettingsResponse();
+  }
 
   if ((startsAt === null) !== (endsAt === null)) {
     throw invalidSettingsResponse();
@@ -128,6 +103,10 @@ export const parseEventSettings = (
     startsAt,
     endsAt,
     timezone: value.timezone,
+    submissionOpensAt,
+    submissionClosesAt,
+    submissionInstructions: value.submissionInstructions,
+    maxSubmissionsPerPerson: value.maxSubmissionsPerPerson,
   };
 };
 

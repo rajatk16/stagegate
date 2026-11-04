@@ -10,6 +10,10 @@ export type EventSettingsValues = {
   startsAt: string | null;
   endsAt: string | null;
   timezone: string;
+  submissionOpensAt: string | null;
+  submissionClosesAt: string | null;
+  submissionInstructions: string | null;
+  maxSubmissionsPerPerson: number | null;
 };
 
 export type EventSettings = Event & EventSettingsValues;

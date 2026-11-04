@@ -1,5 +1,8 @@
 import { Transform, TransformFnParams } from 'class-transformer';
 import {
+  Max,
+  Min,
+  IsInt,
   IsEnum,
   Length,
   IsString,
@@ -61,4 +64,16 @@ export class UpdateEventDto {
   @IsString()
   @Length(1, 100)
   timezone?: string;
+
+  @Transform(nullableText)
+  @IsOptional()
+  @IsString()
+  @MaxLength(10_000)
+  submissionInstructions?: string | null;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(Number.MAX_SAFE_INTEGER)
+  maxSubmissionsPerPerson?: number | null;
 }

@@ -1,5 +1,5 @@
 import { User } from 'firebase/auth';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -15,15 +15,16 @@ import {
 } from '@/components';
 
 import { updateEventSettings } from '../services';
-import { EventFormat, EventSettings, UpdateEventSettingsInput } from '../types';
 import {
-  toEventInstant,
-  toEventLocalInput,
   isEventEndAfterStart,
   isValidEventTimezone,
-  getEventSettingsError,
-  isEventSettingsSaveUncertain,
-} from '../utils';
+  toEventInstantForSave,
+  toEventLocalInput,
+} from '../utils/eventTimeUtils';
+import { EventFormat, EventSettings, UpdateEventSettingsInput } from '../types';
+import { getEventSettingsError, isEventSettingsSaveUncertain } from '../utils';
+import { parseSubmissionLimit } from '../utils/eventCfpUtils';
+import { CfpSettingsFields } from './CfpSettingsFields';
 
 type Props = {
   user: User;
@@ -34,17 +35,23 @@ type Props = {
   onRefreshAccess: () => Promise<void>;
 };
 
-type FormValues = {
+type EventSettingsFormValues = {
   name: string;
   description: string;
   format: '' | EventFormat;
   location: string;
+
   startsAtLocal: string;
   endsAtLocal: string;
   timezone: string;
+
+  submissionOpensAtLocal: string;
+  submissionClosesAtLocal: string;
+  submissionInstructions: string;
+  maxSubmissionsPerPerson: string;
 };
 
-const toFormValues = (event: EventSettings): FormValues => ({
+const toFormValues = (event: EventSettings): EventSettingsFormValues => ({
   name: event.name,
   description: event.description ?? '',
   format: event.format ?? '',
@@ -52,6 +59,22 @@ const toFormValues = (event: EventSettings): FormValues => ({
   startsAtLocal: toEventLocalInput(event.startsAt, event.timezone),
   endsAtLocal: toEventLocalInput(event.endsAt, event.timezone),
   timezone: event.timezone,
+  submissionOpensAtLocal: toEventLocalInput(
+    event.submissionOpensAt,
+    event.timezone,
+  ),
+
+  submissionClosesAtLocal: toEventLocalInput(
+    event.submissionClosesAt,
+    event.timezone,
+  ),
+
+  submissionInstructions: event.submissionInstructions ?? '',
+
+  maxSubmissionsPerPerson:
+    event.maxSubmissionsPerPerson === null
+      ? ''
+      : String(event.maxSubmissionsPerPerson),
 });
 
 export const EventSettingsForm = (props: Props) => {
@@ -69,12 +92,13 @@ export const EventSettingsForm = (props: Props) => {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setError,
     clearErrors,
     formState: { errors, isDirty },
-  } = useForm<FormValues>({
+  } = useForm<EventSettingsFormValues>({
     defaultValues: toFormValues(props.event),
     mode: 'onBlur',
   });
@@ -83,6 +107,10 @@ export const EventSettingsForm = (props: Props) => {
     props.canEdit && !accessLost && props.event.status !== 'ARCHIVED';
 
   const busy = saving || reloading;
+  const timezone = useWatch({
+    control,
+    name: 'timezone',
+  });
 
   const mutation = useApiMutation({
     user: props.user,
@@ -115,7 +143,7 @@ export const EventSettingsForm = (props: Props) => {
     setMustReload(false);
   };
 
-  const submit = async (values: FormValues) => {
+  const submit = async (values: EventSettingsFormValues) => {
     if (requestRef.current || busy || !canEdit || mustReload) {
       return;
     }
@@ -158,7 +186,12 @@ export const EventSettingsForm = (props: Props) => {
     let endsAt: string | null = null;
 
     try {
-      startsAt = toEventInstant(values.startsAtLocal, timezone);
+      startsAt = toEventInstantForSave(
+        values.startsAtLocal,
+        timezone,
+        baselineRef.current.startsAt,
+        baselineRef.current.timezone,
+      );
     } catch {
       setError(
         'startsAtLocal',
@@ -173,7 +206,12 @@ export const EventSettingsForm = (props: Props) => {
     }
 
     try {
-      endsAt = toEventInstant(values.endsAtLocal, timezone);
+      endsAt = toEventInstantForSave(
+        values.endsAtLocal,
+        timezone,
+        baselineRef.current.endsAt,
+        baselineRef.current.timezone,
+      );
     } catch {
       setError(
         'endsAtLocal',
@@ -203,14 +241,120 @@ export const EventSettingsForm = (props: Props) => {
       return;
     }
 
+    const hasOpening = values.submissionOpensAtLocal !== '';
+    const hasDeadline = values.submissionClosesAtLocal !== '';
+
+    if (hasOpening !== hasDeadline) {
+      setError(
+        hasOpening ? 'submissionClosesAtLocal' : 'submissionOpensAtLocal',
+        {
+          type: 'validate',
+          message: 'Enter both CFP dates, or leave both empty.',
+        },
+        {
+          shouldFocus: true,
+        },
+      );
+
+      return;
+    }
+
+    let submissionOpensAt: string | null = null;
+    let submissionClosesAt: string | null = null;
+
+    try {
+      submissionOpensAt = toEventInstantForSave(
+        values.submissionOpensAtLocal,
+        timezone,
+        baselineRef.current.submissionOpensAt,
+        baselineRef.current.timezone,
+      );
+    } catch {
+      setError(
+        'submissionOpensAtLocal',
+        {
+          type: 'validate',
+          message:
+            'Choose a valid, unambiguous opening time in the event timezone.',
+        },
+        { shouldFocus: true },
+      );
+
+      return;
+    }
+
+    try {
+      submissionClosesAt = toEventInstantForSave(
+        values.submissionClosesAtLocal,
+        timezone,
+        baselineRef.current.submissionClosesAt,
+        baselineRef.current.timezone,
+      );
+    } catch {
+      setError(
+        'submissionClosesAtLocal',
+        {
+          type: 'validate',
+          message:
+            'Choose a valid, unambiguous deadline in the event timezone.',
+        },
+        { shouldFocus: true },
+      );
+
+      return;
+    }
+
+    if (
+      submissionOpensAt !== null &&
+      submissionClosesAt !== null &&
+      !isEventEndAfterStart(submissionOpensAt, submissionClosesAt)
+    ) {
+      setError(
+        'submissionClosesAtLocal',
+        {
+          type: 'validate',
+          message: 'The deadline must be after the opening time.',
+        },
+        { shouldFocus: true },
+      );
+
+      return;
+    }
+
+    let maxSubmissionsPerPerson: number | null;
+
+    try {
+      maxSubmissionsPerPerson = parseSubmissionLimit(
+        values.maxSubmissionsPerPerson,
+      );
+    } catch {
+      setError(
+        'maxSubmissionsPerPerson',
+        {
+          type: 'validate',
+          message:
+            'Enter a positive whole number, or leave blank for no limit.',
+        },
+        { shouldFocus: true },
+      );
+
+      return;
+    }
+
     const input: UpdateEventSettingsInput = {
       name: values.name.trim(),
       description: values.description.trim() || null,
       format: values.format || null,
       location: values.location.trim() || null,
+
       startsAt,
       endsAt,
       timezone,
+
+      submissionOpensAt,
+      submissionClosesAt,
+      submissionInstructions: values.submissionInstructions.trim() || null,
+      maxSubmissionsPerPerson,
     };
 
     const controller = new AbortController();
@@ -374,7 +518,7 @@ export const EventSettingsForm = (props: Props) => {
             label="Timezone"
             required
             list="event-timezone-options"
-            hint="Times below use this timezone. Changing it keeps the entered clock times and changes the corresponding UTC times."
+            hint="Event and CFP times below use this timezone. Changing it keeps the entered clock times and changes their UTC instants. Review all four dates before saving."
             error={errors.timezone?.message}
             {...register('timezone', {
               validate: (value) =>
@@ -401,7 +545,7 @@ export const EventSettingsForm = (props: Props) => {
               id="event-settings-starts-at"
               label="Starts"
               type="datetime-local"
-              step={1}
+              step={0.001}
               error={errors.startsAtLocal?.message}
               {...register('startsAtLocal')}
             />
@@ -410,12 +554,18 @@ export const EventSettingsForm = (props: Props) => {
               id="event-settings-ends-at"
               label="Ends"
               type="datetime-local"
-              step={1}
+              step={0.001}
               error={errors.endsAtLocal?.message}
               {...register('endsAtLocal')}
             />
           </div>
         </section>
+
+        <CfpSettingsFields
+          register={register}
+          errors={errors}
+          timezone={timezone}
+        />
 
         <div className="flex flex-wrap gap-3">
           <SubmitButton

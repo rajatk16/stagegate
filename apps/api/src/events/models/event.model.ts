@@ -4,8 +4,8 @@ import { length } from 'class-validator';
 import { SLUG_PATTERN } from '../../common/constants';
 import { EVENT_FORMAT } from '../enums/eventFormat.enum';
 import { EVENT_STATUS } from '../enums/eventStatus.enum';
-import { organizationSchema } from '../../organizations/models/organization.model';
 import { instantSchema } from '../../common/models/instant.model';
+import { organizationSchema } from '../../organizations/models/organization.model';
 
 export const eventSlugValueSchema = z
   .string()
@@ -41,6 +41,14 @@ export const eventObjectSchema = z
     endsAt: scheduleDateSchema,
     submissionOpensAt: scheduleDateSchema,
     submissionClosesAt: scheduleDateSchema,
+    submissionInstructions: nullableText(10_000),
+    maxSubmissionsPerPerson: z
+      .number()
+      .int()
+      .min(1)
+      .max(Number.MAX_SAFE_INTEGER)
+      .nullable()
+      .default(null),
     timezone: z
       .string()
       .trim()
@@ -114,6 +122,8 @@ export type EventSettingsUpdate = Partial<
     | 'timezone'
     | 'submissionOpensAt'
     | 'submissionClosesAt'
+    | 'submissionInstructions'
+    | 'maxSubmissionsPerPerson'
   >
 >;
 

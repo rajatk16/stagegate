@@ -441,7 +441,9 @@ export class EventsRepository {
           candidate.submissionOpensAt?.getTime() ===
             current.submissionOpensAt?.getTime() &&
           candidate.submissionClosesAt?.getTime() ===
-            current.submissionClosesAt?.getTime()
+            current.submissionClosesAt?.getTime() &&
+          candidate.submissionInstructions === current.submissionInstructions &&
+          candidate.maxSubmissionsPerPerson === current.maxSubmissionsPerPerson
         ) {
           return current;
         }
