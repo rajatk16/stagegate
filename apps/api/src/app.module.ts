@@ -15,6 +15,7 @@ import { SubmissionsModule } from './submissions/modules/submissions.module';
 import { OrganizationModule } from './organizations/modules/organization.module';
 import { ObservabilityModule } from './observalibility/modules/observability.module';
 import { RequestValidationException } from './common/exceptions/requestValidation.exception';
+import { EventConfigurationModule } from './events/modules/eventConfiguration.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { RequestValidationException } from './common/exceptions/requestValidatio
     SubmissionsModule,
     OrganizationModule,
     ObservabilityModule,
+    EventConfigurationModule,
   ],
   providers: [
     {

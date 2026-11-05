@@ -97,6 +97,13 @@ const toDetails = (event: AuditEvent): Record<string, string | string[]> => {
         previousStatus: event.previousStatus,
         nextStatus: event.nextStatus,
       };
+    case 'event.configuration.changed':
+      return {
+        targetEventId: event.targetEventId,
+        configurationId: event.configurationId,
+        configurationKind: event.configurationKind,
+        operation: event.operation,
+      };
   }
 };
 
