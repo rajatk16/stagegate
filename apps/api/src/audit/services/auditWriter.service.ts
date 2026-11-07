@@ -1,32 +1,34 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { Transaction } from 'firebase-admin/firestore';
-import { FirebaseService } from '../../firebase/services/firebase.service';
-import { RequestContextService } from '../../observalibility/services/requestContext.service';
+
 import { PROFILE_FIELDS } from '../enums/profileFields.enum';
+import { EVENT_STATUS } from '../../events/enums/eventStatus.enum';
+import { auditEventConverter } from '../converters/auditEvent.converter';
 import { AuditEvent, auditEventSchema } from '../models/auditEvent.model';
+import { FirebaseService } from '../../firebase/services/firebase.service';
 import { DiagnosticError } from '../../observalibility/errors/diagnostic.error';
+import { EventMutationAuditInput } from '../types/eventMutationAuditInput.type';
+import { EventMembershipAuditInput } from '../types/eventMembershipAuditInput.type';
+import { ORGANIZATION_ROLES } from '../../organizations/enums/organizationRoles.enum';
+import { ORGANIZATION_SETTINGS_FIELDS } from '../enums/organizationSettingsFields.enum';
+import { EVENT_CONFIGURATION_KIND } from '../../events/enums/eventConfigurationKind.enum';
+import { OwnershipTransferredAuditInput } from '../types/ownershipTranferredAuditInput.type';
+import { RequestContextService } from '../../observalibility/services/requestContext.service';
+import { OrganizationInvitationAuditInput } from '../types/organizationInvitationAuditInput.type';
 import {
-  OrganizationMemberStatusAuditInput,
   toEventCreatedAuditEvent,
-  toEventStatusChangedAuditEvent,
   toEventUpdatedAuditEvent,
+  toProfileUpdatedAuditEvent,
+  toEventStatusChangedAuditEvent,
   toOrganizationCreatedAuditEvent,
+  OrganizationMemberStatusAuditInput,
   toOrganizationInvitationAuditEvent,
+  toOrganizationSettingsUpdatedAuditEvent,
   toOrganizationMemberRoleChangedAuditEvent,
   toOrganizationMemberStatusChangedAuditEvent,
   toOrganizationOwnershipTransferredAuditEvent,
-  toOrganizationSettingsUpdatedAuditEvent,
-  toProfileUpdatedAuditEvent,
 } from '../mappers/auditEvent.mapper';
-import { auditEventConverter } from '../converters/auditEvent.converter';
-import { ORGANIZATION_SETTINGS_FIELDS } from '../enums/organizationSettingsFields.enum';
-import { ORGANIZATION_ROLES } from '../../organizations/enums/organizationRoles.enum';
-import { OrganizationInvitationAuditInput } from '../types/organizationInvitationAuditInput.type';
-import { OwnershipTransferredAuditInput } from '../types/ownershipTranferredAuditInput.type';
-import { EventMutationAuditInput } from '../types/eventMutationAuditInput.type';
-import { EVENT_STATUS } from '../../events/enums/eventStatus.enum';
-import { EventMembershipAuditInput } from '../types/eventMembershipAuditInput.type';
 
 @Injectable()
 export class AuditWriter {
@@ -236,6 +238,32 @@ export class AuditWriter {
       ...input,
       schemaVersion: 1,
       eventId: randomUUID(),
+      outcome: 'succeeded',
+      requestId: context.requestId,
+    });
+  }
+
+  prepareEventConfigurationChanged(input: {
+    actorUid: string;
+    organizationId: string;
+    targetEventId: string;
+    configurationId: string;
+    configurationKind: EVENT_CONFIGURATION_KIND;
+    operation: 'created' | 'updated' | 'deleted';
+    occurredAt: Date;
+  }): AuditEvent {
+    const context = this.requestContextService.require();
+
+    if (!context.actorUid || context.actorUid !== input.actorUid) {
+      throw new DiagnosticError('AUDIT_ACTOR_MISMATCH');
+    }
+
+    return auditEventSchema.parse({
+      ...input,
+      schemaVersion: 1,
+      eventId: randomUUID(),
+      action: 'event.configuration.changed',
+      targetType: 'eventConfiguration',
       outcome: 'succeeded',
       requestId: context.requestId,
     });

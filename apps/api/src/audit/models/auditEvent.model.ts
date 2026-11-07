@@ -3,6 +3,7 @@ import { PROFILE_FIELDS } from '../enums/profileFields.enum';
 import { ORGANIZATION_SETTINGS_FIELDS } from '../enums/organizationSettingsFields.enum';
 import { ORGANIZATION_ROLES } from '../../organizations/enums/organizationRoles.enum';
 import { EVENT_ROLES } from '../../events/enums/eventRoles.enum';
+import { EVENT_CONFIGURATION_KIND } from '../../events/enums/eventConfigurationKind.enum';
 
 const auditBaseSchema = z.object({
   schemaVersion: z.literal(1),
@@ -197,6 +198,18 @@ export const eventMemberStatusChangedAuditSchema = eventMemberAuditBaseSchema
   })
   .strict();
 
+export const eventConfigurationChangedAuditSchema = auditBaseSchema
+  .extend({
+    action: z.literal('event.configuration.changed'),
+    targetType: z.literal('eventConfiguration'),
+    organizationId: z.string().uuid(),
+    targetEventId: z.string().uuid(),
+    configurationId: z.string().uuid(),
+    configurationKind: z.nativeEnum(EVENT_CONFIGURATION_KIND),
+    operation: z.enum(['created', 'updated', 'deleted']),
+  })
+  .strict();
+
 export const auditEventSchema = z.discriminatedUnion('action', [
   eventCreatedAuditEventSchema,
   eventMemberJoinedAuditSchema,
@@ -209,6 +222,7 @@ export const auditEventSchema = z.discriminatedUnion('action', [
   eventStatusChangedAuditEventSchema,
   organizationCreatedAuditEventSchema,
   eventMemberStatusChangedAuditSchema,
+  eventConfigurationChangedAuditSchema,
   organizationSettingsUpdatedAuditEventSchema,
   organizationInvitationCreatedAuditEventSchema,
   organizationMemberRoleChangedAuditEventSchema,
