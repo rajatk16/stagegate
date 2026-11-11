@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { App } from './App';
 import './index.css';
+import { initializeStageGateAuth } from './lib/firebaseAuth';
+import { AuthProvider } from './features/auth/provider/auth';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,6 +21,8 @@ const queryClient = new QueryClient({
   },
 });
 
+const auth = initializeStageGateAuth();
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider
@@ -31,7 +35,9 @@ createRoot(document.getElementById('root')!).render(
     >
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <App />
+          <AuthProvider auth={auth}>
+            <App />
+          </AuthProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </ThemeProvider>
