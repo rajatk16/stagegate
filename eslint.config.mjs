@@ -22,6 +22,10 @@ export default defineConfig([
     },
   },
   {
+    files: ['apps/web/public/**/*.js'],
+    languageOptions: { globals: globals.browser },
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     extends: [js.configs.recommended, tseslint.configs.recommended],
   },
@@ -43,7 +47,7 @@ export default defineConfig([
   {
     files: ['apps/api/**/*.spec.ts', 'apps/api/test/**/*.ts'],
     languageOptions: { globals: globals.jest },
-  },  
+  },
   {
     files: [
       'apps/api/{src,test}/**/*.ts',

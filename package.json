@@ -13,12 +13,9 @@
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "npm test --workspace=@stagegate/api -- --runInBand",
-    "test:api:http": "npm run test:e2e --workspace=@stagegate/api -- --runInBand",
     "check": "npm run format:check && npm run build && npm run lint && npm test && npm run test:api:http",
     "build": "turbo run build",
-    "dev": "turbo run dev",
-    "test:e2e:chromium": "npm run build && playwright test"
+    "dev": "turbo run dev"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
@@ -27,6 +24,7 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-react-hooks": "7.1.1",
     "eslint-plugin-react-refresh": "0.5.7",
+    "firebase-tools": "15.35.0",
     "globals": "17.14.0",
     "prettier": "3.9.10",
     "turbo": "2.11.10",
