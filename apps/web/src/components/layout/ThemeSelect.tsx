@@ -8,7 +8,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './ui/select';
+} from '../ui/select';
 
 const systemOption = { value: 'system', label: 'System', icon: Monitor };
 const themeOptions = [
