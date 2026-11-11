@@ -2,6 +2,7 @@ import { Link, Route, Routes } from 'react-router';
 
 import { Home } from './pages/Home';
 import { NotFound } from './pages/NotFound';
+import { ThemeSelect } from './components/ThemeSelect';
 
 export const App = () => (
   <>
@@ -12,16 +13,20 @@ export const App = () => (
       Skip to content
     </a>
     <header className="border-b bg-card">
-      <div className="mx-auto max-w-full px-6 py-4">
-        <Link className="font-semibold" to="/">
-          StageGatea
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <Link
+          className="inline-flex min-h-11 items-center font-semibold"
+          to="/"
+        >
+          StageGate
         </Link>
+        <ThemeSelect />
       </div>
     </header>
     <main
       id="main-content"
       tabIndex={-1}
-      className="mx-auto max-w-full px-6 py-12"
+      className="mx-auto min-w-0 max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8"
     >
       <Routes>
         <Route path="/" element={<Home />} />
