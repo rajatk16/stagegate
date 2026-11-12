@@ -1,0 +1,7 @@
+{
+  "name": "@stagegate/worker",
+  "version": "0.0.0",
+  "description": "StageGate asynchronous background processing service",
+  "private": true,
+  "license": "UNLICENSED"
+}
