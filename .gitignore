@@ -1,17 +1,83 @@
-node_modules/ 
-dist/ 
-.turbo/ 
-coverage/ 
-*.tsbuildinfo 
-.env 
-.env.*
-!.env.example
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
 
-docs/
+# Build outputs
+dist/
+build/
+out/
+.next/
+.vite/
+*.tsbuildinfo
 
+# Turborepo
+.turbo/
+
+# Testing
+coverage/
+.nyc_output/
 playwright-report/
 test-results/
-firebase-debug.log
-firebase-debug.*.log
-firestore-debug.log
-storage-debug.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime files
+*.pid
+*.pid.lock
+*.seed
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# Firebase
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+firebase-emulator-data/
+
+# Credentials
+service-account*.json
+firebase-adminsdk*.json
+*.pem
+*.key
+*.p12
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+*.auto.tfvars
+*.auto.tfvars.json
+terraform.tfvars
+terraform.tfvars.json
+
+# IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Operating systems
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Miscellaneous
+*.local

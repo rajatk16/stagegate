@@ -1,8 +1,0 @@
-**/node_modules/
-**/dist/
-**/.turbo/
-**/coverage/
-**/playwright-report/
-**/test-results/
-package-lock.json
-docs/
