@@ -29,10 +29,10 @@ The repository will contain:
 - apps/api
 - apps/worker
 - apps/admin
-- packages/*
-- infrastructure/*
-- docs/*
-- scripts/*
+- packages/\*
+- infrastructure/\*
+- docs/\*
+- scripts/\*
 
 ## Package management
 
@@ -45,7 +45,7 @@ Internal packages will use the @stagegate namespace.
 
 All workspaces will be private.
 
-Internal workspace dependencies will use the "*"
+Internal workspace dependencies will use the "\*"
 version specification.
 
 External dependencies will use exact versions.

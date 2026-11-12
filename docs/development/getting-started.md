@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Node.js 24 LTS
-- npm 11.6.2
+- npm 11.19.0
 - Git
 - A compatible code editor
 
@@ -19,7 +19,7 @@ nvm use
 Install the expected npm version:
 
 ```bash
-npm install --global npm@11.6.2
+npm install --global npm@11.19.0
 ```
 
 Verify:
@@ -102,12 +102,48 @@ be documented in the application's .env.example.
 
 Actual environment files must never be committed.
 
+## Verify the repository
+
+```bash
+npm run validate:workspaces
+npm run test:foundation
+npm run lint
+npm run typecheck
+npm run format:check
+```
+
+Run the complete quality gate:
+
+```bash
+npm run check
+```
+
+## Formatting
+
+Format the repository:
+
+```bash
+npm run format
+```
+
+Apply ESLint autofixes:
+
+```bash
+npm run lint:fix
+```
+
+Review all generated changes before committing.
+
 ## Current project status
 
-Phase 1, PR 1.1 establishes the monorepo.
+Phase 1, PR 1.2 introduces shared TypeScript,
+ESLint and Prettier configurations.
 
-The application workspaces are registered but
-do not yet contain runnable applications.
+Application workspaces have compiler and lint
+configurations but do not yet contain runnable
+applications.
 
-Development servers and application builds will
-be introduced in subsequent pull requests.
+Type checking validates configuration and skips
+compilation for empty application workspaces.
+
+React and NestJS initialization will follow.

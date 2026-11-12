@@ -1,0 +1,19 @@
+{
+  "name": "@stagegate/typescript-config",
+  "version": "0.0.0",
+  "description": "Shared TypeScript configurations for StageGate",
+  "private": true,
+  "license": "UNLICENSED",
+  "exports": {
+    "./base.json": "./base.json",
+    "./react.json": "./react.json",
+    "./node.json": "./node.json",
+    "./nest.json": "./nest.json",
+    "./library.json": "./library.json",
+    "./react-library.json": "./react-library.json",
+    "./node-library.json": "./node-library.json"
+  },
+  "files": [
+    "*.json"
+  ]
+}

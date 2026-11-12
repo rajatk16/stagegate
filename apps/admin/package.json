@@ -4,5 +4,16 @@
   "description": "StageGate internal platform administration application",
   "private": true,
   "license": "UNLICENSED",
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "typecheck": "node ../../scripts/typecheck-workspace.mjs"
+  },
+  "devDependencies": {
+    "@stagegate/eslint-config": "*",
+    "@stagegate/typescript-config": "*",
+    "eslint": "9.39.1",
+    "typescript": "5.9.3"
+  }
 }

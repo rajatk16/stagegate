@@ -58,17 +58,33 @@ Every pull request should describe:
 
 ## Verification
 
-For the monorepo foundation:
+Install dependencies using the root lockfile:
 
 ```bash
 npm ci
-npm run validate:workspaces
-npm run test:foundation
 ```
 
-Additional lint, type-check, build and application
-test requirements will be introduced as the
-corresponding tooling becomes available.
+Run the complete repository quality gate:
+
+```bash
+npm run check
+```
+
+To resolve formatting and lint issues:
+
+```bash
+npm run lint:fix
+npm run format
+```
+
+Review changes before committing.
+
+All pull requests must pass workspace validation,
+formatting checks, linting, type checking and
+applicable automated tests.
+
+See [Coding Standards](docs/development/coding-standards.md)
+for detailed engineering conventions.
 
 ## Security
 

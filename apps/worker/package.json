@@ -3,5 +3,18 @@
   "version": "0.0.0",
   "description": "StageGate asynchronous background processing service",
   "private": true,
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "typecheck": "node ../../scripts/typecheck-workspace.mjs"
+  },
+  "devDependencies": {
+    "@stagegate/eslint-config": "*",
+    "@stagegate/typescript-config": "*",
+    "@types/node": "24.10.0",
+    "eslint": "9.39.1",
+    "typescript": "5.9.3"
+  }
 }

@@ -7,7 +7,7 @@
   "packageManager": "npm@11.19.0",
   "engines": {
     "node": ">=24.0.0 <25.0.0",
-    "npm": ">=11.6.2 <12.0.0"
+    "npm": ">=11.19.0 <12.0.0"
   },
   "workspaces": [
     "apps/*",
@@ -20,19 +20,31 @@
     "dev:worker": "turbo run dev --filter=@stagegate/worker",
     "dev:admin": "turbo run dev --filter=@stagegate/admin",
     "build": "turbo run build",
-    "lint": "turbo run lint",
+    "lint": "npm run lint:root && turbo run lint",
+    "lint:root": "eslint eslint.config.mjs prettier.config.mjs scripts packages/eslint-config --max-warnings=0",
+    "lint:fix": "npm run lint:root:fix && turbo run lint:fix",
+    "lint:root:fix": "eslint eslint.config.mjs prettier.config.mjs scripts packages/eslint-config --fix --max-warnings=0",
     "typecheck": "turbo run typecheck",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "npm run test:foundation && turbo run test",
     "test:foundation": "node --test scripts/tests/*.test.mjs",
     "test:integration": "turbo run test:integration",
     "test:e2e": "turbo run test:e2e",
-    "check": "npm run validate:workspaces && npm run test:foundation && turbo run lint typecheck test build",
+    "check": "npm run validate:workspaces && npm run format:check && npm run lint:root && npm run test:foundation && turbo run lint typecheck test build",
     "clean": "node scripts/clean.mjs",
     "validate:workspaces": "node scripts/validate-workspaces.mjs",
     "graph": "turbo run build --graph",
     "info": "turbo info"
   },
   "devDependencies": {
-    "turbo": "2.5.8"
+    "@stagegate/eslint-config": "*",
+    "@stagegate/typescript-config": "*",
+    "@types/node": "24.10.0",
+    "eslint": "9.39.1",
+    "globals": "16.5.0",
+    "prettier": "3.6.2",
+    "turbo": "2.5.8",
+    "typescript": "5.9.3"
   }
 }
