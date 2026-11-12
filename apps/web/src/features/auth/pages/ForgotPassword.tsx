@@ -81,7 +81,11 @@ export const ForgotPassword = () => {
               {errors.root.server.message}
             </p>
           )}
-          <Button type="submit" disabled={isSubmitting} className="min-h-11">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="min-h-11 cursor-pointer"
+          >
             {isSubmitting ? 'Sending…' : 'Send reset link'}
           </Button>
         </form>

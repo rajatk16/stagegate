@@ -1,24 +1,26 @@
-import { Link, Outlet } from 'react-router';
 import { PanelsTopLeft } from 'lucide-react';
+import { Link, Outlet, useMatch } from 'react-router';
+
+import { buttonVariants } from '@/constants/variants';
+import { useAuth } from '@/features/auth/context/auth';
 
 import { ThemeSelect } from './ThemeSelect';
-import { useAuth } from '@/features/auth/context/auth';
-import { buttonVariants } from '@/constants/variants';
+import { AccountMenu } from './AccountMenu';
 
 export const AppShell = () => {
   const { session } = useAuth();
+  const isLandingPage = useMatch('/') !== null;
+
   const accountLink =
-    session.status === 'active'
-      ? { path: '/app', label: 'Workspace' }
-      : session.status === 'verify' || session.status === 'error'
-        ? {
-            path: '/verify-email',
-            label: 'Verify email',
-          }
-        : {
-            path: '/sign-in',
-            label: 'Sign in',
-          };
+    session.status === 'verify' || session.status === 'error'
+      ? {
+          path: '/verify-email',
+          label: 'Verify email',
+        }
+      : {
+          path: '/sign-in',
+          label: 'Sign in',
+        };
   return (
     <div id="top" className="flex min-h-svh flex-col">
       <a
@@ -39,24 +41,28 @@ export const AppShell = () => {
             StageGate
           </a>
           <div className="flex items-center gap-2 sm:gap-7">
-            <nav
-              aria-label="Primary"
-              className="hidden items-center gap-6 sm:flex"
-            >
-              <a
-                href="/#workflow"
-                className="inline-flex min-h-11 items-center rounded-sm text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+            {isLandingPage && (
+              <nav
+                aria-label="Primary"
+                className="hidden items-center gap-6 sm:flex"
               >
-                Workflow
-              </a>
-              <a
-                href="/#speakers"
-                className="inline-flex min-h-11 items-center rounded-sm text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-              >
-                For Speakers
-              </a>
-            </nav>
-            {session.status !== 'loading' && (
+                <a
+                  href="/#workflow"
+                  className="inline-flex min-h-11 items-center rounded-sm text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                >
+                  Workflow
+                </a>
+                <a
+                  href="/#speakers"
+                  className="inline-flex min-h-11 items-center rounded-sm text-sm font-medium text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+                >
+                  For Speakers
+                </a>
+              </nav>
+            )}
+            {session.status === 'active' ? (
+              <AccountMenu email={session.identity.email} />
+            ) : session.status !== 'loading' ? (
               <Link
                 to={accountLink.path}
                 className={buttonVariants({
@@ -66,7 +72,7 @@ export const AppShell = () => {
               >
                 {accountLink.label}
               </Link>
-            )}
+            ) : null}
             <ThemeSelect />
           </div>
         </div>
@@ -76,24 +82,26 @@ export const AppShell = () => {
       </main>
       <footer className="border-t border-border/70 bg-card">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-8 gap-y-1 px-4 py-4 sm:px-8">
-          <span className="text-sm font-semibold">StageGate</span>
-          <nav
-            aria-label="Footer"
-            className="flex flex-wrap items-center gap-x-5 text-sm font-medium text-muted-foreground"
-          >
-            <a
-              href="/#workflow"
-              className="inline-flex min-h-11 items-center rounded-sm hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+          <span className="text-sm font-semibold opacity-30">StageGate</span>
+          {isLandingPage && (
+            <nav
+              aria-label="Footer"
+              className="flex flex-wrap items-center gap-x-5 text-sm font-medium text-muted-foreground"
             >
-              Workflow
-            </a>
-            <a
-              href="/#speakers"
-              className="inline-flex min-h-11 items-center rounded-sm hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
-            >
-              For speakers
-            </a>
-          </nav>
+              <a
+                href="/#workflow"
+                className="inline-flex min-h-11 items-center rounded-sm hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+              >
+                Workflow
+              </a>
+              <a
+                href="/#speakers"
+                className="inline-flex min-h-11 items-center rounded-sm hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+              >
+                For speakers
+              </a>
+            </nav>
+          )}
         </div>
       </footer>
     </div>

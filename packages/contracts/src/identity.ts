@@ -9,6 +9,16 @@ export const identityResponseSchema = z.strictObject({
 
 export type IdentityResponse = z.infer<typeof identityResponseSchema>;
 
+export const accountDetailsResponseSchema = identityResponseSchema.extend({
+  emailVerified: z.literal(true),
+  createdAt: z.iso.datetime().nullable(),
+  lastSignInAt: z.iso.datetime().nullable(),
+});
+
+export type AccountDetailsResponse = z.infer<
+  typeof accountDetailsResponseSchema
+>;
+
 export enum IDENTITY_ERROR_CODES {
   AUTH_REQUIRED = 'AUTH_REQUIRED',
   INVALID_ID_TOKEN = 'INVALID_ID_TOKEN',

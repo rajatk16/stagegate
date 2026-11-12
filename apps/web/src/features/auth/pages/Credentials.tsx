@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react';
 import { FirebaseError } from 'firebase/app';
@@ -14,7 +15,6 @@ import {
   signUpSchema,
   type CredentialValues,
 } from '../util/formSchemas';
-import { Link } from 'react-router';
 
 const credentialMessage = (error: unknown, signup: boolean): string => {
   const code = error instanceof FirebaseError ? error.code : undefined;
@@ -167,7 +167,7 @@ export const Credentials = ({ mode }: { mode: 'sign-in' | 'signup' }) => {
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="min-h-11 w-full"
+          className="min-h-11 w-full cursor-pointer"
         >
           {signup
             ? isSubmitting

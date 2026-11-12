@@ -71,7 +71,7 @@ export const VerifyEmail = () => {
         <Button
           type="button"
           variant="outline"
-          className="min-h-11"
+          className="min-h-11 cursor-pointer"
           disabled={sending}
           onClick={() => void sendVerification()}
         >

@@ -1,5 +1,9 @@
-import type { IdentityResponse } from '@stagegate/contracts';
 import { createContext, useContext } from 'react';
+
+import type {
+  IdentityResponse,
+  AccountDetailsResponse,
+} from '@stagegate/contracts';
 
 export type Session =
   | {
@@ -17,6 +21,7 @@ export type Session =
   | {
       status: 'active';
       identity: IdentityResponse;
+      uid: string;
     };
 
 export type DeliveryStatus = 'idle' | 'sending' | 'sent' | 'failed';
@@ -30,6 +35,11 @@ type AuthContextValue = {
   sendVerification: () => Promise<void>;
   checkVerification: () => Promise<boolean>;
   resetPassword: (email: string) => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>;
+  getAccountDetails: (signal: AbortSignal) => Promise<AccountDetailsResponse>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

@@ -24,7 +24,7 @@ export const CheckVerificationButton = () => {
     <div>
       <Button
         type="button"
-        className="min-h-11 w-full"
+        className="min-h-11 w-full cursor-pointer"
         disabled={busy}
         onClick={() => void check()}
       >

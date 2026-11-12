@@ -2,7 +2,11 @@ import { randomUUID } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { DocumentSnapshot } from 'firebase-admin/firestore';
 
-import { IDENTITY_ERROR_CODES, IdentityResponse } from '@stagegate/contracts';
+import {
+  IdentityResponse,
+  IDENTITY_ERROR_CODES,
+  AccountDetailsResponse,
+} from '@stagegate/contracts';
 
 import { UserProfile } from '../types/userProfile.type';
 import { IdentityError } from '../errors/identity.error';
@@ -12,6 +16,11 @@ import { FirebaseService } from '../../firebase/services/firebase.service';
 import { authOperation, identityConflict } from '../utils/authOperation.util';
 import { VerifiedFirebaseIdentity } from '../types/verifiedFirebaseIdentity.type';
 import { IdentityMappingsRepository } from '../repositories/identityMappings.repository';
+
+const authTimestamp = (value: string | null | undefined): string | null => {
+  const time = value ? Date.parse(value) : NaN;
+  return Number.isFinite(time) ? new Date(time).toISOString() : null;
+};
 
 @Injectable()
 export class IdentityService {
@@ -25,26 +34,7 @@ export class IdentityService {
     identity: VerifiedFirebaseIdentity,
   ): Promise<IdentityResponse> {
     const { uid, email } = identity;
-    const auth = this.firebase.auth;
-    const account = await authOperation(() => auth.getUser(uid));
-
-    if (account.disabled)
-      throw new IdentityError(
-        HttpStatus.UNAUTHORIZED,
-        IDENTITY_ERROR_CODES.INVALID_ID_TOKEN,
-        'Sign in again to continue.',
-      );
-
-    if (!account.emailVerified)
-      throw new IdentityError(
-        HttpStatus.FORBIDDEN,
-        IDENTITY_ERROR_CODES.EMAIL_NOT_VERIFIED,
-        'Verify your email to continue.',
-      );
-
-    if (normalizeIdentityEmail(account.email ?? '') !== email) {
-      throw identityConflict();
-    }
+    await this.getVerifiedAccount(identity);
     const newUserId = randomUUID();
 
     return this.firebase.firestore.runTransaction(async (transaction) => {
@@ -125,5 +115,47 @@ export class IdentityService {
       throw identityConflict();
     }
     return { userId, email };
+  }
+
+  async getAccountDetails(
+    identity: VerifiedFirebaseIdentity,
+  ): Promise<AccountDetailsResponse> {
+    const { userId, email } = await this.getActive(identity);
+    const account = await this.getVerifiedAccount(identity);
+
+    return {
+      userId,
+      email,
+      emailVerified: true,
+      createdAt: authTimestamp(account.metadata.creationTime),
+      lastSignInAt: authTimestamp(account.metadata.lastSignInTime),
+    };
+  }
+
+  private async getVerifiedAccount({ uid, email }: VerifiedFirebaseIdentity) {
+    const auth = this.firebase.auth;
+    const account = await authOperation(() => auth.getUser(uid));
+
+    if (account.disabled) {
+      throw new IdentityError(
+        HttpStatus.UNAUTHORIZED,
+        IDENTITY_ERROR_CODES.INVALID_ID_TOKEN,
+        'Sign in again to continue.',
+      );
+    }
+
+    if (!account.emailVerified) {
+      throw new IdentityError(
+        HttpStatus.FORBIDDEN,
+        IDENTITY_ERROR_CODES.EMAIL_NOT_VERIFIED,
+        'Verify your email to continue.',
+      );
+    }
+
+    if (normalizeIdentityEmail(account.email ?? '') !== email) {
+      throw identityConflict();
+    }
+
+    return account;
   }
 }

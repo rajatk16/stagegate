@@ -14,6 +14,7 @@ import {
 import {
   IDENTITY_ERROR_CODES,
   identityResponseSchema,
+  accountDetailsResponseSchema,
   activateIdentityRequestSchema,
 } from '@stagegate/contracts';
 
@@ -51,6 +52,14 @@ export class IdentityController {
   async getMe(@Req() request: IdentityRequest) {
     return identityResponseSchema.parse(
       await this.identities.getActive(request.firebaseIdentity),
+    );
+  }
+
+  @Get('account')
+  @Header('Cache-Control', 'no-store')
+  async getAccountDetails(@Req() request: IdentityRequest) {
+    return accountDetailsResponseSchema.parse(
+      await this.identities.getAccountDetails(request.firebaseIdentity),
     );
   }
 }

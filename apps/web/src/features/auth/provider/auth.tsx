@@ -10,11 +10,14 @@ import {
   reload,
   type Auth,
   type User,
+  updatePassword,
+  EmailAuthProvider,
   onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
   signOut as firebaseSignOut,
   signInWithEmailAndPassword,
+  reauthenticateWithCredential,
   createUserWithEmailAndPassword,
 } from 'firebase/auth';
 
@@ -23,7 +26,11 @@ import {
   type DeliveryStatus,
   AuthContext,
 } from '../context/auth';
-import { identityFailureMessage, loadIdentity } from '../api/identity';
+import {
+  fetchAccountDetails,
+  identityFailureMessage,
+  loadIdentity,
+} from '../api/identity';
 
 export const AuthProvider = ({
   auth,
@@ -61,7 +68,8 @@ export const AuthProvider = ({
           return false;
         }
         const identity = await loadIdentity(user, controller.signal, refresh);
-        if (current()) setSession({ status: 'active', identity });
+        if (current())
+          setSession({ status: 'active', identity, uid: user.uid });
         return current();
       } catch (error) {
         if (current())
@@ -162,6 +170,35 @@ export const AuthProvider = ({
             )
               throw error;
           }
+        },
+        changePassword: async (currentPassword, newPassword) => {
+          const firebase = configuredAuth();
+          const user = firebase.currentUser;
+          if (
+            session.status !== 'active' ||
+            !user?.email ||
+            session.uid !== user.uid
+          ) {
+            throw new Error('The active account has changed.');
+          }
+
+          const credential = EmailAuthProvider.credential(
+            user.email,
+            currentPassword,
+          );
+          await reauthenticateWithCredential(user, credential);
+          if (firebase.currentUser !== user) {
+            throw new Error('The active account has changed.');
+          }
+
+          await updatePassword(user, newPassword);
+        },
+        getAccountDetails: async (signal) => {
+          const user = configuredAuth().currentUser;
+          if (session.status !== 'active' || user?.uid !== session.uid) {
+            throw new Error('The Active account has changed.');
+          }
+          return fetchAccountDetails(user, signal);
         },
       }}
     >
