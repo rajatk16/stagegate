@@ -24,7 +24,7 @@ export const badgeVariants = cva(
 );
 
 export const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex cursor-pointer shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:cursor-not-allowed data-disabled:cursor-not-allowed aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
@@ -56,6 +56,63 @@ export const buttonVariants = cva(
     defaultVariants: {
       variant: 'default',
       size: 'default',
+    },
+  },
+);
+
+export const fieldVariants = cva(
+  'group/field flex w-full gap-3 data-[invalid=true]:text-destructive',
+  {
+    variants: {
+      orientation: {
+        vertical: 'flex-col *:w-full [&>.sr-only]:w-auto',
+        horizontal:
+          'flex-row items-center has-[>[data-slot=field-content]]:items-start *:data-[slot=field-label]:flex-auto has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
+        responsive:
+          'flex-col *:w-full @md/field-group:flex-row @md/field-group:items-center @md/field-group:*:w-auto @md/field-group:has-[>[data-slot=field-content]]:items-start @md/field-group:*:data-[slot=field-label]:flex-auto [&>.sr-only]:w-auto @md/field-group:has-[>[data-slot=field-content]]:[&>[role=checkbox],[role=radio]]:mt-px',
+      },
+    },
+    defaultVariants: {
+      orientation: 'vertical',
+    },
+  },
+);
+
+export const inputGroupAddonVariants = cva(
+  "flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-medium text-muted-foreground select-none group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius)-5px)] [&>svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      align: {
+        'inline-start':
+          'order-first pl-2 has-[>button]:-ml-1 has-[>kbd]:ml-[-0.15rem]',
+        'inline-end':
+          'order-last pr-2 has-[>button]:-mr-1 has-[>kbd]:mr-[-0.15rem]',
+        'block-start':
+          'order-first w-full justify-start px-2.5 pt-2 group-has-[>input]/input-group:pt-2 [.border-b]:pb-2',
+        'block-end':
+          'order-last w-full justify-start px-2.5 pb-2 group-has-[>input]/input-group:pb-2 [.border-t]:pt-2',
+      },
+    },
+    defaultVariants: {
+      align: 'inline-start',
+    },
+  },
+);
+
+export const inputGroupButtonVariants = cva(
+  'flex items-center gap-2 text-sm shadow-none',
+  {
+    variants: {
+      size: {
+        xs: "h-6 gap-1 rounded-[calc(var(--radius)-5px)] px-1.5 [&>svg:not([class*='size-'])]:size-3.5",
+        sm: '',
+        'icon-xs':
+          'size-6 rounded-[calc(var(--radius)-5px)] p-0 has-[>svg]:p-0',
+        'icon-sm': 'size-8 p-0 has-[>svg]:p-0',
+      },
+    },
+    defaultVariants: {
+      size: 'xs',
     },
   },
 );

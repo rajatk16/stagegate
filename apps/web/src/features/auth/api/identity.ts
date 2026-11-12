@@ -6,6 +6,8 @@ import {
   IDENTITY_ERROR_CODES,
   identityErrorResponseSchema,
   identityResponseSchema,
+  userProfileResponseSchema,
+  type UpdateUserProfileRequest,
 } from '@stagegate/contracts';
 
 import { apiRequest } from '@/lib/api';
@@ -19,21 +21,23 @@ const identityErrorCode = (error: unknown) => {
   return parsed.success ? parsed.data.code : undefined;
 };
 
-const identityClient = (user: User, signal: AbortSignal) => {
+const identityClient = (user: User, signal?: AbortSignal) => {
   const request = async <T>(
     path: string,
-    method: 'GET' | 'POST',
+    method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
     schema: ResponseSchema<T>,
     forceRefresh = false,
+    data?: unknown,
   ) => {
-    signal.throwIfAborted();
+    signal?.throwIfAborted();
     const token = await user.getIdToken(forceRefresh);
-    signal.throwIfAborted();
+    signal?.throwIfAborted();
     return apiRequest(
       {
         url: path,
         method,
         signal,
+        data,
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -53,6 +57,10 @@ const identityClient = (user: User, signal: AbortSignal) => {
     },
     activate: () =>
       request('/me/activate', 'POST', identityResponseSchema, true),
+    patchProfile: (patch: UpdateUserProfileRequest) =>
+      request('/me/profile', 'PATCH', userProfileResponseSchema, false, patch),
+    clearProfile: () =>
+      request('/me/profile', 'DELETE', { parse: () => undefined }),
   };
 };
 
@@ -87,3 +95,12 @@ export const identityFailureMessage = (error: unknown): string => {
   }
   return "We couldn't open your StageGate workspace. Try again or sign in again.";
 };
+
+export const fetchUserProfile = (user: User, signal: AbortSignal) =>
+  identityClient(user, signal).get('/me/profile', userProfileResponseSchema);
+
+export const patchUserProfile = (user: User, patch: UpdateUserProfileRequest) =>
+  identityClient(user).patchProfile(patch);
+
+export const deleteUserProfile = (user: User) =>
+  identityClient(user).clearProfile();

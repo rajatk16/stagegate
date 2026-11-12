@@ -3,6 +3,8 @@ import { createContext, useContext } from 'react';
 import type {
   IdentityResponse,
   AccountDetailsResponse,
+  UserProfileResponse,
+  UpdateUserProfileRequest,
 } from '@stagegate/contracts';
 
 export type Session =
@@ -40,6 +42,11 @@ type AuthContextValue = {
     newPassword: string,
   ) => Promise<void>;
   getAccountDetails: (signal: AbortSignal) => Promise<AccountDetailsResponse>;
+  getUserProfile: (signal: AbortSignal) => Promise<UserProfileResponse>;
+  updateUserProfile: (
+    patch: UpdateUserProfileRequest,
+  ) => Promise<UserProfileResponse>;
+  clearUserProfile: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

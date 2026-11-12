@@ -2,15 +2,16 @@ import { Link } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/form/FormFields';
+import { InputGroupInput } from '@/components/ui/inputGroup';
+import { PageContainer } from '@/components/layout/PageContainer';
 
 import { useAuth } from '../context/auth';
-import { AuthPanel } from '../components/AuthPanel';
 import {
   passwordResetSchema,
   type PasswordResetValues,
 } from '../util/formSchemas';
-import { Button } from '@/components/ui/button';
 
 export const ForgotPassword = () => {
   const { resetPassword } = useAuth();
@@ -35,7 +36,7 @@ export const ForgotPassword = () => {
   }
 
   return (
-    <AuthPanel
+    <PageContainer
       title="Reset your password"
       description="Enter the email address you use for StageGate."
     >
@@ -51,31 +52,24 @@ export const ForgotPassword = () => {
           aria-busy={isSubmitting}
           noValidate
         >
-          <label htmlFor="reset-email" className="text-sm font-medium">
-            Email address
-          </label>
-          <Input
+          <FormField
             id="reset-email"
-            {...register('email')}
-            className="min-h-11"
-            readOnly={isSubmitting}
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? 'reset-email-error' : undefined}
-            type="email"
-            autoComplete="username"
-            autoCapitalize="none"
-            spellCheck={false}
-            required
-          />
-          {errors.email && (
-            <p
-              id="reset-email-error"
-              role="alert"
-              className="text-sm text-destructive"
-            >
-              {errors.email.message}
-            </p>
-          )}
+            label="Email address"
+            error={errors.email?.message}
+          >
+            {(control) => (
+              <InputGroupInput
+                {...register('email')}
+                {...control}
+                readOnly={isSubmitting}
+                type="email"
+                autoComplete="email"
+                autoCapitalize="none"
+                spellCheck={false}
+                required
+              />
+            )}
+          </FormField>
           {errors.root?.server && (
             <p role="alert" className="text-sm text-destructive">
               {errors.root.server.message}
@@ -96,6 +90,6 @@ export const ForgotPassword = () => {
       >
         Back to sign in
       </Link>
-    </AuthPanel>
+    </PageContainer>
   );
 };

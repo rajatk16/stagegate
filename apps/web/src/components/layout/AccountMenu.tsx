@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { LayoutDashboard, LogOut, UserRound } from 'lucide-react';
 
 import { useAuth } from '@/features/auth/context/auth';
+import { useUserProfile } from '@/features/auth/hooks/useUserProfile';
 
 import { Button } from '../ui/button';
 import {
@@ -15,8 +16,10 @@ import {
   DropdownMenuSeparator,
 } from '../ui/dropdownMenu';
 
-export const AccountMenu = ({ email }: { email: string }) => {
+export const AccountMenu = () => {
   const { signOut } = useAuth();
+  const profile = useUserProfile();
+
   const [failed, setFailed] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
@@ -50,7 +53,9 @@ export const AccountMenu = ({ email }: { email: string }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" sideOffset={8} className="w-60">
           <DropdownMenuGroup>
-            <DropdownMenuLabel className="truncate">{email}</DropdownMenuLabel>
+            <DropdownMenuLabel className="truncate">
+              {profile.data?.profile?.displayName ?? 'Account'}
+            </DropdownMenuLabel>
             <DropdownMenuItem
               render={<Link to="/app/account" />}
               closeOnClick

@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router';
 
-import { AuthPanel } from './AuthPanel';
+import { PageContainer } from '@/components/layout/PageContainer';
+
 import { useAuth } from '../context/auth';
 
 export const AuthGate = ({ audience }: { audience: 'guest' | 'active' }) => {
@@ -8,14 +9,14 @@ export const AuthGate = ({ audience }: { audience: 'guest' | 'active' }) => {
   switch (session.status) {
     case 'loading':
       return (
-        <AuthPanel
+        <PageContainer
           title="Checking your session"
           description="Please wait while we check your account."
         />
       );
     case 'unavailable':
       return (
-        <AuthPanel
+        <PageContainer
           title="Sign-in unavailable"
           description="Authentication is unavailable for this deployment."
         />

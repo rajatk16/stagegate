@@ -61,7 +61,7 @@ export const AppShell = () => {
               </nav>
             )}
             {session.status === 'active' ? (
-              <AccountMenu email={session.identity.email} />
+              <AccountMenu />
             ) : session.status !== 'loading' ? (
               <Link
                 to={accountLink.path}
