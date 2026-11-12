@@ -5,11 +5,16 @@ import { Eye, EyeOff } from 'lucide-react';
 import { FirebaseError } from 'firebase/app';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/form/FormFields';
+import { PageContainer } from '@/components/layout/PageContainer';
+import {
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/inputGroup';
 
 import { useAuth } from '../context/auth';
-import { AuthPanel } from '../components/AuthPanel';
 import {
   signInSchema,
   signUpSchema,
@@ -48,11 +53,6 @@ export const Credentials = ({ mode }: { mode: 'sign-in' | 'signup' }) => {
     defaultValues: { email: '', password: '' },
   });
 
-  const passwordDescription =
-    [signup && 'password-hint', errors.password && 'password-error']
-      .filter(Boolean)
-      .join(' ') || undefined;
-
   const submit = async ({ email, password }: CredentialValues) => {
     try {
       await (signup ? signUp : signIn)(email, password);
@@ -62,7 +62,7 @@ export const Credentials = ({ mode }: { mode: 'sign-in' | 'signup' }) => {
   };
 
   return (
-    <AuthPanel
+    <PageContainer
       title={signup ? 'Create your StageGate account' : 'Sign in to StageGate'}
       description={
         signup
@@ -76,86 +76,67 @@ export const Credentials = ({ mode }: { mode: 'sign-in' | 'signup' }) => {
         aria-busy={isSubmitting}
         noValidate
       >
-        <div className="grid gap-1.5">
-          <label htmlFor="auth-email" className="text-sm font-medium">
-            Email address
-          </label>
-          <Input
-            id="auth-email"
-            {...register('email')}
-            className="min-h-11"
-            readOnly={isSubmitting}
-            aria-invalid={Boolean(errors.email)}
-            aria-describedby={errors.email ? 'email-error' : undefined}
-            type="email"
-            autoComplete="username"
-            autoCapitalize="none"
-            spellCheck={false}
-            required
-          />
-          {errors.email && (
-            <p
-              id="email-error"
-              role="alert"
-              className="text-sm text-destructive"
-            >
-              {errors.email.message}
-            </p>
-          )}
-        </div>
-        <div className="grid gap-1.5">
-          <label htmlFor="auth-password" className="text-sm font-medium">
-            Password
-          </label>
-          <div className="relative">
-            <Input
-              id="auth-password"
-              {...register('password')}
+        <FormField
+          id="auth-email"
+          label="Email address"
+          error={errors.email?.message}
+        >
+          {(control) => (
+            <InputGroupInput
+              {...register('email')}
+              {...control}
               readOnly={isSubmitting}
-              aria-invalid={Boolean(errors.password)}
-              type={showPassword ? 'text' : 'password'}
-              autoComplete={signup ? 'new-password' : 'current-password'}
-              aria-describedby={passwordDescription}
-              className="min-h-11 pr-12"
+              type="email"
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
               required
             />
-            <button
-              type="button"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-              aria-controls="auth-password"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 grid w-11 cursor-pointer place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-            >
-              {showPassword ? (
-                <EyeOff aria-hidden="true" className="size-4" />
-              ) : (
-                <Eye aria-hidden="true" className="size-4" />
-              )}
-            </button>
-          </div>
-          {signup && (
-            <p id="password-hint" className="text-sm text-muted-foreground">
-              Use at least 8 characters.
-            </p>
           )}
-          {errors.password && (
-            <p
-              id="password-error"
-              role="alert"
-              className="text-sm text-destructive"
-            >
-              {errors.password.message}
-            </p>
+        </FormField>
+        <FormField
+          id="auth-password"
+          label="Password"
+          description={signup ? 'Use at least 8 characters.' : undefined}
+          error={errors.password?.message}
+        >
+          {(control) => (
+            <>
+              <InputGroupInput
+                {...register('password')}
+                {...control}
+                readOnly={isSubmitting}
+                type={showPassword ? 'text' : 'password'}
+                autoComplete={signup ? 'new-password' : 'current-password'}
+                required
+              />
+              <InputGroupAddon align="inline-end" className="p-0">
+                <InputGroupButton
+                  type="button"
+                  size="icon-sm"
+                  className="size-11"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-controls="auth-password"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                >
+                  {showPassword ? (
+                    <EyeOff aria-hidden="true" />
+                  ) : (
+                    <Eye aria-hidden="true" />
+                  )}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </>
           )}
-          {!signup && (
-            <Link
-              to="/forgot-password"
-              className="inline-flex min-h-11 w-fit items-center text-sm font-medium text-primary underline underline-offset-4"
-            >
-              Forgot password?
-            </Link>
-          )}
-        </div>
+        </FormField>
+        {!signup && (
+          <Link
+            to="/forgot-password"
+            className="inline-flex min-h-11 w-fit items-center text-sm font-medium text-primary underline underline-offset-4"
+          >
+            Forgot password?
+          </Link>
+        )}
         {errors.root?.server && (
           <p
             role="alert"
@@ -187,6 +168,6 @@ export const Credentials = ({ mode }: { mode: 'sign-in' | 'signup' }) => {
           {signup ? 'Sign in' : 'Create an account'}
         </Link>
       </p>
-    </AuthPanel>
+    </PageContainer>
   );
 };

@@ -27,9 +27,12 @@ import {
   AuthContext,
 } from '../context/auth';
 import {
+  deleteUserProfile,
   fetchAccountDetails,
+  fetchUserProfile,
   identityFailureMessage,
   loadIdentity,
+  patchUserProfile,
 } from '../api/identity';
 
 export const AuthProvider = ({
@@ -113,6 +116,14 @@ export const AuthProvider = ({
     return auth;
   };
 
+  const activeUser = (): User => {
+    const user = configuredAuth().currentUser;
+    if (session.status !== 'active' || user?.uid !== session.uid) {
+      throw new Error('The active account has changed.');
+    }
+    return user;
+  };
+
   const deliverVerification = async (user: User): Promise<void> => {
     if (sendingFor.current === user || auth?.currentUser !== user) return;
     sendingFor.current = user;
@@ -193,12 +204,22 @@ export const AuthProvider = ({
 
           await updatePassword(user, newPassword);
         },
-        getAccountDetails: async (signal) => {
-          const user = configuredAuth().currentUser;
-          if (session.status !== 'active' || user?.uid !== session.uid) {
-            throw new Error('The Active account has changed.');
-          }
-          return fetchAccountDetails(user, signal);
+        getAccountDetails: (signal) =>
+          fetchAccountDetails(activeUser(), signal),
+        getUserProfile: (signal) => fetchUserProfile(activeUser(), signal),
+        updateUserProfile: async (patch) => {
+          const user = activeUser();
+          const result = await patchUserProfile(user, patch);
+          if (configuredAuth().currentUser !== user)
+            throw new Error('The active account has changed.');
+
+          return result;
+        },
+        clearUserProfile: async () => {
+          const user = activeUser();
+          await deleteUserProfile(user);
+          if (configuredAuth().currentUser !== user)
+            throw new Error('The active account has changed.');
         },
       }}
     >

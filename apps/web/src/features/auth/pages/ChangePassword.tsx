@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { useAuth } from '../context/auth';
+import { Link } from 'react-router';
 import { useForm } from 'react-hook-form';
+import { FirebaseError } from 'firebase/app';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import { Button } from '@/components/ui/button';
+import { FormField } from '@/components/form/FormFields';
+import { InputGroupInput } from '@/components/ui/inputGroup';
+import { PageContainer } from '@/components/layout/PageContainer';
+
+import { useAuth } from '../context/auth';
 import {
   changePasswordSchema,
   type ChangePasswordValues,
 } from '../util/formSchemas';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { FirebaseError } from 'firebase/app';
-import { AuthPanel } from '../components/AuthPanel';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Link } from 'react-router';
 
 const fields = [
   {
@@ -103,7 +106,7 @@ export const ChangePassword = () => {
   };
 
   return (
-    <AuthPanel
+    <PageContainer
       title="Change password"
       description={
         changed
@@ -122,54 +125,28 @@ export const ChangePassword = () => {
           aria-busy={isSubmitting}
           noValidate
         >
-          {fields.map(({ name, label, autoComplete }) => {
-            const error = errors[name];
-            const description =
-              [
-                name === 'newPassword' && 'new-password-hint',
-                error && `password-change-${name}-error`,
-              ]
-                .filter(Boolean)
-                .join(' ') || undefined;
-            return (
-              <div key={name} className="grid gap-1.5">
-                <label
-                  htmlFor={`password-change-${name}`}
-                  className="text-sm font-medium"
-                >
-                  {label}
-                </label>
-                <Input
+          {fields.map(({ name, label, autoComplete }) => (
+            <FormField
+              key={name}
+              id={`password-change-${name}`}
+              label={label}
+              description={
+                name === 'newPassword' ? 'Use at least 8 characters' : undefined
+              }
+              error={errors[name]?.message}
+            >
+              {(control) => (
+                <InputGroupInput
                   {...register(name)}
-                  id={`password-change-${name}`}
+                  {...control}
                   type="password"
                   autoComplete={autoComplete}
                   readOnly={isSubmitting}
-                  aria-invalid={Boolean(error)}
-                  aria-describedby={description}
-                  className="min-h-11"
                   required
                 />
-                {name === 'newPassword' && (
-                  <p
-                    id="new-password-hint"
-                    className="text-sm text-muted-foreground"
-                  >
-                    Use at least 8 characters
-                  </p>
-                )}
-                {error && (
-                  <p
-                    id={`password-change-${name}-error`}
-                    role="alert"
-                    className="text-sm text-destructive"
-                  >
-                    {error.message}
-                  </p>
-                )}
-              </div>
-            );
-          })}
+              )}
+            </FormField>
+          ))}
           {errors.root?.server && (
             <p role="alert" className="text-sm text-destructive">
               {errors.root.server.message}
@@ -190,6 +167,6 @@ export const ChangePassword = () => {
       >
         Back to workspace
       </Link>
-    </AuthPanel>
+    </PageContainer>
   );
 };

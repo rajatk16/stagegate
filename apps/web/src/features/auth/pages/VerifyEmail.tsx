@@ -1,9 +1,9 @@
 import { Navigate } from 'react-router';
 
 import { Button } from '@/components/ui/button';
+import { PageContainer } from '@/components/layout/PageContainer';
 
 import { useAuth } from '../context/auth';
-import { AuthPanel } from '../components/AuthPanel';
 import { SignOutButton } from '../components/SignOutButton';
 import { CheckVerificationButton } from '../components/CheckVerificationButton';
 
@@ -17,7 +17,7 @@ export const VerifyEmail = () => {
 
   if (session.status === 'loading') {
     return (
-      <AuthPanel
+      <PageContainer
         title="Checking your session"
         description="Please wait while we check your account."
       />
@@ -26,7 +26,7 @@ export const VerifyEmail = () => {
 
   if (session.status === 'unavailable') {
     return (
-      <AuthPanel
+      <PageContainer
         title="Sign-in unavailable"
         description="Authentication is unavailable for this deployment."
       />
@@ -35,7 +35,7 @@ export const VerifyEmail = () => {
 
   if (session.status === 'error') {
     return (
-      <AuthPanel
+      <PageContainer
         title="Couldn’t open your workspace"
         description={session.message}
       >
@@ -43,7 +43,7 @@ export const VerifyEmail = () => {
           <CheckVerificationButton />
           <SignOutButton />
         </div>
-      </AuthPanel>
+      </PageContainer>
     );
   }
 
@@ -52,7 +52,7 @@ export const VerifyEmail = () => {
   const sending = verificationDelivery === 'sending';
 
   return (
-    <AuthPanel
+    <PageContainer
       title="Verify your email"
       description={`Open the verification link for ${session.email}. Then return here to continue.`}
     >
@@ -83,6 +83,6 @@ export const VerifyEmail = () => {
         </Button>
         <SignOutButton />
       </div>
-    </AuthPanel>
+    </PageContainer>
   );
 };
