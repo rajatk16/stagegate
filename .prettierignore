@@ -1,0 +1,66 @@
+# Dependencies
+**/node_modules/
+
+# Lockfiles
+package-lock.json
+**/package-lock.json
+**/.terraform.lock.hcl
+
+# Build outputs
+**/dist/
+**/build/
+**/out/
+**/.next/
+**/.vite/
+
+# Caches
+**/.turbo/
+**/.cache/
+**/*.tsbuildinfo
+
+# Testing
+**/coverage/
+**/playwright-report/
+**/test-results/
+
+# Generated files
+**/*.generated.ts
+**/*.generated.js
+**/*.min.js
+**/*.min.css
+
+# Firebase
+**/.firebase/
+**/firebase-emulator-data/
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfplan
+
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Credentials
+**/service-account*.json
+**/firebase-adminsdk*.json
+
+# Logs
+**/logs/
+**/*.log
+
+# Static assets
+**/*.svg
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.webp
+**/*.ico
+
+# Temporary files
+**/tmp/
+**/temp/

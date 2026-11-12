@@ -1,18 +1,7 @@
-import {
-  existsSync,
-  readFileSync,
-  readdirSync,
-} from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
 
-import {
-  join,
-  relative,
-} from 'node:path';
-
-const WORKSPACE_GROUPS = [
-  'apps',
-  'packages',
-];
+const WORKSPACE_GROUPS = ['apps', 'packages'];
 
 const DEPENDENCY_FIELDS = [
   'dependencies',
@@ -32,10 +21,7 @@ const FORBIDDEN_LOCKFILES = [
 
 const PACKAGE_NAMESPACE = '@stagegate/';
 
-const EXPECTED_WORKSPACES = [
-  'apps/*',
-  'packages/*',
-];
+const EXPECTED_WORKSPACES = ['apps/*', 'packages/*'];
 
 /**
  * Read and parse a package manifest.
@@ -45,26 +31,15 @@ const EXPECTED_WORKSPACES = [
  */
 export function readManifest(filePath) {
   try {
-    const manifest = JSON.parse(
-      readFileSync(filePath, 'utf8'),
-    );
+    const manifest = JSON.parse(readFileSync(filePath, 'utf8'));
 
-    if (
-      manifest === null ||
-      typeof manifest !== 'object' ||
-      Array.isArray(manifest)
-    ) {
-      throw new Error(
-        'Package manifest must be a JSON object.',
-      );
+    if (manifest === null || typeof manifest !== 'object' || Array.isArray(manifest)) {
+      throw new Error('Package manifest must be a JSON object.');
     }
 
     return manifest;
   } catch (error) {
-    throw new Error(
-      `Unable to read manifest ${filePath}: ${error.message}`,
-      { cause: error },
-    );
+    throw new Error(`Unable to read manifest ${filePath}: ${error.message}`, { cause: error });
   }
 }
 
@@ -86,15 +61,10 @@ export function discoverWorkspaces(rootDirectory) {
   const errors = [];
 
   for (const group of WORKSPACE_GROUPS) {
-    const groupDirectory = join(
-      rootDirectory,
-      group,
-    );
+    const groupDirectory = join(rootDirectory, group);
 
     if (!existsSync(groupDirectory)) {
-      errors.push(
-        `Missing workspace directory: ${group}`,
-      );
+      errors.push(`Missing workspace directory: ${group}`);
 
       continue;
     }
@@ -106,9 +76,7 @@ export function discoverWorkspaces(rootDirectory) {
         withFileTypes: true,
       });
     } catch (error) {
-      errors.push(
-        `Unable to read ${group}: ${error.message}`,
-      );
+      errors.push(`Unable to read ${group}: ${error.message}`);
 
       continue;
     }
@@ -119,9 +87,7 @@ export function discoverWorkspaces(rootDirectory) {
       }
 
       if (entry.isSymbolicLink()) {
-        errors.push(
-          `Symbolic-link workspaces are not allowed: ${group}/${entry.name}`,
-        );
+        errors.push(`Symbolic-link workspaces are not allowed: ${group}/${entry.name}`);
 
         continue;
       }
@@ -130,20 +96,12 @@ export function discoverWorkspaces(rootDirectory) {
         continue;
       }
 
-      const directory = join(
-        groupDirectory,
-        entry.name,
-      );
+      const directory = join(groupDirectory, entry.name);
 
-      const manifestPath = join(
-        directory,
-        'package.json',
-      );
+      const manifestPath = join(directory, 'package.json');
 
       if (!existsSync(manifestPath)) {
-        errors.push(
-          `Missing package.json: ${group}/${entry.name}`,
-        );
+        errors.push(`Missing package.json: ${group}/${entry.name}`);
 
         continue;
       }
@@ -182,11 +140,7 @@ export function getInternalDependencies(manifest) {
   for (const field of DEPENDENCY_FIELDS) {
     const entries = manifest[field];
 
-    if (
-      entries === null ||
-      typeof entries !== 'object' ||
-      Array.isArray(entries)
-    ) {
+    if (entries === null || typeof entries !== 'object' || Array.isArray(entries)) {
       continue;
     }
 
@@ -220,14 +174,9 @@ export function findDependencyCycles(graph) {
     if (visiting.has(name)) {
       const cycleStart = path.indexOf(name);
 
-      const cycle = [
-        ...path.slice(cycleStart),
-        name,
-      ];
+      const cycle = [...path.slice(cycleStart), name];
 
-      errors.push(
-        `Circular workspace dependency: ${cycle.join(' -> ')}`,
-      );
+      errors.push(`Circular workspace dependency: ${cycle.join(' -> ')}`);
 
       return;
     }
@@ -271,9 +220,7 @@ export function validateWorkspaces(rootDirectory) {
   let rootManifest;
 
   try {
-    rootManifest = readManifest(
-      join(rootDirectory, 'package.json'),
-    );
+    rootManifest = readManifest(join(rootDirectory, 'package.json'));
   } catch (error) {
     return {
       valid: false,
@@ -283,28 +230,19 @@ export function validateWorkspaces(rootDirectory) {
   }
 
   if (rootManifest.name !== 'stagegate') {
-    errors.push(
-      'Root package name must be "stagegate".',
-    );
+    errors.push('Root package name must be "stagegate".');
   }
 
   if (rootManifest.private !== true) {
-    errors.push(
-      'Root package must be private.',
-    );
+    errors.push('Root package must be private.');
   }
 
   if (
     !Array.isArray(rootManifest.workspaces) ||
-    rootManifest.workspaces.length !==
-      EXPECTED_WORKSPACES.length ||
-    !EXPECTED_WORKSPACES.every((workspace) =>
-      rootManifest.workspaces.includes(workspace),
-    )
+    rootManifest.workspaces.length !== EXPECTED_WORKSPACES.length ||
+    !EXPECTED_WORKSPACES.every((workspace) => rootManifest.workspaces.includes(workspace))
   ) {
-    errors.push(
-      'Root workspaces must contain exactly "apps/*" and "packages/*".',
-    );
+    errors.push('Root workspaces must contain exactly "apps/*" and "packages/*".');
   }
 
   for (const lockfile of FORBIDDEN_LOCKFILES) {
@@ -313,15 +251,11 @@ export function validateWorkspaces(rootDirectory) {
     }
 
     if (existsSync(join(rootDirectory, lockfile))) {
-      errors.push(
-        `Unexpected root lockfile: ${lockfile}`,
-      );
+      errors.push(`Unexpected root lockfile: ${lockfile}`);
     }
   }
 
-  const discovered = discoverWorkspaces(
-    rootDirectory,
-  );
+  const discovered = discoverWorkspaces(rootDirectory);
 
   errors.push(...discovered.errors);
 
@@ -330,39 +264,25 @@ export function validateWorkspaces(rootDirectory) {
   for (const workspace of discovered.workspaces) {
     const { manifest, directory, group } = workspace;
 
-    const workspacePath = relative(
-      rootDirectory,
-      directory,
-    );
+    const workspacePath = relative(rootDirectory, directory);
 
-    const directoryName = workspacePath
-      .split(/[\\/]/)
-      .at(-1);
+    const directoryName = workspacePath.split(/[\\/]/).at(-1);
 
-    const expectedName =
-      `${PACKAGE_NAMESPACE}${directoryName}`;
+    const expectedName = `${PACKAGE_NAMESPACE}${directoryName}`;
 
     if (manifest.name !== expectedName) {
-      errors.push(
-        `${workspacePath}: expected package name "${expectedName}".`,
-      );
+      errors.push(`${workspacePath}: expected package name "${expectedName}".`);
     }
 
     if (manifest.private !== true) {
-      errors.push(
-        `${workspacePath}: workspace must be private.`,
-      );
+      errors.push(`${workspacePath}: workspace must be private.`);
     }
 
     if (
       typeof manifest.version !== 'string' ||
-      !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(
-        manifest.version,
-      )
+      !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(manifest.version)
     ) {
-      errors.push(
-        `${workspacePath}: workspace must declare a version.`,
-      );
+      errors.push(`${workspacePath}: workspace must declare a version.`);
     }
 
     for (const field of DEPENDENCY_FIELDS) {
@@ -377,43 +297,30 @@ export function validateWorkspaces(rootDirectory) {
         typeof dependencies !== 'object' ||
         Array.isArray(dependencies)
       ) {
-        errors.push(
-          `${workspacePath}: ${field} must be an object.`,
-        );
+        errors.push(`${workspacePath}: ${field} must be an object.`);
 
         continue;
       }
 
-      for (const [name, version] of Object.entries(
-        dependencies,
-      )) {
+      for (const [name, version] of Object.entries(dependencies)) {
         if (typeof version !== 'string') {
-          errors.push(
-            `${workspacePath}: ${field}.${name} must be a string.`,
-          );
+          errors.push(`${workspacePath}: ${field}.${name} must be a string.`);
         }
       }
     }
 
     for (const lockfile of FORBIDDEN_LOCKFILES) {
       if (existsSync(join(directory, lockfile))) {
-        errors.push(
-          `${workspacePath}: unexpected workspace lockfile "${lockfile}".`,
-        );
+        errors.push(`${workspacePath}: unexpected workspace lockfile "${lockfile}".`);
       }
     }
 
-    if (
-      typeof manifest.name !== 'string' ||
-      manifest.name.length === 0
-    ) {
+    if (typeof manifest.name !== 'string' || manifest.name.length === 0) {
       continue;
     }
 
     if (workspaceMap.has(manifest.name)) {
-      errors.push(
-        `Duplicate workspace name: ${manifest.name}`,
-      );
+      errors.push(`Duplicate workspace name: ${manifest.name}`);
 
       continue;
     }
@@ -432,42 +339,30 @@ export function validateWorkspaces(rootDirectory) {
   }
 
   for (const [name, workspace] of workspaceMap) {
-    const dependencies = getInternalDependencies(
-      workspace.manifest,
-    );
+    const dependencies = getInternalDependencies(workspace.manifest);
 
     for (const dependency of dependencies) {
-      const target = workspaceMap.get(
-        dependency.name,
-      );
+      const target = workspaceMap.get(dependency.name);
 
       if (!target) {
-        errors.push(
-          `${name}: unknown internal dependency "${dependency.name}".`,
-        );
+        errors.push(`${name}: unknown internal dependency "${dependency.name}".`);
 
         continue;
       }
 
       if (dependency.version !== '*') {
-        errors.push(
-          `${name}: internal dependency "${dependency.name}" must use "*".`,
-        );
+        errors.push(`${name}: internal dependency "${dependency.name}" must use "*".`);
       }
 
       if (target.group === 'apps') {
-        errors.push(
-          `${name}: dependencies on application "${dependency.name}" are prohibited.`,
-        );
+        errors.push(`${name}: dependencies on application "${dependency.name}" are prohibited.`);
       }
 
       graph.get(name).add(dependency.name);
     }
   }
 
-  errors.push(
-    ...findDependencyCycles(graph),
-  );
+  errors.push(...findDependencyCycles(graph));
 
   return {
     valid: errors.length === 0,

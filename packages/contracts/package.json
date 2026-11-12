@@ -3,5 +3,21 @@
   "version": "0.0.0",
   "description": "Shared StageGate API contracts and domain types",
   "private": true,
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "type": "module",
+  "stagegate": {
+    "runtime": "universal"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "typecheck": "node ../../scripts/typecheck-workspace.mjs"
+  },
+  "devDependencies": {
+    "@stagegate/eslint-config": "*",
+    "@stagegate/typescript-config": "*",
+    "eslint": "9.39.1",
+    "globals": "16.5.0",
+    "typescript": "5.9.3"
+  }
 }

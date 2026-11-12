@@ -25,17 +25,17 @@ and speaker management.
 
 ## Technology stack
 
-| Layer | Technology |
-| --- | --- |
-| Monorepo | Turborepo |
-| Package manager | npm workspaces |
-| Language | TypeScript |
-| Frontend | React |
-| Backend | NestJS |
-| Authentication | Firebase Authentication |
-| Database | Cloud Firestore |
-| Background jobs | BullMQ |
-| Cache | Redis |
+| Layer           | Technology              |
+| --------------- | ----------------------- |
+| Monorepo        | Turborepo               |
+| Package manager | npm workspaces          |
+| Language        | TypeScript              |
+| Frontend        | React                   |
+| Backend         | NestJS                  |
+| Authentication  | Firebase Authentication |
+| Database        | Cloud Firestore         |
+| Background jobs | BullMQ                  |
+| Cache           | Redis                   |
 
 ## Repository structure
 
@@ -56,7 +56,7 @@ stagegate/
 ## Prerequisites
 
 - Node.js 24 LTS
-- npm 11.6.2
+- npm 11.19.0
 - Git
 
 ## Getting started
@@ -65,7 +65,7 @@ stagegate/
 nvm install
 nvm use
 
-npm install --global npm@11.6.2
+npm install --global npm@11.19.0
 
 npm ci
 ```
@@ -73,32 +73,42 @@ npm ci
 ## Verify the repository
 
 ```bash
+npm run check
+```
+
+Individual checks:
+
+```bash
 npm run validate:workspaces
 npm run test:foundation
-npm run info
+npm run lint
+npm run typecheck
+npm run format:check
 ```
 
 ## Applications
 
-| Application | Workspace |
-| --- | --- |
-| Web | @stagegate/web |
-| API | @stagegate/api |
-| Worker | @stagegate/worker |
-| Admin | @stagegate/admin |
+| Application | Workspace         |
+| ----------- | ----------------- |
+| Web         | @stagegate/web    |
+| API         | @stagegate/api    |
+| Worker      | @stagegate/worker |
+| Admin       | @stagegate/admin  |
 
 ## Shared packages
 
-| Package | Workspace |
-| --- | --- |
-| API contracts | @stagegate/contracts |
+| Package                  | Workspace                    |
+| ------------------------ | ---------------------------- |
+| API contracts            | @stagegate/contracts         |
+| TypeScript configuration | @stagegate/typescript-config |
+| ESLint configuration     | @stagegate/eslint-config     |
 
 ## Development status
 
 Phase 1: Engineering Foundation
 
 - [x] Monorepo foundation
-- [ ] Shared engineering configurations
+- [x] Shared engineering configurations
 - [ ] React application foundation
 - [ ] NestJS application foundation
 - [ ] Firebase integration

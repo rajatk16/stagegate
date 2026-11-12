@@ -24,21 +24,21 @@ Every workspace must use the following namespace:
 
 ## Planned packages
 
-| Package | Responsibility |
-| --- | --- |
-| contracts | Shared API contracts |
-| ui | Shared React components |
-| api-client | API communication |
-| auth | Authentication utilities |
-| permissions | Authorization contracts |
-| validation | Shared validation schemas |
-| config | Configuration utilities |
-| logger | Structured logging |
-| observability | Telemetry utilities |
-| email-templates | Email templates |
-| test-utils | Shared testing utilities |
-| eslint-config | ESLint configuration |
-| typescript-config | TypeScript configuration |
+| Package           | Responsibility            |
+| ----------------- | ------------------------- |
+| contracts         | Shared API contracts      |
+| ui                | Shared React components   |
+| api-client        | API communication         |
+| auth              | Authentication utilities  |
+| permissions       | Authorization contracts   |
+| validation        | Shared validation schemas |
+| config            | Configuration utilities   |
+| logger            | Structured logging        |
+| observability     | Telemetry utilities       |
+| email-templates   | Email templates           |
+| test-utils        | Shared testing utilities  |
+| eslint-config     | ESLint configuration      |
+| typescript-config | TypeScript configuration  |
 
 Packages should be created only when their
 implementation is required.
