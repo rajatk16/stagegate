@@ -2,7 +2,6 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "envMode": "strict",
-
   "globalDependencies": [
     ".npmrc",
     ".nvmrc",
@@ -17,66 +16,50 @@
     "prettier.config.mjs",
     "scripts/typecheck-workspace.mjs"
   ],
-
   "globalEnv": ["NODE_ENV"],
-
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local", ".env.*"],
-
       "outputs": ["dist/**", "build/**", ".next/**", "!.next/cache/**"],
-
       "env": ["VITE_*"]
     },
-
     "dev": {
       "dependsOn": ["^build"],
-
       "cache": false,
-
       "persistent": true,
-
       "env": ["PORT", "HOST", "VITE_*"]
     },
-
     "lint": {
       "dependsOn": ["^build"],
-
       "outputs": []
     },
-
     "lint:fix": {
       "dependsOn": ["^build"],
-
       "cache": false
     },
-
     "typecheck": {
       "dependsOn": ["^build"],
-
       "outputs": []
     },
-
     "test": {
       "dependsOn": ["^build"],
-
-      "outputs": ["coverage/**"]
+      "outputs": [],
+      "env": ["VITE_*"]
     },
-
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "env": ["VITE_*"]
+    },
     "test:integration": {
       "dependsOn": ["build"],
-
       "cache": false
     },
-
     "test:e2e": {
       "dependsOn": ["build"],
-
       "cache": false
     },
-
     "clean": {
       "cache": false
     }

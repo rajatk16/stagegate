@@ -35,7 +35,13 @@
     "clean": "node scripts/clean.mjs",
     "validate:workspaces": "node scripts/validate-workspaces.mjs",
     "graph": "turbo run build --graph",
-    "info": "turbo info"
+    "info": "turbo info",
+    "build:web": "turbo run build --filter=@stagegate/web",
+    "preview:web": "npm run preview --workspace=@stagegate/web",
+    "test:web": "turbo run test --filter=@stagegate/web",
+    "test:web:watch": "npm run test:watch --workspace=@stagegate/web",
+    "test:web:coverage": "turbo run test:coverage --filter=@stagegate/web",
+    "test:coverage": "turbo run test:coverage"
   },
   "devDependencies": {
     "@stagegate/eslint-config": "*",
@@ -43,7 +49,8 @@
     "@types/node": "24.10.0",
     "eslint": "9.39.1",
     "globals": "16.5.0",
-    "prettier": "3.6.2",
+    "prettier": "3.7.3",
+    "prettier-plugin-tailwindcss": "0.8.1",
     "turbo": "2.5.8",
     "typescript": "5.9.3"
   }

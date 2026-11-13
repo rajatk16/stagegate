@@ -82,13 +82,6 @@ export function createTypeScriptConfig({ tsconfigRootDir, typeChecked = true } =
           },
         ],
 
-        '@typescript-eslint/consistent-type-exports': [
-          'error',
-          {
-            fixMixedExportsWithInlineTypeSpecifier: true,
-          },
-        ],
-
         '@typescript-eslint/consistent-type-definitions': ['error', 'interface'],
 
         '@typescript-eslint/ban-ts-comment': [
@@ -116,6 +109,13 @@ export function createTypeScriptConfig({ tsconfigRootDir, typeChecked = true } =
 
         ...(typeChecked
           ? {
+              '@typescript-eslint/consistent-type-exports': [
+                'error',
+                {
+                  fixMixedExportsWithInlineTypeSpecifier: true,
+                },
+              ],
+
               '@typescript-eslint/no-floating-promises': [
                 'error',
                 {
