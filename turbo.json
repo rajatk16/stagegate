@@ -28,7 +28,17 @@
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true,
-      "env": ["PORT", "HOST", "VITE_*"]
+      "env": [
+        "PORT",
+        "HOST",
+        "VITE_*",
+        "APP_NAME",
+        "APP_VERSION",
+        "CORS_ORIGINS",
+        "CORS_CREDENTIALS",
+        "HTTP_BODY_LIMIT",
+        "SWAGGER_ENABLED"
+      ]
     },
     "lint": {
       "dependsOn": ["^build"],

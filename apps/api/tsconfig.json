@@ -1,10 +1,26 @@
 {
-  "extends": "@stagegate/typescript-config/nest.json",
+  "extends": "@stagegate/typescript-config/node.json",
   "compilerOptions": {
-    "rootDir": "./src",
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2023"],
+    "types": ["node", "jest"],
+    "rootDir": ".",
     "outDir": "./dist",
-    "noEmit": true
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": true,
+    "incremental": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": false,
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": false,
+    "strictPropertyInitialization": true,
+    "isolatedModules": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist", "coverage"]
 }

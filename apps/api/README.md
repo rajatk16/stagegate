@@ -1,34 +1,45 @@
 # @stagegate/api
 
-The primary StageGate backend API.
+StageGate backend API.
 
-## Responsibilities
-
-- Identity and authentication
-- Multi-tenant organization management
-- Authorization
-- Event management
-- CFP management
-- Proposal management
-- Review engine
-- Decision management
-- Speaker management
-- Scheduling
-- Billing
-- Audit logging
-
-## Technology
+## Stack
 
 - NestJS
+- Express
 - TypeScript
-- Firebase Admin SDK
-- Cloud Firestore
-- OpenAPI
-- Pino
+- Zod
+- class-validator
+- class-transformer
+- Swagger
+- Jest
+- Supertest
 
-## Status
+## Development
 
-Workspace registered.
+From the repository root:
 
-Application initialization is scheduled for
-Phase 1, PR 1.4.
+```bash
+npm ci
+cp apps/api/.env.example apps/api/.env.local
+npm run dev:api
+```
+
+## Operational endpoints
+
+| Endpoint           | Purpose          |
+| ------------------ | ---------------- |
+| /health/live       | Liveness         |
+| /health/ready      | Readiness        |
+| /docs/             | Swagger UI       |
+| /docs/openapi.json | OpenAPI document |
+
+## Verification
+
+```bash
+npm run test:api
+npm run test:api:integration
+npm run build:api
+npm run check
+```
+
+See [Backend Development](../../docs/development/backend.md) for architecture and engineering conventions.

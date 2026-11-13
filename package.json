@@ -31,7 +31,7 @@
     "test:foundation": "node --test scripts/tests/*.test.mjs",
     "test:integration": "turbo run test:integration",
     "test:e2e": "turbo run test:e2e",
-    "check": "npm run validate:workspaces && npm run format:check && npm run lint:root && npm run test:foundation && turbo run lint typecheck test build",
+    "check": "npm run validate:workspaces && npm run format:check && npm run lint:root && npm run test:foundation && turbo run lint typecheck test build && turbo run test:integration",
     "clean": "node scripts/clean.mjs",
     "validate:workspaces": "node scripts/validate-workspaces.mjs",
     "graph": "turbo run build --graph",
@@ -41,7 +41,13 @@
     "test:web": "turbo run test --filter=@stagegate/web",
     "test:web:watch": "npm run test:watch --workspace=@stagegate/web",
     "test:web:coverage": "turbo run test:coverage --filter=@stagegate/web",
-    "test:coverage": "turbo run test:coverage"
+    "test:coverage": "turbo run test:coverage",
+    "build:api": "turbo run build --filter=@stagegate/api",
+    "start:api": "npm run start:prod --workspace=@stagegate/api",
+    "test:api": "turbo run test --filter=@stagegate/api",
+    "test:api:watch": "npm run test:watch --workspace=@stagegate/api",
+    "test:api:coverage": "turbo run test:coverage --filter=@stagegate/api",
+    "test:api:integration": "turbo run test:integration --filter=@stagegate/api"
   },
   "devDependencies": {
     "@stagegate/eslint-config": "*",
