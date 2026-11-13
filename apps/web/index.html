@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta name="description" content="StageGate — From Call for Papers to Conference Stage." />
+
+    <meta name="theme-color" content="#4f46e5" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>StageGate — Conference Management Platform</title>
+
+    <script>
+      try {
+        const stored = localStorage.getItem('stagegate:preferences');
+        const theme = stored ? JSON.parse(stored)?.state?.theme : 'system';
+
+        const dark =
+          theme === 'dark' ||
+          (theme !== 'light' &&
+            theme !== 'dark' &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        document.documentElement.classList.toggle('dark', dark);
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch {
+        const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        document.documentElement.classList.toggle('dark', dark);
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      }
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <noscript>
+      StageGate requires JavaScript to run. Enable JavaScript and reload this page.
+    </noscript>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

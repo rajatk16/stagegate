@@ -171,7 +171,11 @@ function createBoundaryPlugin({ repositoryRoot, workspaceRoot, browser }) {
             }
 
             if (specifier.startsWith('.') || isAbsolute(specifier)) {
-              const targetPath = resolve(dirname(context.filename), specifier);
+              const importerDirectory = dirname(context.filename);
+              const canonicalImporterDirectory = existsSync(importerDirectory)
+                ? realpathSync(importerDirectory)
+                : importerDirectory;
+              const targetPath = resolve(canonicalImporterDirectory, specifier);
 
               if (isInside(canonicalWorkspaceRoot, targetPath)) {
                 return;
