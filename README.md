@@ -2,9 +2,7 @@
 
 From Call for Papers to Conference Stage.
 
-StageGate is a multi-tenant SaaS platform for
-conference proposal submission, review, selection
-and speaker management.
+StageGate is a multi-tenant SaaS platform for conference proposal submission, review, selection and speaker management.
 
 ## Product capabilities
 
@@ -110,7 +108,7 @@ Phase 1: Engineering Foundation
 - [x] Monorepo foundation
 - [x] Shared engineering configurations
 - [x] React application foundation
-- [ ] NestJS application foundation
+- [x] NestJS application foundation
 - [ ] Firebase integration
 - [ ] Shared API contracts
 - [ ] Docker infrastructure
@@ -118,8 +116,7 @@ Phase 1: Engineering Foundation
 - [ ] CI/CD
 - [ ] Observability
 
-The registered application workspaces are not
-yet runnable.
+The registered application workspaces are not yet runnable.
 
 ## Documentation
 

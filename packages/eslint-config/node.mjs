@@ -4,7 +4,7 @@ import globals from 'globals';
 import { sourceFiles } from './base.mjs';
 import { createTypeScriptConfig } from './typescript.mjs';
 
-export function createNodeConfig({ tsconfigRootDir, typeChecked = true, nest = false } = {}) {
+export const createNodeConfig = ({ tsconfigRootDir, typeChecked = true, nest = false } = {}) => {
   return defineConfig([
     ...createTypeScriptConfig({
       tsconfigRootDir,
@@ -49,4 +49,4 @@ export function createNodeConfig({ tsconfigRootDir, typeChecked = true, nest = f
         ]
       : []),
   ]);
-}
+};
