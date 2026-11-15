@@ -1,4 +1,9 @@
-import z from 'zod';
+import { z } from 'zod';
+
+import {
+  firebaseEnvironmentSchema,
+  validateFirebaseEnvironment,
+} from '../../firebase/firebase.environment';
 
 const booleanString = z.enum(['true', 'false']).transform((value) => value === 'true');
 
@@ -22,7 +27,7 @@ const httpOrigin = z.string().refine(
   },
 );
 
-const corsOrigin = z
+const corsOrigins = z
   .string()
   .transform((value) => [
     ...new Set(
@@ -34,32 +39,44 @@ const corsOrigin = z
   ])
   .pipe(z.array(httpOrigin).min(1));
 
-export const environmentSchema = z
-  .object({
-    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    APP_NAME: z.string().trim().min(1).default('StageGate API'),
-    APP_VERSION: z.string().trim().min(1).default('0.0.0'),
-    HOST: z.string().trim().min(1).default('0.0.0.0'),
-    PORT: z
-      .string()
-      .regex(/^\d+$/)
-      .transform(Number)
-      .pipe(z.number().int().min(1).max(65535))
-      .default(4000),
-    CORS_ORIGINS: corsOrigin,
-    CORS_CREDENTIALS: booleanString.default(false),
-    HTTP_BODY_LIMIT: z
-      .string()
-      .regex(/^[1-9]\d*(kb|mb)$/)
-      .default('1mb'),
-    SWAGGER_ENABLED: booleanString.default(false),
-  })
+const applicationEnvironmentSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+
+  APP_NAME: z.string().trim().min(1).default('StageGate API'),
+
+  APP_VERSION: z.string().trim().min(1).default('0.0.0'),
+
+  HOST: z.string().trim().min(1).default('0.0.0.0'),
+
+  PORT: z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number)
+    .pipe(z.number().int().min(1).max(65535))
+    .default(4000),
+
+  CORS_ORIGINS: corsOrigins,
+
+  CORS_CREDENTIALS: booleanString.default(false),
+
+  HTTP_BODY_LIMIT: z
+    .string()
+    .regex(/^[1-9]\d*(kb|mb)$/)
+    .default('1mb'),
+
+  SWAGGER_ENABLED: booleanString.default(false),
+});
+
+export const environmentSchema = applicationEnvironmentSchema
+  .extend(firebaseEnvironmentSchema.shape)
   .superRefine((environment, context) => {
+    validateFirebaseEnvironment(environment, context);
+
     if (environment.NODE_ENV !== 'production') {
       return;
     }
 
-    if (environment.CORS_ORIGINS.some((origin) => origin.startsWith('http://'))) {
+    if (environment.CORS_ORIGINS.some((origin) => !origin.startsWith('https://'))) {
       context.addIssue({
         code: 'custom',
         path: ['CORS_ORIGINS'],
@@ -72,14 +89,14 @@ export const environmentSchema = z
         code: 'custom',
         path: ['SWAGGER_ENABLED'],
         message:
-          'Swagger must be disabled in production untill protected documentation is implemented.',
+          'Swagger must be disabled in production until protected documentation is implemented.',
       });
     }
   });
 
 export type Environment = z.infer<typeof environmentSchema>;
 
-export const validateEnvironment = (input: Record<string, unknown>): Environment => {
+export function validateEnvironment(input: Record<string, unknown>): Environment {
   const result = environmentSchema.safeParse(input);
 
   if (!result.success) {
@@ -91,4 +108,4 @@ export const validateEnvironment = (input: Record<string, unknown>): Environment
   }
 
   return result.data;
-};
+}

@@ -1,10 +1,11 @@
 import { IsString, MinLength } from 'class-validator';
 
-import { ApiException } from '../../src/common/exceptions/api.exception';
+import { ApiException } from '../exceptions/api.exception';
+
 import {
   createValidationPipe,
   flattenValidationErrors,
-} from '../../src/common/validation/validation.pipe';
+} from './validation.pipe';
 
 import type { ArgumentMetadata } from '@nestjs/common';
 import type { ValidationError } from 'class-validator';

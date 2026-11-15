@@ -17,3 +17,15 @@ process.env['CORS_CREDENTIALS'] = 'false';
 process.env['HTTP_BODY_LIMIT'] = '1mb';
 
 process.env['SWAGGER_ENABLED'] = 'true';
+
+process.env['FIREBASE_MODE'] = 'emulator';
+
+process.env['FIREBASE_PROJECT_ID'] = 'demo-stagegate';
+
+process.env['FIRESTORE_EMULATOR_HOST'] = '127.0.0.1:8080';
+
+process.env['FIREBASE_AUTH_EMULATOR_HOST'] = '127.0.0.1:9099';
+
+process.env['FIREBASE_HEALTH_TIMEOUT_MS'] = '2000';
+
+process.env['FIREBASE_HEALTH_CACHE_TTL_MS'] = '5000';

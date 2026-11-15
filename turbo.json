@@ -37,7 +37,13 @@
         "CORS_ORIGINS",
         "CORS_CREDENTIALS",
         "HTTP_BODY_LIMIT",
-        "SWAGGER_ENABLED"
+        "SWAGGER_ENABLED",
+        "FIREBASE_MODE",
+        "FIREBASE_PROJECT_ID",
+        "FIRESTORE_EMULATOR_HOST",
+        "FIREBASE_AUTH_EMULATOR_HOST",
+        "FIREBASE_HEALTH_TIMEOUT_MS",
+        "FIREBASE_HEALTH_CACHE_TTL_MS"
       ]
     },
     "lint": {
@@ -72,6 +78,19 @@
     },
     "clean": {
       "cache": false
+    },
+
+    "test:firebase": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "env": [
+        "FIREBASE_MODE",
+        "FIREBASE_PROJECT_ID",
+        "FIRESTORE_EMULATOR_HOST",
+        "FIREBASE_AUTH_EMULATOR_HOST",
+        "FIREBASE_HEALTH_TIMEOUT_MS",
+        "FIREBASE_HEALTH_CACHE_TTL_MS"
+      ]
     }
   }
 }
