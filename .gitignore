@@ -81,3 +81,19 @@ Desktop.ini
 
 # Miscellaneous
 *.local
+
+# Firebase emulator data
+.firebase/
+firebase-export-*/
+infrastructure/firebase/.emulator-data/
+
+# Firebase emulator logs
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+database-debug.log*
+
+# Firebase credentials
+**/service-account.json
+**/service-account-key.json
+**/*firebase-adminsdk*.json

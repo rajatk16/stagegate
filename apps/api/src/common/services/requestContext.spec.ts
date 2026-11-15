@@ -1,6 +1,6 @@
 import { setTimeout as delay } from 'node:timers/promises';
 
-import { RequestContextService } from '../../src/common/services/requestContext.service';
+import { RequestContextService } from './requestContext.service';
 
 describe('RequestContextService', () => {
   let service: RequestContextService;

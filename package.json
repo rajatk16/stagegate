@@ -47,13 +47,20 @@
     "test:api": "turbo run test --filter=@stagegate/api",
     "test:api:watch": "npm run test:watch --workspace=@stagegate/api",
     "test:api:coverage": "turbo run test:coverage --filter=@stagegate/api",
-    "test:api:integration": "turbo run test:integration --filter=@stagegate/api"
+    "test:api:integration": "turbo run test:integration --filter=@stagegate/api",
+    "firebase:emulators": "firebase emulators:start --config infrastructure/firebase/firebase.json --project demo-stagegate --only auth,firestore",
+    "firebase:emulators:seeded": "firebase emulators:start --config infrastructure/firebase/firebase.json --project demo-stagegate --only auth,firestore --import infrastructure/firebase/.emulator-data --export-on-exit infrastructure/firebase/.emulator-data",
+    "firebase:export": "firebase emulators:export infrastructure/firebase/.emulator-data --config infrastructure/firebase/firebase.json --project demo-stagegate --force",
+    "firebase:test": "firebase emulators:exec --config infrastructure/firebase/firebase.json --project demo-stagegate --only auth,firestore \"npm run test:firebase --workspace=@stagegate/api\"",
+    "test:api:firebase": "npm run firebase:test",
+    "check:infrastructure": "npm run check && npm run firebase:test"
   },
   "devDependencies": {
     "@stagegate/eslint-config": "*",
     "@stagegate/typescript-config": "*",
     "@types/node": "24.10.0",
     "eslint": "9.39.1",
+    "firebase-tools": "15.36.0",
     "globals": "16.5.0",
     "prettier": "3.7.3",
     "prettier-plugin-tailwindcss": "0.8.1",

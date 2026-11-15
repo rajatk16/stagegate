@@ -1,6 +1,27 @@
-import { validateEnvironment } from '../../src/config/schemas/env.schema';
+import { validateEnvironment } from './env.schema';
+
+const emulatorFirebaseEnvironment = {
+  FIREBASE_MODE: 'emulator',
+
+  FIREBASE_PROJECT_ID: 'demo-stagegate',
+
+  FIRESTORE_EMULATOR_HOST: '127.0.0.1:8080',
+
+  FIREBASE_AUTH_EMULATOR_HOST: '127.0.0.1:9099',
+};
+
+const cloudFirebaseEnvironment = {
+  FIREBASE_MODE: 'cloud',
+
+  FIREBASE_PROJECT_ID: 'stagegate-production',
+
+  FIRESTORE_EMULATOR_HOST: undefined,
+
+  FIREBASE_AUTH_EMULATOR_HOST: undefined,
+};
 
 const validEnvironment = {
+  ...emulatorFirebaseEnvironment,
   NODE_ENV: 'development',
   APP_NAME: 'StageGate API',
   APP_VERSION: '0.0.0',
@@ -25,11 +46,15 @@ describe('Environment validation', () => {
 
   it('applies safe defaults', () => {
     const result = validateEnvironment({
+      ...emulatorFirebaseEnvironment,
+
       CORS_ORIGINS: 'http://localhost:3000',
     });
 
     expect(result.PORT).toBe(4000);
+
     expect(result.SWAGGER_ENABLED).toBe(false);
+
     expect(result.HTTP_BODY_LIMIT).toBe('1mb');
   });
 
@@ -111,6 +136,7 @@ describe('Environment validation', () => {
     expect(() =>
       validateEnvironment({
         ...validEnvironment,
+        ...cloudFirebaseEnvironment,
         NODE_ENV: 'production',
         SWAGGER_ENABLED: 'false',
       }),
@@ -121,6 +147,7 @@ describe('Environment validation', () => {
     expect(() =>
       validateEnvironment({
         ...validEnvironment,
+        ...cloudFirebaseEnvironment,
         NODE_ENV: 'production',
 
         CORS_ORIGINS: 'https://app.example.com',
@@ -131,6 +158,7 @@ describe('Environment validation', () => {
   it('accepts valid production configuration', () => {
     const result = validateEnvironment({
       ...validEnvironment,
+      ...cloudFirebaseEnvironment,
       NODE_ENV: 'production',
 
       CORS_ORIGINS: 'https://app.example.com',

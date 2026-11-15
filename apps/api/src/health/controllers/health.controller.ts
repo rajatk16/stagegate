@@ -36,8 +36,8 @@ export class HealthController {
   @ApiOkResponse({
     type: HealthResponseDto,
   })
-  getReadiness(@Res({ passthrough: true }) response: Response): HealthResponseDto {
-    const readiness = this.health.getReadiness();
+  async getReadiness(@Res({ passthrough: true }) response: Response): Promise<HealthResponseDto> {
+    const readiness = await this.health.getReadiness();
 
     response.status(readiness.status === 'ok' ? HttpStatus.OK : HttpStatus.SERVICE_UNAVAILABLE);
 

@@ -3,7 +3,7 @@ import { json, urlencoded } from 'express';
 import helmet from 'helmet';
 
 import { RequestContextMiddleware } from './common/middlewares/requestContext.middleware';
-import { createValidationPipe } from './common/validation/validation.pipe';
+import { createValidationPipe } from './common/pipes/validation.pipe';
 import { AppConfigService } from './config/services/appConfig.service';
 import { configureSwagger } from './swagger/configs/swagger.config';
 
