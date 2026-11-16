@@ -4,6 +4,8 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { PageHeader } from '@/components/common/PageHeader';
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 
+import { ApiStatusCard } from '../health/ApiStatusCard';
+
 const upcomingModules = [
   {
     title: 'Organizations',
@@ -44,6 +46,7 @@ export const DashboardPage = () => (
           </CardHeader>
         </Card>
       ))}
+      {import.meta.env.DEV ? <ApiStatusCard /> : null}
     </div>
 
     <EmptyState

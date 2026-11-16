@@ -28,7 +28,7 @@ Every workspace must use the following namespace:
 | ----------------- | ------------------------- |
 | contracts         | Shared API contracts      |
 | ui                | Shared React components   |
-| api-client        | API communication         |
+| apiClient         | API communication         |
 | auth              | Authentication utilities  |
 | permissions       | Authorization contracts   |
 | validation        | Shared validation schemas |

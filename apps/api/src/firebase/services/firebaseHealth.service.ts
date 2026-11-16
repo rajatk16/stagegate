@@ -104,7 +104,9 @@ export class FirebaseHealthService {
     let timer: ReturnType<typeof setTimeout> | undefined;
 
     const timeout = new Promise<DependencyStatus>((resolve) => {
-      timer = setTimeout(() => { resolve('down'); }, timeoutMs);
+      timer = setTimeout(() => {
+        resolve('down');
+      }, timeoutMs);
     });
 
     try {

@@ -1,0 +1,54 @@
+{
+  "name": "@stagegate/apiClient",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "Framework-independent StageGate HTTP API Client",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@stagegate/contracts": "*",
+    "axios": "1.21.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@stagegate/eslint-config": "*",
+    "@stagegate/typescript-config": "*",
+    "@types/node": "24.10.0",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "9.39.1",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  },
+  "stagegate": {
+    "runtime": "universal"
+  }
+}
