@@ -97,3 +97,12 @@ database-debug.log*
 **/service-account.json
 **/service-account-key.json
 **/*firebase-adminsdk*.json
+
+# Docker environment overrides
+infrastructure/docker/env/production.env
+infrastructure/docker/env/*.local.env
+
+# Local Docker Compose overrides
+compose.override.yaml
+compose.override.yml
+compose.production.local.yaml

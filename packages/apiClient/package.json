@@ -29,10 +29,7 @@
     "dev": "tsup --watch",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix --max-warnings=0",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@stagegate/contracts": "*",
@@ -43,10 +40,8 @@
     "@stagegate/eslint-config": "*",
     "@stagegate/typescript-config": "*",
     "@types/node": "24.10.0",
-    "@vitest/coverage-v8": "5.1.0",
     "eslint": "9.39.1",
-    "typescript": "5.9.3",
-    "vitest": "5.1.0"
+    "typescript": "5.9.3"
   },
   "stagegate": {
     "runtime": "universal"

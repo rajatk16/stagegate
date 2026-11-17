@@ -20,7 +20,7 @@ export const QueryProvider = ({ children }: PropsWithChildren) => {
   return (
     <QueryClientProvider client={queryClient}>
       {children}
-      {QueryDevtools && appConfig.features.queryDevtools ? (
+      {QueryDevtools && appConfig.queryDevtools ? (
         <Suspense fallback={null}>
           <QueryDevtools initialIsOpen={false} />
         </Suspense>

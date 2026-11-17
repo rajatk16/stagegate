@@ -1,0 +1,68 @@
+# Version Control
+.git
+.gitignore
+
+# Dependencies
+**/node_modules
+
+# Build
+**/dist
+**/build
+**/out
+**/.next
+**/.vite
+**/*.tsbuildinfo
+
+# Turborepo
+**/*.turbo
+
+# Tests and coverage artifacts
+**/coverage
+**/.nyc_output
+**/playwright-report
+**/test-results
+
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.*.example
+
+# Credentials
+**/service-account.json
+**/service-account-key.json
+**/*firebase-adminsdk*.json
+**/*.pem
+**/*.key
+
+# Firebase runtime data
+**/.firebase
+**/.emulator-data
+**/firebase-export-*
+**/firebase-debug.log
+**/firestore-debug.log
+**/ui-debug.log
+
+# Terraform state
+**/.terraform
+**/*.tfstate
+**/*.tfstate.*
+
+# Logs and temporary files
+**/*.log
+**/.cache
+**/tmp
+**/temp
+
+# IDE and OS
+**/.idea
+**/.vscode
+**/.DS_Store
+**/Thumbs.db
+
+# Documentation
+docs
+
+infrastructure/docker/env/production.env
+infrastructure/docker/env/*.local.env
+compose.production.local.yaml

@@ -1,0 +1,310 @@
+name: stagegate
+
+x-development-build: &development-build
+  context: .
+  dockerfile: infrastructure/docker/development/Dockerfile
+  args:
+    NODE_IMAGE: node:24-bookworm-slim
+    NPM_VERSION: 11.6.2
+
+x-development-service: &development-service
+  image: stagegate-development:local
+  build: *development-build
+  init: true
+  restart: "no"
+  stop_grace_period: 30s
+  networks:
+    - stagegate
+
+x-watch-rules:
+  packages: &watch-packages
+    action: sync+restart
+    path: ./packages
+    target: /workspace/packages
+    ignore:
+      - "**/node_modules/"
+      - "**/dist/"
+      - "**/coverage/"
+      - "**/.turbo/"
+      - "**/package.json"
+
+  root-manifest: &watch-root-manifest
+    action: rebuild
+    path: ./package.json
+
+  lockfile: &watch-lockfile
+    action: rebuild
+    path: ./package-lock.json
+
+  npmrc: &watch-npmrc
+    action: rebuild
+    path: ./.npmrc
+
+  turbo: &watch-turbo
+    action: rebuild
+    path: ./turbo.json
+
+  contracts-manifest: &watch-contracts-manifest
+    action: rebuild
+    path: ./packages/contracts/package.json
+
+  client-manifest: &watch-client-manifest
+    action: rebuild
+    path: ./packages/api-client/package.json
+
+  typescript-manifest: &watch-typescript-manifest
+    action: rebuild
+    path: ./packages/typescript-config/package.json
+
+  eslint-manifest: &watch-eslint-manifest
+    action: rebuild
+    path: ./packages/eslint-config/package.json
+
+  web-manifest: &watch-web-manifest
+    action: rebuild
+    path: ./apps/web/package.json
+
+  api-manifest: &watch-api-manifest
+    action: rebuild
+    path: ./apps/api/package.json
+
+  admin-manifest: &watch-admin-manifest
+    action: rebuild
+    path: ./apps/admin/package.json
+
+  worker-manifest: &watch-worker-manifest
+    action: rebuild
+    path: ./apps/worker/package.json
+
+  development-image: &watch-development-image
+    action: rebuild
+    path: ./infrastructure/docker/development
+
+services:
+  firebase:
+    image: stagegate-firebase:local
+
+    build:
+      context: .
+      dockerfile: infrastructure/docker/firebase/Dockerfile
+      args:
+        NODE_IMAGE: node:24-bookworm-slim
+        JAVA_IMAGE: eclipse-temurin:21-jdk-jammy
+        FIREBASE_TOOLS_VERSION: "14.15.2"
+
+    init: true
+
+    restart: "no"
+
+    environment:
+      FIREBASE_PROJECT_ID: demo-stagegate
+
+    ports:
+      - "127.0.0.1:9099:9099"
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:4001:4001"
+
+    volumes:
+      - firebase-data:/data
+      - firebase-cache:/home/node/.cache/firebase/emulators
+
+    networks:
+      - stagegate
+
+    stop_signal: SIGINT
+
+    stop_grace_period: 60s
+
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - |
+          const signal = AbortSignal.timeout(3000);
+          Promise.all([
+            fetch('http://127.0.0.1:9099/', { signal }),
+            fetch('http://127.0.0.1:8080/', { signal })
+          ]).then(async responses => {
+            await Promise.all(responses.map(
+              response => response.body?.cancel()
+            ));
+            process.exit(0);
+          }).catch(() => process.exit(1));
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+    develop:
+      watch:
+        - action: rebuild
+          path: ./infrastructure/firebase
+
+        - action: rebuild
+          path: ./infrastructure/docker/firebase
+
+  api:
+    <<: *development-service
+
+    command:
+      - npm
+      - run
+      - dev
+      - --workspace=@stagegate/api
+
+    env_file:
+      - ./infrastructure/docker/env/development.env
+
+    environment:
+      TURBO_TELEMETRY_DISABLED: "1"
+
+    ports:
+      - "127.0.0.1:4000:4000"
+
+    depends_on:
+      firebase:
+        condition: service_healthy
+
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - /workspace/infrastructure/docker/healthchecks/http-healthcheck.mjs
+        - http://127.0.0.1:4000/health/ready
+        - "200"
+        - "3000"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/api/src
+          target: /workspace/apps/api/src
+
+        - action: sync+restart
+          path: ./apps/api/tsconfig.json
+          target: /workspace/apps/api/tsconfig.json
+
+        - action: sync+restart
+          path: ./apps/api/tsconfig.build.json
+          target: /workspace/apps/api/tsconfig.build.json
+
+        - action: sync+restart
+          path: ./apps/api/nest-cli.json
+          target: /workspace/apps/api/nest-cli.json
+
+        - action: sync+restart
+          path: ./apps/api/test
+          target: /workspace/apps/api/test
+
+        - action: rebuild
+          path: ./infrastructure/docker/healthchecks
+
+        - *watch-packages
+        - *watch-root-manifest
+        - *watch-lockfile
+        - *watch-npmrc
+        - *watch-turbo
+        - *watch-contracts-manifest
+        - *watch-client-manifest
+        - *watch-typescript-manifest
+        - *watch-eslint-manifest
+        - *watch-web-manifest
+        - *watch-api-manifest
+        - *watch-admin-manifest
+        - *watch-worker-manifest
+        - *watch-development-image
+
+        # See Section 18.1 for the shared watch rules.
+
+  web:
+    <<: *development-service
+
+    command:
+      - /usr/local/bin/stagegate-web-dev
+
+    environment:
+      NODE_ENV: development
+
+      VITE_APP_NAME: StageGate
+      VITE_API_BASE_URL: http://localhost:4000/api/v1
+      VITE_APP_ENV: development
+      VITE_ENABLE_QUERY_DEVTOOLS: "true"
+
+      TURBO_TELEMETRY_DISABLED: "1"
+
+    ports:
+      - "127.0.0.1:3000:3000"
+
+    depends_on:
+      api:
+        condition: service_started
+
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - /workspace/infrastructure/docker/healthchecks/http-healthcheck.mjs
+        - http://127.0.0.1:3000/
+        - "200"
+        - "3000"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+
+    develop:
+      watch:
+        - action: sync
+          path: ./apps/web/src
+          target: /workspace/apps/web/src
+
+        - action: sync
+          path: ./apps/web/public
+          target: /workspace/apps/web/public
+
+        - action: sync+restart
+          path: ./apps/web/index.html
+          target: /workspace/apps/web/index.html
+
+        - action: sync+restart
+          path: ./apps/web/vite.config.ts
+          target: /workspace/apps/web/vite.config.ts
+
+        - action: sync+restart
+          path: ./apps/web/tsconfig.app.json
+          target: /workspace/apps/web/tsconfig.app.json
+
+        - action: sync+restart
+          path: ./apps/web/tsconfig.node.json
+          target: /workspace/apps/web/tsconfig.node.json
+
+        - action: rebuild
+          path: ./infrastructure/docker/healthchecks
+
+        - *watch-packages
+        - *watch-root-manifest
+        - *watch-lockfile
+        - *watch-npmrc
+        - *watch-turbo
+        - *watch-contracts-manifest
+        - *watch-client-manifest
+        - *watch-typescript-manifest
+        - *watch-eslint-manifest
+        - *watch-web-manifest
+        - *watch-api-manifest
+        - *watch-admin-manifest
+        - *watch-worker-manifest
+        - *watch-development-image
+
+networks:
+  stagegate:
+    driver: bridge
+
+volumes:
+  firebase-data:
+  firebase-cache:
