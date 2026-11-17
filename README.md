@@ -84,6 +84,16 @@ npm run typecheck
 npm run format:check
 ```
 
+## Quick Start with Docker
+
+```bash
+docker compose up --build --watch
+```
+
+Open http://localhost:3000.
+
+See the [Docker development guide](docs/development/docker.md) for additional commands and troubleshooting.
+
 ## Applications
 
 | Application | Workspace         |

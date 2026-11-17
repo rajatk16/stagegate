@@ -1,30 +1,39 @@
 import { z } from 'zod';
 
-const apiBaseUrlSchema = z.url().refine(
-  (value) => {
-    const url = URL.parse(value);
-    if (url === null) {
-      return false;
-    }
+const apiBaseUrlSchema = z
+  .string()
+  .transform((value) => value.replace(/\/+$/, ''))
+  .refine(
+    (value) => {
+      if (value === '/api/v1') {
+        return true;
+      }
 
-    return (
-      (url.protocol === 'http:' || url.protocol === 'https:') &&
-      url.username === '' &&
-      url.password === '' &&
-      url.search === '' &&
-      url.hash === ''
-    );
-  },
-  {
-    message: 'Expected an HTTP(S) API URL without credentials, query or fragment.',
-  },
-);
+      try {
+        const url = new URL(value);
 
-export const environmentSchema = z
+        return (
+          ['http:', 'https:'].includes(url.protocol) &&
+          url.username === '' &&
+          url.password === '' &&
+          url.search === '' &&
+          url.hash === '' &&
+          url.pathname === '/api/v1'
+        );
+      } catch {
+        return false;
+      }
+    },
+    {
+      message: 'API base URL must be /api/v1 or a valid HTTP(S) URL ending in /api/v1.',
+    },
+  );
+
+const environmentSchema = z
   .object({
-    VITE_APP_NAME: z.string().trim().min(1).default('StageGate'),
+    VITE_APP_NAME: z.string().min(1).default('StageGate'),
 
-    VITE_API_BASE_URL: apiBaseUrlSchema.transform((value) => value.replace(/\/+$/, '')),
+    VITE_API_BASE_URL: apiBaseUrlSchema,
 
     VITE_APP_ENV: z.enum(['development', 'test', 'staging', 'production']),
 
@@ -33,28 +42,30 @@ export const environmentSchema = z
       .default('false')
       .transform((value) => value === 'true'),
   })
-  .superRefine((value, context) => {
-    if (value.VITE_APP_ENV === 'production' && !value.VITE_API_BASE_URL.startsWith('https://')) {
+  .superRefine((environment, context) => {
+    if (
+      environment.VITE_APP_ENV === 'production' &&
+      environment.VITE_API_BASE_URL !== '/api/v1' &&
+      !environment.VITE_API_BASE_URL.startsWith('https://')
+    ) {
       context.addIssue({
         code: 'custom',
         path: ['VITE_API_BASE_URL'],
-        message: 'Production API URLs must use HTTPS.',
+        message: 'Production API URLs must use HTTPS or same-origin routing.',
       });
     }
   });
 
 export type Environment = z.infer<typeof environmentSchema>;
 
-export function parseEnvironment(input: unknown): Environment {
+export const parseEnvironment = (input: unknown): Environment => {
   const result = environmentSchema.safeParse(input);
 
   if (!result.success) {
-    const issues = result.error.issues
-      .map((issue) => `${issue.path.join('.')}: ${issue.message}`)
-      .join('\n');
+    const issues = result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`);
 
-    throw new Error(`Invalid StageGate environment configuration:\n${issues}`);
+    throw new Error(`Invalid frontend environment:\n${issues.join('\n')}`);
   }
 
   return result.data;
-}
+};

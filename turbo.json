@@ -14,7 +14,10 @@
     "packages/eslint-config/*.mjs",
     "packages/eslint-config/package.json",
     "prettier.config.mjs",
-    "scripts/typecheck-workspace.mjs"
+    "scripts/typecheck-workspace.mjs",
+    "infrastructure/docker/**/*.mjs",
+    "infrastructure/docker/**/Dockerfile",
+    "infrastructure/docker/**/*.sh"
   ],
   "globalEnv": ["NODE_ENV"],
   "tasks": {
@@ -58,41 +61,8 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
-    "test": {
-      "dependsOn": ["^build"],
-      "outputs": [],
-      "env": ["VITE_*"]
-    },
-    "test:coverage": {
-      "dependsOn": ["^build"],
-      "cache": false,
-      "persistent": true,
-      "outputs": ["coverage/**"],
-      "env": ["VITE_*"]
-    },
-    "test:integration": {
-      "dependsOn": ["build"],
-      "cache": false
-    },
-    "test:e2e": {
-      "dependsOn": ["build"],
-      "cache": false
-    },
     "clean": {
       "cache": false
-    },
-
-    "test:firebase": {
-      "dependsOn": ["build"],
-      "cache": false,
-      "env": [
-        "FIREBASE_MODE",
-        "FIREBASE_PROJECT_ID",
-        "FIRESTORE_EMULATOR_HOST",
-        "FIREBASE_AUTH_EMULATOR_HOST",
-        "FIREBASE_HEALTH_TIMEOUT_MS",
-        "FIREBASE_HEALTH_CACHE_TTL_MS"
-      ]
     }
   }
 }

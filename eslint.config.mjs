@@ -10,6 +10,7 @@ export default [
 
     files: [
       '*.mjs',
+      'infrastructure/**/*.mjs',
       'scripts/**/*.mjs',
       'packages/eslint-config/**/*.mjs',
       'apps/*/eslint.config.mjs',
