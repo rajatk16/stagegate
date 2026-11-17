@@ -4,11 +4,16 @@ import globals from 'globals';
 
 import { prettierConfig } from '@stagegate/eslint-config/base';
 import { createBoundaryConfig } from '@stagegate/eslint-config/boundaries';
-import { createTypeScriptConfig } from '@stagegate/eslint-config/typescript';
+import { createNodeConfig } from '@stagegate/eslint-config/node';
 
 export default [
-  ...createTypeScriptConfig({
+  ...createNodeConfig({
     tsconfigRootDir: import.meta.dirname,
+  }),
+  ...createBoundaryConfig({
+    repositoryRoot: resolve(import.meta.dirname, '../..'),
+    workspaceRoot: import.meta.dirname,
+    browser: true,
   }),
 
   {
@@ -22,12 +27,25 @@ export default [
       },
     },
   },
+  {
+    files: ['src/**/*.ts'],
 
-  ...createBoundaryConfig({
-    repositoryRoot: resolve(import.meta.dirname, '../..'),
-
-    workspaceRoot: import.meta.dirname,
-  }),
-
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            'node:*',
+            'firebase-admin',
+            'firebase-admin/*',
+            '@nestjs/*',
+            'react',
+            'react/*',
+            'axios',
+          ],
+        },
+      ],
+    },
+  },
   prettierConfig,
 ];

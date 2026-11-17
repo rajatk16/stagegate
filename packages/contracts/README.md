@@ -1,37 +1,33 @@
 # @stagegate/contracts
 
-Shared API contracts for StageGate applications.
+Shared StageGate API wire contracts.
 
 ## Responsibilities
 
-- Request contracts
-- Response contracts
-- Shared domain types
+- Runtime validation schemas
+- API response types
 - Error codes
 - Pagination contracts
-- Public API schemas
+- Shared identifiers
 
-## Consumers
+## Build
 
-- @stagegate/web
-- @stagegate/api
-- @stagegate/admin
-- @stagegate/worker
-- @stagegate/api-client
+```bash
+npm run build --workspace=@stagegate/contracts
+```
+
+## Test
+
+```bash
+npm run test --workspace=@stagegate/contracts
+```
 
 ## Rules
 
-- Must remain framework-independent.
-- Must not import application code.
-- Must not contain secrets.
-- Must not depend on Firebase Admin SDK.
-- Must not contain persistence implementations.
-- Must not expose internal database entities
-  as public API contracts.
+- No framework dependencies
+- No Firebase SDK dependencies
+- No persistence entities
+- No application-specific state
+- Import through the public package entry point
 
-## Status
-
-Workspace registered.
-
-Implementation is scheduled for
-Phase 1, PR 1.6.
+Both ESM and CommonJS consumers are supported.

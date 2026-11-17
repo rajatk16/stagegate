@@ -20,12 +20,12 @@ npm run firebase:emulators
 
 ## Ports
 
-| Service | Port |
-| --- | --- |
-| Firestore | 8080 |
-| Authentication | 9099 |
-| Emulator UI | 4001 |
-| Emulator Hub | 4400 |
+| Service          | Port |
+| ---------------- | ---- |
+| Firestore        | 8080 |
+| Authentication   | 9099 |
+| Emulator UI      | 4001 |
+| Emulator Hub     | 4400 |
 | Emulator logging | 4500 |
 
 ## Tests

@@ -11,9 +11,11 @@ import {
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 
+import { ApiErrorResponse } from '@stagegate/contracts';
+
 import { ERROR_CODES, HTTP_ERROR_CODES } from '../constants/errorCodes';
 import { ApiException } from '../exceptions/api.exception';
-import { ApiError, ApiErrorResponse } from '../interfaces/apiResponse.interface';
+import { ApiError } from '../interfaces/apiResponse.interface';
 import { REQUEST_ID_HEADER } from '../middlewares/requestContext.middleware';
 import { RequestContextService } from '../services/requestContext.service';
 

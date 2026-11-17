@@ -1,23 +1,53 @@
 {
   "name": "@stagegate/contracts",
   "version": "0.0.0",
-  "description": "Shared StageGate API contracts and domain types",
   "private": true,
   "license": "UNLICENSED",
+  "description": "Shared StageGate API contracts and runtime schemas",
   "type": "module",
-  "stagegate": {
-    "runtime": "universal"
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
   },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
   "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
     "lint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix --max-warnings=0",
-    "typecheck": "node ../../scripts/typecheck-workspace.mjs"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@stagegate/eslint-config": "*",
     "@stagegate/typescript-config": "*",
+    "@types/node": "24.10.0",
+    "@vitest/coverage-v8": "5.1.0",
     "eslint": "9.39.1",
-    "globals": "16.5.0",
-    "typescript": "5.9.3"
+    "tsup": "9.0.0",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "stagegate": {
+    "runtime": "universal"
   }
 }

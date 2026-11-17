@@ -35,9 +35,8 @@ export const configureApp = (app: NestExpressApplication): void => {
 
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 
-    allowedHeaders: ['Content-Type', 'Authorization'],
-
-    exposedHeaders: ['X-Request-Id'],
+    allowedHeaders: ['Accept', 'Content-Type', 'Authorization', 'X-Request-Id'],
+    exposedHeaders: ['X-Request-Id', 'Retry-After'],
 
     maxAge: 600,
   });

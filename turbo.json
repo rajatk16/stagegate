@@ -65,6 +65,8 @@
     },
     "test:coverage": {
       "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true,
       "outputs": ["coverage/**"],
       "env": ["VITE_*"]
     },

@@ -1,3 +1,4 @@
+import { ApiProvider } from '@/api/apiProvider';
 import { AppErrorBoundary } from '@/components/errors/AppErrorBoundary';
 import { Toaster } from '@/components/ui/Sonner';
 
@@ -9,10 +10,12 @@ import type { PropsWithChildren } from 'react';
 export const AppProviders = (props: PropsWithChildren) => (
   <AppErrorBoundary>
     <ThemeProvider>
-      <QueryProvider>
-        {props.children}
-        <Toaster />
-      </QueryProvider>
+      <ApiProvider>
+        <QueryProvider>
+          {props.children}
+          <Toaster />
+        </QueryProvider>
+      </ApiProvider>
     </ThemeProvider>
   </AppErrorBoundary>
 );
